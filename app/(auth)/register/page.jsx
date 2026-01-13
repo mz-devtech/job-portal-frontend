@@ -34,13 +34,18 @@ export default function RegisterPage() {
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
+      // Map fullName to name for backend
       const userData = {
-        ...data,
-        role: userType, // 'candidate' or 'employer'
+        name: data.fullName,
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        role: userType,
       };
-      
+
       await authService.register(userData);
-      // After successful registration, redirect to verify page
+
+      // Redirect to verification page
       router.push('/verify');
     } catch (error) {
       console.error('Registration error:', error);
@@ -92,6 +97,7 @@ export default function RegisterPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Full Name */}
         <div>
           <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
             Full Name *
@@ -116,6 +122,7 @@ export default function RegisterPage() {
           )}
         </div>
 
+        {/* Username */}
         <div>
           <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
             Username *
@@ -144,6 +151,7 @@ export default function RegisterPage() {
           )}
         </div>
 
+        {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
             Email address *
@@ -168,6 +176,7 @@ export default function RegisterPage() {
           )}
         </div>
 
+        {/* Password */}
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
             Password *
@@ -192,6 +201,7 @@ export default function RegisterPage() {
           )}
         </div>
 
+        {/* Confirm Password */}
         <div>
           <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
             Confirm Password *
@@ -214,6 +224,7 @@ export default function RegisterPage() {
           )}
         </div>
 
+        {/* Agree Terms */}
         <div className="flex items-center">
           <input
             id="agreeTerms"
@@ -234,6 +245,7 @@ export default function RegisterPage() {
           <p className="text-sm text-red-600">{errors.agreeTerms.message}</p>
         )}
 
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}

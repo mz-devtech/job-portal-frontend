@@ -1,7 +1,7 @@
 // utils/api.js
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://job-portal-backend-topaz-kappa.vercel.app/api';
 
 // Create axios instance
 const api = axios.create({
@@ -9,14 +9,18 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 15000, // 15 seconds timeout
 });
 
 // Add token to requests if it exists
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Check if we're in browser environment
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -29,13 +33,39 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
+    // Handle network errors
+    if (!error.response) {
+      console.error('Network error:', error.message);
+      return Promise.reject({
+        message: 'Network error. Please check your internet connection.',
+        isNetworkError: true,
+      });
+    }
+
+    const { status, data } = error.response;
+    
+    // Handle specific error statuses
+    if (status === 401 && typeof window !== 'undefined') {
+      // Unauthorized - token expired or invalid
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      
+      // Only redirect if not on auth pages
+      const currentPath = window.location.pathname;
+      const authRoutes = ['/login', '/register', '/verify', '/forgot-password', '/reset-password'];
+      
+      if (!authRoutes.some(route => currentPath.includes(route))) {
+        window.location.href = '/login?session_expired=true';
+      }
     }
-    return Promise.reject(error);
+
+    // Return a consistent error structure
+    return Promise.reject({
+      status,
+      message: data?.message || 'An error occurred',
+      errors: data?.errors,
+      data: data?.data,
+    });
   }
 );
 
