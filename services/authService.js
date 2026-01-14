@@ -4,24 +4,56 @@ import toast from 'react-hot-toast';
 
 export const authService = {
   // Register user - Updated for 6-digit token
+  // Register user
   async register(userData) {
     try {
+      console.log("Registering user:", userData);
+      
       const response = await api.post('/auth/register', userData);
       
-      // Store email for verification
-      if (typeof window !== 'undefined' && response.data.data?.email) {
-        localStorage.setItem('userEmail', response.data.data.email);
+      if (response.data.success) {
+        // Store email for verification
+        if (typeof window !== 'undefined' && response.data.data?.email) {
+          localStorage.setItem('userEmail', response.data.data.email);
+          localStorage.removeItem('registerError'); // Clear any previous errors
+        }
+        
+        toast.success(response.data.message || 'Registration successful! Check email for verification.');
+        return response.data;
+      } else {
+        throw new Error(response.data.message || 'Registration failed');
+      }
+    } catch (error) {
+      console.error("Registration error in service:", error);
+      
+      // Store error message for debugging
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('registerError', JSON.stringify({
+          message: error.message,
+          timestamp: new Date().toISOString()
+        }));
       }
       
-      toast.success('Registration successful! Check your email for the 6-digit verification code.');
-      return response.data;
-    } catch (error) {
-      const message = error.response?.data?.message || 'Registration failed';
-      toast.error(message);
+      let errorMessage = 'Registration failed. Please try again.';
+      
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        errorMessage = error.response.data?.message || 
+                      error.response.data?.errors?.[0] || 
+                      'Registration failed';
+        
+        if (error.response.status === 400) {
+          errorMessage = errorMessage || 'Invalid registration data';
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      
+      toast.error(errorMessage);
       throw error;
     }
   },
-
   // Login user
   async login(credentials) {
     try {
