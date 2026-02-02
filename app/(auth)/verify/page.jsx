@@ -18,14 +18,19 @@ export default function VerifyPage() {
 
   useEffect(() => {
     // Get stored email on component mount
-    const storedEmail = authService.getStoredEmail();
+    const storedEmail = localStorage.getItem('userEmail');
     if (storedEmail) {
       setEmail(storedEmail);
+      console.log('📧 [VerifyPage] Found stored email:', storedEmail);
+    } else {
+      console.error('❌ [VerifyPage] No email found in localStorage');
+      toast.error('No registration session found. Please register again.');
+      setTimeout(() => router.push('/register'), 2000);
     }
     
     // Initialize refs for inputs
     inputsRef.current = inputsRef.current.slice(0, 6);
-  }, []);
+  }, [router]);
 
   // Countdown timer for resend
   useEffect(() => {
@@ -37,18 +42,16 @@ export default function VerifyPage() {
   }, [countdown]);
 
   const handleChange = (index, value) => {
-    if (!/^\d?$/.test(value)) return; // Only allow digits
+    if (!/^\d?$/.test(value)) return;
     
     const newCode = [...code];
     newCode[index] = value;
     setCode(newCode);
     
-    // Auto-focus next input
     if (value !== '' && index < 5) {
       inputsRef.current[index + 1]?.focus();
     }
     
-    // Auto-submit if all digits are filled
     if (value !== '' && index === 5 && newCode.every(digit => digit !== '')) {
       handleSubmitAuto(newCode.join(''));
     }
@@ -57,10 +60,8 @@ export default function VerifyPage() {
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace') {
       if (code[index] === '' && index > 0) {
-        // Move to previous input
         inputsRef.current[index - 1]?.focus();
       } else if (code[index] !== '') {
-        // Clear current input
         const newCode = [...code];
         newCode[index] = '';
         setCode(newCode);
@@ -78,11 +79,7 @@ export default function VerifyPage() {
     if (pastedData.length === 6 && /^\d+$/.test(pastedData)) {
       const digits = pastedData.split('');
       setCode(digits);
-      
-      // Focus last input
       inputsRef.current[5]?.focus();
-      
-      // Auto-submit
       setTimeout(() => handleSubmitAuto(pastedData), 100);
     } else {
       toast.error('Please paste a valid 6-digit code');
@@ -95,32 +92,41 @@ export default function VerifyPage() {
       return;
     }
 
-    if (isVerified) {
-      return; // Prevent multiple submissions
-    }
+    if (isVerified) return;
 
     setIsLoading(true);
 
     try {
-      // This verifies email but DOES NOT store token
-      await authService.verifyEmail({
-        token: verificationCode,
+      console.log('🔄 [VerifyPage] Verifying with:', {
+        code: verificationCode,
         email: email
       });
 
+      // FIXED: Send BOTH code and email
+      const result = await authService.verifyEmail({
+        code: verificationCode,  // Send as 'code' not 'token'
+        email: email              // Send email explicitly
+      });
+
+      console.log('✅ [VerifyPage] Verification successful:', result);
+
       setIsVerified(true);
-      toast.success('Email verified successfully!');
       
       // Clear stored email
       localStorage.removeItem('userEmail');
+      localStorage.removeItem('registerError');
       
-      // Redirect to login immediately (no delay)
-      router.push('/login');
+      // toast.success('Email verified successfully! Please login with your credentials.');
+      
+      setTimeout(() => {
+        router.push('/login');
+      }, 1500);
       
     } catch (error) {
-      // Clear code on error for better UX
+      console.error('❌ [VerifyPage] Verification error:', error);
       setCode(['', '', '', '', '', '']);
       inputsRef.current[0]?.focus();
+      toast.error(error.message || 'Verification failed. Please try again.');
       setIsLoading(false);
     }
   };
@@ -149,16 +155,29 @@ export default function VerifyPage() {
     }
 
     try {
+      console.log('🔄 [VerifyPage] Resending code to:', email);
       await authService.resendVerification({ email });
-      setCountdown(60); // 60 seconds cooldown
-      
-      // Clear and refocus inputs
+      setCountdown(60);
       setCode(['', '', '', '', '', '']);
       inputsRef.current[0]?.focus();
+      toast.success('New verification code sent to your email!');
     } catch (error) {
-      // Error is already handled by authService
+      console.error('❌ [VerifyPage] Resend error:', error);
+      toast.error(error.message || 'Failed to resend verification code');
     }
   };
+
+  // If no email found, show loading/redirect
+  if (!email) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading verification session...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -175,29 +194,13 @@ export default function VerifyPage() {
           <p className="mt-2 text-sm text-gray-600">
             Enter the 6-digit verification code sent to
           </p>
-          <p className="font-medium text-gray-900">{email || 'your email address'}</p>
+          <p className="font-medium text-gray-900 break-words">{email}</p>
+          <p className="mt-1 text-xs text-gray-500">
+            Check your inbox and spam folder
+          </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {/* Email input for manual entry if needed */}
-          {!authService.getStoredEmail() && (
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your email"
-                disabled={isLoading || isVerified}
-              />
-            </div>
-          )}
-
           {/* 6-digit code input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-4">
@@ -216,7 +219,6 @@ export default function VerifyPage() {
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   disabled={isLoading || isVerified}
                   className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label={`Digit ${index + 1} of verification code`}
                 />
               ))}
             </div>
@@ -244,7 +246,7 @@ export default function VerifyPage() {
                   <svg className="w-5 h-5 mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-                  Verified!
+                  Verified! Redirecting...
                 </span>
               ) : (
                 'Verify Email'
@@ -256,25 +258,31 @@ export default function VerifyPage() {
                 type="button"
                 onClick={handleResendCode}
                 disabled={countdown > 0 || isLoading || isVerified}
-                className="text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
+                className="text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 {countdown > 0 ? `Resend code in ${countdown}s` : "Didn't receive a code? Resend"}
               </button>
               
-              <p className="text-xs text-gray-500">
-                The code will expire in 10 minutes
-              </p>
-              
-              <div className="pt-4 border-t border-gray-200">
+              <div className="pt-4 border-t border-gray-200 space-y-2">
                 <p className="text-sm text-gray-600">
                   Wrong email?{' '}
-                  <Link href="/register" className="font-medium text-blue-600 hover:text-blue-800">
-                    Go back to register
+                  <Link 
+                    href="/register" 
+                    className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                    onClick={() => {
+                      localStorage.removeItem('userEmail');
+                      localStorage.removeItem('userRole');
+                    }}
+                  >
+                    Register again
                   </Link>
                 </p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-600">
                   Already verified?{' '}
-                  <Link href="/login" className="font-medium text-blue-600 hover:text-blue-800">
+                  <Link 
+                    href="/login" 
+                    className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                  >
                     Log in here
                   </Link>
                 </p>

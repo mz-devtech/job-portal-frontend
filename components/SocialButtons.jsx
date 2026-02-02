@@ -1,37 +1,67 @@
-// components/SocialButtons.jsx
+'use client';
+
 import React from 'react';
-import { FaFacebook, FaGoogle } from 'react-icons/fa';
+import { FaFacebookF, FaGoogle } from 'react-icons/fa';
+import { authService } from '@/services/authService';
 
-const SocialButtons = ({ type = 'signup' }) => {
+const SocialButtons = ({ type = 'signup', userType = 'candidate' }) => {
+  const isSignup = type === 'signup';
+
+  const handleGoogleAuth = () => {
+    if (isSignup) {
+      authService.googleSignup(userType);
+    } else {
+      authService.googleAuth(userType);
+    }
+  };
+
+  const handleFacebookAuth = () => {
+    if (isSignup) {
+      authService.facebookSignup(userType);
+    } else {
+      authService.facebookAuth(userType);
+    }
+  };
+
   return (
-    <div className="mt-8">
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300"></div>
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">
-            Or continue with
-          </span>
-        </div>
+    <div className="mt-6 pt-5 border-t border-gray-200">
+      {/* OR */}
+      <div className="flex items-center justify-center mb-4">
+        <span className="text-xs text-gray-500 font-medium uppercase">
+          OR
+        </span>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-3">
+      {/* Buttons */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Facebook */}
         <button
           type="button"
-          className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          onClick={handleFacebookAuth}
+          className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors hover:border-blue-500"
         >
-          <FaFacebook className="w-5 h-5 text-blue-600 mr-2" />
-          {type === 'signup' ? 'Sign up' : 'Sign in'} with Facebook
+          <FaFacebookF className="text-blue-600 text-lg" />
+          <span>
+            {isSignup ? 'Sign up with Facebook' : 'Sign in with Facebook'}
+          </span>
         </button>
+
+        {/* Google */}
         <button
           type="button"
-          className="w-full inline-flex justify-center items-center py-3 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          onClick={handleGoogleAuth}
+          className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors hover:border-red-500"
         >
-          <FaGoogle className="w-5 h-5 text-red-600 mr-2" />
-          {type === 'signup' ? 'Sign up' : 'Sign in'} with Google
+          <FaGoogle className="text-red-500 text-lg" />
+          <span>
+            {isSignup ? 'Sign up with Google' : 'Sign in with Google'}
+          </span>
         </button>
       </div>
+      
+      <p className="mt-3 text-center text-xs text-gray-500">
+        By continuing, you agree to our Terms and Privacy Policy
+      </p>
     </div>
   );
 };

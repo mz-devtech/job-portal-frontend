@@ -1,17 +1,20 @@
-// app/(auth)/login/page.jsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
 import SocialButtons from '@/components/SocialButtons';
-import { authService } from '@/services/authService';
+import { loginUser, selectIsLoading, selectError, clearError } from '@/redux/slices/userSlice';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
-
+  const dispatch = useDispatch();
+  
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
+  
   const {
     register,
     handleSubmit,
@@ -24,16 +27,31 @@ export default function LoginPage() {
     },
   });
 
+  // Clear any existing errors when component mounts
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
   const onSubmit = async (data) => {
-    setIsLoading(true);
     try {
-      await authService.login(data);
-      // Redirect to dashboard after successful login
-      router.push('/dashboard');
+      const result = await dispatch(loginUser(data)).unwrap();
+      
+      // Redirect based on user role or to default dashboard
+      if (result.isAuthenticated) {
+        // Check user role for redirection
+        const userRole = result.role || result.user?.role;
+        
+        if (userRole === 'admin') {
+          router.push('/admin/dashboard');
+        } else if (userRole === 'employer') {
+          router.push('/employer/dashboard');
+        } else {
+          router.push('/dashboard'); // Default for candidates
+        }
+      }
     } catch (error) {
       console.error('Login error:', error);
-    } finally {
-      setIsLoading(false);
+      // Error is already handled in the slice
     }
   };
 
@@ -50,6 +68,13 @@ export default function LoginPage() {
           </Link>
         </p>
       </div>
+
+      {/* Display Redux error */}
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          {error}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>

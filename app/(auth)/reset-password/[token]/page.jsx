@@ -1,31 +1,59 @@
-// app/(auth)/reset-password/page.jsx
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const params = useParams();
+  const token = params.token; // 👈 URL token
+
   const [formData, setFormData] = useState({
     newPassword: '',
     confirmPassword: '',
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (formData.newPassword !== formData.confirmPassword) {
       alert("Passwords don't match!");
       return;
     }
-    console.log('Resetting password:', formData);
-    // Add reset password logic here
-    router.push('/login');
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password/${token}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            password: formData.newPassword,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || 'Something went wrong');
+        return;
+      }
+
+      alert('Password reset successful');
+      router.push('/login');
+    } catch (error) {
+      console.error(error);
+      alert('Server error');
+    }
   };
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -36,36 +64,32 @@ export default function ResetPasswordPage() {
           Reset Password
         </h1>
         <p className="text-gray-600 text-sm">
-          Data from Internet must, if someone was conscious and requests a related view must at one node.
+          Enter a new password for your account.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             New Password
           </label>
           <input
-            id="newPassword"
             type="password"
             required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            placeholder="Enter new password"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg"
             value={formData.newPassword}
             onChange={(e) => handleChange('newPassword', e.target.value)}
           />
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
             Confirm Password
           </label>
           <input
-            id="confirmPassword"
             type="password"
             required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            placeholder="Confirm new password"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg"
             value={formData.confirmPassword}
             onChange={(e) => handleChange('confirmPassword', e.target.value)}
           />
@@ -73,7 +97,7 @@ export default function ResetPasswordPage() {
 
         <button
           type="submit"
-          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-4 rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all"
+          className="w-full bg-blue-600 text-white py-3 rounded-lg"
         >
           Reset Password
         </button>
