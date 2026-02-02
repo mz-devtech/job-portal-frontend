@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { FiMenu, FiX, FiPhone, FiChevronDown } from "react-icons/fi";
+import Link from "next/link";
 
 const languages = [
   { label: "English", flag: "https://flagcdn.com/w20/us.png" },
@@ -45,12 +46,12 @@ const CandidateNavbar = () => {
   }, []);
 
   const navItems = [
-    "Home",
-    "Find Job",
-    "Find Employers",
-    "Dashboard",
-    "Job Alerts",
-    "Customer Supports",
+    { label: "Home", href: "/" },
+    { label: "Find Job", href: "/jobs" },
+    { label: "Find Employers", href: "/employers" },
+    { label: "Dashboard", href: "/candidate/dashboard" },
+    { label: "Job Alerts", href: "/candidate/alerts" },
+    { label: "Customer Support", href: "/support" },
   ];
 
   return (
@@ -60,23 +61,25 @@ const CandidateNavbar = () => {
         {/* LEFT SECTION */}
         <div className="flex h-full items-center gap-6 md:gap-10">
           {/* Logo */}
-          <span className="text-lg font-bold text-blue-600 sm:text-xl">
+          <Link href="/" className="text-lg font-bold text-blue-600 sm:text-xl hover:text-blue-700">
             JobPortal
-          </span>
+          </Link>
 
           {/* Desktop Navigation - Hidden on mobile */}
           <ul className="hidden h-full md:flex">
             {navItems.map((item) => (
-              <li
-                key={item}
-                className={`relative flex h-full items-center px-3 text-sm cursor-pointer transition-colors duration-200
-                ${
-                  item === "Home"
-                    ? "text-blue-600 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-blue-600"
-                    : "text-gray-700 hover:text-blue-600 hover:after:absolute hover:after:bottom-0 hover:after:left-0 hover:after:h-[2px] hover:after:w-full hover:after:bg-blue-600"
-                }`}
-              >
-                {item}
+              <li key={item.label}>
+                <Link
+                  href={item.href}
+                  className={`relative flex h-full items-center px-3 text-sm cursor-pointer transition-colors duration-200
+                    ${
+                      item.label === "Home"
+                        ? "text-blue-600 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-blue-600"
+                        : "text-gray-700 hover:text-blue-600 hover:after:absolute hover:after:bottom-0 hover:after:left-0 hover:after:h-[2px] hover:after:w-full hover:after:bg-blue-600"
+                    }`}
+                >
+                  {item.label}
+                </Link>
               </li>
             ))}
           </ul>
@@ -109,7 +112,7 @@ const CandidateNavbar = () => {
             </button>
 
             {langOpen && (
-              <ul className="absolute right-0 mt-2 w-40 rounded-lg border border-gray-200 bg-white shadow-lg">
+              <ul className="absolute right-0 mt-2 w-40 rounded-lg border border-gray-200 bg-white shadow-lg z-50">
                 {languages.map((lang) => (
                   <li
                     key={lang.label}
@@ -161,16 +164,18 @@ const CandidateNavbar = () => {
             {/* Mobile Navigation Items */}
             <ul className="space-y-1">
               {navItems.map((item) => (
-                <li
-                  key={item}
-                  className={`rounded-lg px-4 py-3 text-base font-medium ${
-                    item === "Home"
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <button className="w-full text-left">{item}</button>
+                <li key={item.label}>
+                  <Link
+                    href={item.href}
+                    className={`block rounded-lg px-4 py-3 text-base font-medium ${
+                      item.label === "Home"
+                        ? "bg-blue-50 text-blue-600"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>

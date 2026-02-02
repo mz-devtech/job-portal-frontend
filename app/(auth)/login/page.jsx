@@ -42,11 +42,11 @@ export default function LoginPage() {
         const userRole = result.role || result.user?.role;
         
         if (userRole === 'admin') {
-          router.push('/admin/dashboard');
+          router.push('/');
         } else if (userRole === 'employer') {
-          router.push('/employer/dashboard');
+          router.push('/');
         } else {
-          router.push('/dashboard'); // Default for candidates
+          router.push('/'); // Default for candidates
         }
       }
     } catch (error) {

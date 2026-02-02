@@ -4,17 +4,27 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ReactCountryFlag from "react-country-flag";
-import { ChevronDown, Briefcase, Search, Menu, X, User, Globe } from "lucide-react";
+import { ChevronDown, Briefcase, Search, Menu, X, User, Globe, LogOut, Settings, Bell, FileText, Building, CreditCard } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { selectUser, logoutUser, selectRole } from "@/redux/slices/userSlice";
+import Image from "next/image";
 
 export default function SecondNavbar() {
   const [country, setCountry] = useState({ code: "IN", name: "India" });
   const [countryOpen, setCountryOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const countryDropdownRef = useRef(null);
+  const profileDropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const router = useRouter();
+  
+  const dispatch = useDispatch();
+  const user = useSelector(selectUser);
+  const role = useSelector(selectRole);
+  const isAuthenticated = !!user;
 
   const countries = [
     { code: "IN", name: "India" },
@@ -34,6 +44,9 @@ export default function SecondNavbar() {
     const handleClickOutside = (e) => {
       if (countryDropdownRef.current && !countryDropdownRef.current.contains(e.target)) {
         setCountryOpen(false);
+      }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
+        setProfileOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -59,15 +72,34 @@ export default function SecondNavbar() {
     }
   };
 
-  // Handle Sign In click - goes to register page
-  const handleSignIn = () => {
-    router.push("/login");
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap();
+      setProfileOpen(false);
+      setMobileMenuOpen(false);
+      router.push("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
-  // Handle Post A Job click - goes to register page
-  const handlePostJob = () => {
-    router.push("/register");
-  };
+  // Define role-based profile items
+  const candidateProfileItems = [
+    { label: "My Profile", href: "/candidate/profile", icon: <User className="h-4 w-4" /> },
+    { label: "My Resume", href: "/candidate/resume", icon: <FileText className="h-4 w-4" /> },
+    { label: "Notifications", href: "/candidate/notifications", icon: <Bell className="h-4 w-4" /> },
+    { label: "Settings", href: "/candidate/settings", icon: <Settings className="h-4 w-4" /> },
+  ];
+
+  const employerProfileItems = [
+    { label: "Company Profile", href: "/employer/company-profile", icon: <Building className="h-4 w-4" /> },
+    { label: "Post Job", href: "/employer/post-job", icon: <FileText className="h-4 w-4" /> },
+    { label: "My Jobs", href: "/employer/jobs", icon: <Briefcase className="h-4 w-4" /> },
+    { label: "Billing", href: "/employer/billing", icon: <CreditCard className="h-4 w-4" /> },
+    { label: "Settings", href: "/employer/settings", icon: <Settings className="h-4 w-4" /> },
+  ];
+
+  const profileItems = role === "employer" ? employerProfileItems : candidateProfileItems;
 
   return (
     <nav className="w-full border-b border-gray-200 bg-white sticky top-0 z-40">
@@ -247,51 +279,97 @@ export default function SecondNavbar() {
 
             {/* Desktop Actions */}
             <div className="hidden sm:flex items-center gap-4">
-              {/* Sign In button - goes to register page */}
-              <button
-                onClick={handleSignIn}
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-              >
-                <User className="h-4 w-4" />
-                Sign In
-              </button>
+              {/* If user is authenticated, show profile dropdown */}
+              {isAuthenticated ? (
+                <div ref={profileDropdownRef} className="relative">
+                  <button
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {/* Profile Image/Icon */}
+                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                      {user?.avatar ? (
+                        <img 
+                          src={user.avatar} 
+                          alt={user.name} 
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-4 w-4 text-blue-600" />
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-gray-900">{user?.name || "User"}</p>
+                      <p className="text-xs text-gray-500 capitalize">{role || "User"}</p>
+                    </div>
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform duration-200 ${
+                        profileOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
-              {/* Post A Job button - goes to register page */}
-              <button
-                onClick={handlePostJob}
-                className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
-                Post A Job
-              </button>
+                  {profileOpen && (
+                    <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border border-gray-200 bg-white shadow-xl">
+                      {/* User Info */}
+                      <div className="p-4 border-b">
+                        <p className="font-medium text-gray-900">{user?.name || "User"}</p>
+                        <p className="text-sm text-gray-500">{user?.email || "user@example.com"}</p>
+                        <p className="text-xs text-blue-600 font-medium mt-1 capitalize">
+                          {role === "employer" ? "Employer Account" : "Candidate Account"}
+                        </p>
+                      </div>
+                      
+                      {/* Profile Links */}
+                      <div className="p-2">
+                        {profileItems.map((item) => (
+                          <Link
+                            key={item.label}
+                            href={item.href}
+                            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                            onClick={() => setProfileOpen(false)}
+                          >
+                            {item.icon}
+                            {item.label}
+                          </Link>
+                        ))}
+                      </div>
+                      
+                      {/* Logout */}
+                      <div className="border-t p-2">
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* If user is not authenticated, show Sign In and Post Job buttons */
+                <>
+                  {/* Sign In button */}
+                  <button
+                    onClick={() => router.push("/login")}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                  >
+                    <User className="h-4 w-4" />
+                    Sign In
+                  </button>
+
+                  {/* Post A Job button */}
+                  <button
+                    onClick={() => router.push("/register")}
+                    className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                  >
+                    Post A Job
+                  </button>
+                </>
+              )}
             </div>
-
-            {/* Mobile Actions (when menu is open) */}
-            {mobileMenuOpen && (
-              <div className="absolute right-4 top-14 flex flex-col gap-2 rounded-lg border border-gray-200 bg-white p-3 shadow-lg sm:hidden">
-                {/* Sign In button - goes to register page */}
-                <button
-                  onClick={() => {
-                    handleSignIn();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
-                >
-                  <User className="h-4 w-4" />
-                  Sign In
-                </button>
-                
-                {/* Post A Job button - goes to register page */}
-                <button
-                  onClick={() => {
-                    handlePostJob();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                >
-                  Post A Job
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -351,6 +429,91 @@ export default function SecondNavbar() {
           className="fixed inset-0 top-16 z-30 hidden sm:block"
           onClick={() => setCountryOpen(false)}
         />
+      )}
+
+      {/* Mobile Menu Content */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-x-0 top-14 z-40 bg-white shadow-xl sm:hidden animate-slideDown">
+          <div className="border-t border-gray-200 px-4 py-3">
+            {/* User Info if authenticated */}
+            {isAuthenticated && (
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                    {user?.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt={user.name} 
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-6 w-6 text-blue-600" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">{user?.name || "User"}</p>
+                    <p className="text-sm text-gray-500">{user?.email || "user@example.com"}</p>
+                    <p className="text-xs text-blue-600 font-medium mt-1 capitalize">
+                      {role === "employer" ? "Employer Account" : "Candidate Account"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Mobile Profile Links if authenticated */}
+            {isAuthenticated && (
+              <div className="mb-4">
+                <p className="px-2 text-sm font-medium text-gray-500 mb-2">My Account</p>
+                {profileItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-gray-700 hover:bg-gray-50"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Mobile Actions */}
+            <div className="space-y-3 border-t border-gray-200 pt-4">
+              {!isAuthenticated ? (
+                <>
+                  <button
+                    onClick={() => {
+                      router.push("/login");
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push("/register");
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full rounded-lg border-2 border-blue-600 px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                  >
+                    Post A Job
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center justify-center gap-2 w-full rounded-lg px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </nav>
   );
