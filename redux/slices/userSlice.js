@@ -67,7 +67,10 @@ export const loginUser = createAsyncThunk(
   'user/login',
   async (credentials, { rejectWithValue }) => {
     try {
+<<<<<<< HEAD
       console.log('🔐 [USER SLICE] User attempting login');
+=======
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       const response = await authService.login(credentials);
       const { token, user } = response.data || response;
       
@@ -82,11 +85,23 @@ export const loginUser = createAsyncThunk(
       // Store in cookies
       setUserCookies(userData);
       
+<<<<<<< HEAD
       console.log('✅ [USER SLICE] Login successful, user data stored');
       return userData;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Login failed';
       console.error('❌ [USER SLICE] Login failed:', errorMessage);
+=======
+      // Also keep in localStorage for backward compatibility
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+      }
+      
+      return userData;
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Login failed';
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       return rejectWithValue(errorMessage);
     }
   }
@@ -97,6 +112,7 @@ export const logoutUser = createAsyncThunk(
   'user/logout',
   async (_, { rejectWithValue }) => {
     try {
+<<<<<<< HEAD
       console.log('🚪 [USER SLICE] User logging out');
       authService.logout(true);
       clearUserCookies();
@@ -105,16 +121,35 @@ export const logoutUser = createAsyncThunk(
       return null;
     } catch (error) {
       console.error('❌ [USER SLICE] Logout failed:', error);
+=======
+      authService.logout();
+      clearUserCookies();
+      
+      // Clear localStorage as well
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userEmail');
+      }
+      
+      return null;
+    } catch (error) {
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       return rejectWithValue('Logout failed');
     }
   }
 );
 
+<<<<<<< HEAD
 // Async thunk for loading user from storage - FIXED: Strict validation
+=======
+// Async thunk for loading user from storage
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
 export const loadUserFromStorage = createAsyncThunk(
   'user/loadFromStorage',
   async (_, { rejectWithValue }) => {
     try {
+<<<<<<< HEAD
       console.log('🔍 [USER SLICE] Loading user from storage');
       
       // Only run on client side
@@ -193,6 +228,41 @@ export const loadUserFromStorage = createAsyncThunk(
         localStorage.removeItem('user');
       }
       clearUserCookies();
+=======
+      // First try to get from cookies
+      const userFromCookies = getUserFromCookies();
+      
+      if (userFromCookies) {
+        return {
+          ...userFromCookies,
+          isAuthenticated: true,
+        };
+      }
+      
+      // Fallback to localStorage (for backward compatibility)
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        const userStr = localStorage.getItem('user');
+        
+        if (token && userStr) {
+          const user = JSON.parse(userStr);
+          const userData = {
+            ...user,
+            token,
+            isAuthenticated: true,
+          };
+          
+          // Migrate to cookies
+          setUserCookies(userData);
+          return userData;
+        }
+      }
+      
+      // No user found
+      return null;
+    } catch (error) {
+      console.error('Error loading user from storage:', error);
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       return rejectWithValue('Failed to load user data');
     }
   }
@@ -296,13 +366,19 @@ const userSlice = createSlice({
         state.token = action.payload.token;
         state.role = action.payload.role;
         state.lastUpdated = new Date().toISOString();
+<<<<<<< HEAD
         console.log('✅ [USER SLICE] Login state updated');
+=======
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
         state.isAuthenticated = false;
+<<<<<<< HEAD
         console.log('❌ [USER SLICE] Login rejected:', action.payload);
+=======
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       })
       
       // Logout cases
@@ -317,12 +393,18 @@ const userSlice = createSlice({
         state.isLoading = false;
         state.error = null;
         state.lastUpdated = null;
+<<<<<<< HEAD
         console.log('✅ [USER SLICE] Logout state updated');
+=======
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+<<<<<<< HEAD
         console.log('❌ [USER SLICE] Logout rejected:', action.payload);
+=======
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       })
       
       // Load user from storage cases
@@ -337,20 +419,29 @@ const userSlice = createSlice({
           state.role = action.payload.role;
           state.isAuthenticated = true;
           state.lastUpdated = new Date().toISOString();
+<<<<<<< HEAD
           console.log('✅ [USER SLICE] User loaded from storage');
+=======
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
         } else {
           state.user = null;
           state.token = null;
           state.role = null;
           state.isAuthenticated = false;
+<<<<<<< HEAD
           console.log('❌ [USER SLICE] No user found in storage');
+=======
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
         }
       })
       .addCase(loadUserFromStorage.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
         state.isAuthenticated = false;
+<<<<<<< HEAD
         console.log('❌ [USER SLICE] Load user rejected:', action.payload);
+=======
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       })
       
       // Update profile cases

@@ -27,6 +27,7 @@ export default function LoginPage() {
     },
   });
 
+<<<<<<< HEAD
   // Check if user needs verification
   useEffect(() => {
     dispatch(clearError());
@@ -43,10 +44,16 @@ export default function LoginPage() {
         console.log('✅ User just verified email, can now login');
       }
     }
+=======
+  // Clear any existing errors when component mounts
+  useEffect(() => {
+    dispatch(clearError());
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
   }, [dispatch]);
 
   const onSubmit = async (data) => {
     try {
+<<<<<<< HEAD
       console.log('🔐 [LoginPage] User attempting login');
       const result = await dispatch(loginUser(data)).unwrap();
       
@@ -62,17 +69,33 @@ export default function LoginPage() {
         // Redirect based on user role
         const userRole = result.role || result.user?.role;
         console.log(`📍 [LoginPage] Redirecting ${userRole} user`);
+=======
+      const result = await dispatch(loginUser(data)).unwrap();
+      
+      // Redirect based on user role or to default dashboard
+      if (result.isAuthenticated) {
+        // Check user role for redirection
+        const userRole = result.role || result.user?.role;
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
         
         if (userRole === 'admin') {
           router.push('/');
         } else if (userRole === 'employer') {
           router.push('/');
         } else {
+<<<<<<< HEAD
           router.push('/');
         }
       }
     } catch (error) {
       console.error('❌ [LoginPage] Login error:', error);
+=======
+          router.push('/'); // Default for candidates
+        }
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       // Error is already handled in the slice
     }
   };
@@ -184,12 +207,16 @@ export default function LoginPage() {
         </button>
       </form>
 
+<<<<<<< HEAD
       <div className="mt-6 pt-6 border-t border-gray-200">
         <p className="text-center text-sm text-gray-600 mb-4">
           Or continue with
         </p>
         <SocialButtons type="signin" />
       </div>
+=======
+      <SocialButtons type="signin" />
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
     </>
   );
 }

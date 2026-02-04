@@ -48,8 +48,13 @@ const CandidateNavbar = () => {
   const navItems = [
     { label: "Home", href: "/" },
     { label: "Find Job", href: "/jobs" },
+<<<<<<< HEAD
     { label: "Find Employers", href: "/find-employers" },
     { label: "Dashboard", href: "/overview" },
+=======
+    { label: "Find Employers", href: "/employers" },
+    { label: "Dashboard", href: "/candidate/dashboard" },
+>>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
     { label: "Job Alerts", href: "/candidate/alerts" },
     { label: "Customer Support", href: "/support" },
   ];
