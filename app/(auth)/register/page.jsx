@@ -1,10 +1,6 @@
 'use client';
 
-<<<<<<< HEAD
 import React, { useState, useEffect } from 'react';
-=======
-import React, { useState } from 'react';
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -31,7 +27,6 @@ export default function RegisterPage() {
 
   const password = watch('password');
 
-<<<<<<< HEAD
   // Clear any existing auth data on component mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -43,15 +38,11 @@ export default function RegisterPage() {
     }
   }, []);
 
-=======
- 
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
   const onSubmit = async (data) => {
     setIsLoading(true);
     setServerError('');
     
     try {
-<<<<<<< HEAD
       console.log('=== REGISTRATION START ===');
       
       // Double-check: clear any existing auth data
@@ -60,11 +51,10 @@ export default function RegisterPage() {
         localStorage.removeItem('user');
         localStorage.removeItem('userRole');
       }
-=======
+      
       console.log('=== FRONTEND REGISTRATION DATA ===');
       console.log('User Type Selected:', userType);
       console.log('Form Data:', data);
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       
       const registrationData = {
         name: data.fullName,
@@ -74,8 +64,7 @@ export default function RegisterPage() {
         role: userType,
       };
       
-<<<<<<< HEAD
-      console.log('Registration data:', registrationData);
+      console.log('Data being sent to backend:', registrationData);
       
       // Call registration service
       const result = await authService.register(registrationData);
@@ -85,30 +74,22 @@ export default function RegisterPage() {
       // Clear form
       reset();
       
-      // IMPORTANT: Store ONLY email for verification, NO token
+      // Store email and role for verification
       if (typeof window !== 'undefined') {
         localStorage.setItem('userEmail', data.email);
         localStorage.setItem('userRole', userType);
-        // Ensure no token is stored
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        console.log('📧 [RegisterPage] Stored email for verification, no token stored');
+        // Ensure no token is stored if not provided
+        if (!result.token) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+        console.log('📧 [RegisterPage] Stored email for verification');
       }
       
       // Redirect to verification page
       setTimeout(() => {
         router.push('/verify');
       }, 500);
-=======
-      console.log('Data being sent to backend:', registrationData);
-      
-      const result = await authService.register(registrationData);
-      
-      console.log('Registration response:', result);
-      
-      reset();
-      router.push('/verify');
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       
     } catch (error) {
       console.error('Registration error:', error);
@@ -340,12 +321,9 @@ export default function RegisterPage() {
           )}
         </div>
 
-<<<<<<< HEAD
-=======
         {/* Hidden role field - will be overridden by state */}
         <input type="hidden" {...register('role')} value={userType} />
 
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
         {/* Terms */}
         <div className="pt-2">
           <label className="flex items-start gap-2 text-sm text-gray-700">
@@ -395,7 +373,6 @@ export default function RegisterPage() {
         </button>
       </form>
 
-<<<<<<< HEAD
       {/* Important Notice */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <p className="text-sm text-blue-700 text-center">
@@ -405,10 +382,6 @@ export default function RegisterPage() {
 
       {/* Divider */}
       <div className="mt-6 pt-6 border-t border-gray-200">
-=======
-      {/* Divider */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
@@ -418,18 +391,10 @@ export default function RegisterPage() {
           </div>
         </div>
         
-<<<<<<< HEAD
         {/* Pass userType to SocialButtons */}
         <div className="mt-4">
           <SocialButtons type="signup" userType={userType} />
         </div>
-=======
-          {/* Pass userType to SocialButtons */}
-        <div className="mt-4">
-          <SocialButtons type="signup" userType={userType} />
-        </div>
-        
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       </div>
     </div>
   );

@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import ReactCountryFlag from "react-country-flag";
 import { ChevronDown, Briefcase, Search, Menu, X, User, Globe, LogOut, Settings, Bell, FileText, Building, CreditCard } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import { selectUser, logoutUser, selectRole } from "@/redux/slices/userSlice";
-import Image from "next/image";
+import { selectUser, logoutUser, selectRole, selectIsAuthenticated, loadUserFromStorage } from "@/redux/slices/userSlice";
 
 export default function SecondNavbar() {
   const [country, setCountry] = useState({ code: "IN", name: "India" });
@@ -16,6 +15,8 @@ export default function SecondNavbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
   const countryDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
   const searchInputRef = useRef(null);
@@ -24,7 +25,13 @@ export default function SecondNavbar() {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const role = useSelector(selectRole);
-  const isAuthenticated = !!user;
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  // Load user from storage when component mounts
+  useEffect(() => {
+    setMounted(true);
+    dispatch(loadUserFromStorage());
+  }, [dispatch]);
 
   const countries = [
     { code: "IN", name: "India" },
@@ -100,6 +107,22 @@ export default function SecondNavbar() {
   ];
 
   const profileItems = role === "employer" ? employerProfileItems : candidateProfileItems;
+
+  // Don't render until mounted
+  if (!mounted) {
+    return (
+      <nav className="w-full border-b border-gray-200 bg-white sticky top-0 z-40">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="flex h-14 sm:h-16 items-center justify-between">
+            <div className="flex items-center gap-4 sm:gap-6">
+              {/* Loading placeholder */}
+              <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="w-full border-b border-gray-200 bg-white sticky top-0 z-40">
@@ -291,7 +314,7 @@ export default function SecondNavbar() {
                       {user?.avatar ? (
                         <img 
                           src={user.avatar} 
-                          alt={user.name} 
+                          alt={user.name || "User"} 
                           className="h-full w-full object-cover"
                         />
                       ) : (
@@ -443,7 +466,7 @@ export default function SecondNavbar() {
                     {user?.avatar ? (
                       <img 
                         src={user.avatar} 
-                        alt={user.name} 
+                        alt={user.name || "User"} 
                         className="h-full w-full object-cover"
                       />
                     ) : (

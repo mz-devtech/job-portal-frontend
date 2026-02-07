@@ -31,9 +31,9 @@ function CallbackContent() {
         // Redirect to dashboard or appropriate page based on role
         setTimeout(() => {
           if (role === 'employer') {
-            router.push('/employer/dashboard');
+            router.push('/');
           } else {
-            router.push('/dashboard');
+            router.push('/');
           }
         }, 1000);
         

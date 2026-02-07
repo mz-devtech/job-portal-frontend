@@ -1,22 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Navbar from "./Navbar";
 import CandidateNavbar from "./CandidateNavbar";
 import EmployerNavbar from "./EmployerNavbar";
-import { selectIsAuthenticated, selectRole, selectIsLoading } from "@/redux/slices/userSlice";
+import { selectIsAuthenticated, selectRole, selectIsLoading, loadUserFromStorage } from "@/redux/slices/userSlice";
 
 const DynamicNavbar = () => {
   const [mounted, setMounted] = useState(false);
+  const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const userRole = useSelector(selectRole);
   const isLoading = useSelector(selectIsLoading);
 
-  // Handle hydration
+  // Handle hydration and load user from storage
   useEffect(() => {
     setMounted(true);
-  }, []);
+    dispatch(loadUserFromStorage());
+  }, [dispatch]);
 
   // Don't render during SSR or while loading initial auth state
   if (!mounted || isLoading) {

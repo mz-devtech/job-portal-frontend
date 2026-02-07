@@ -49,11 +49,7 @@ const EmployerNavbar = () => {
     { label: "Home", href: "/" },
     { label: "Find Candidate", href: "/employer/candidates" },
     { label: "Post Job", href: "/employer/post-job" },
-<<<<<<< HEAD
-    { label: "Dashboard", href: "/home" },
-=======
     { label: "Dashboard", href: "/employer/dashboard" },
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
     { label: "My Jobs", href: "/employer/jobs" },
     { label: "Applications", href: "/employer/applications" },
     { label: "Customer Support", href: "/support" },

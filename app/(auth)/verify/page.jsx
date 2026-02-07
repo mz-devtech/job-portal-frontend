@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-// app/(auth)/verify/page.jsx
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -25,14 +21,11 @@ export default function VerifyPage() {
     if (storedEmail) {
       setEmail(storedEmail);
       console.log('📧 [VerifyPage] Found stored email:', storedEmail);
-<<<<<<< HEAD
       
       // Clear any existing token to prevent auto-login
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       console.log('🧹 [VerifyPage] Cleared any existing auth data');
-=======
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
     } else {
       console.error('❌ [VerifyPage] No email found in localStorage');
       toast.error('No registration session found. Please register again.');
@@ -108,33 +101,21 @@ export default function VerifyPage() {
     setIsLoading(true);
 
     try {
-<<<<<<< HEAD
       console.log('🔄 [VerifyPage] Verifying email WITHOUT auto-login:', {
-=======
-      console.log('🔄 [VerifyPage] Verifying with:', {
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
         code: verificationCode,
         email: email
       });
 
-<<<<<<< HEAD
-      // Verify email
-      const result = await authService.verifyEmail({
-        code: verificationCode,
-        email: email
-=======
-      // FIXED: Send BOTH code and email
+      // Verify email - send BOTH code and email
       const result = await authService.verifyEmail({
         code: verificationCode,  // Send as 'code' not 'token'
         email: email              // Send email explicitly
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       });
 
       console.log('✅ [VerifyPage] Verification successful:', result);
 
       setIsVerified(true);
       
-<<<<<<< HEAD
       // CRITICAL: Only remove email, DO NOT set token
       localStorage.removeItem('userEmail');
       localStorage.removeItem('registerError');
@@ -144,14 +125,6 @@ export default function VerifyPage() {
       toast.success('Email verified successfully! Please login with your credentials.');
       
       // Redirect to login page after delay
-=======
-      // Clear stored email
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('registerError');
-      
-      // toast.success('Email verified successfully! Please login with your credentials.');
-      
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       setTimeout(() => {
         router.push('/login');
       }, 1500);
@@ -230,11 +203,10 @@ export default function VerifyPage() {
           </p>
           <p className="font-medium text-gray-900 break-words">{email}</p>
           <p className="mt-1 text-xs text-gray-500">
-<<<<<<< HEAD
             After verification, you'll need to login with your credentials
-=======
+          </p>
+          <p className="mt-1 text-xs text-gray-500">
             Check your inbox and spam folder
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
           </p>
         </div>
 
@@ -284,11 +256,7 @@ export default function VerifyPage() {
                   <svg className="w-5 h-5 mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                   </svg>
-<<<<<<< HEAD
                   Verified! Redirecting to login...
-=======
-                  Verified! Redirecting...
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
                 </span>
               ) : (
                 'Verify Email'

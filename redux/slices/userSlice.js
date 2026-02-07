@@ -67,10 +67,7 @@ export const loginUser = createAsyncThunk(
   'user/login',
   async (credentials, { rejectWithValue }) => {
     try {
-<<<<<<< HEAD
       console.log('🔐 [USER SLICE] User attempting login');
-=======
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       const response = await authService.login(credentials);
       const { token, user } = response.data || response;
       
@@ -85,23 +82,17 @@ export const loginUser = createAsyncThunk(
       // Store in cookies
       setUserCookies(userData);
       
-<<<<<<< HEAD
-      console.log('✅ [USER SLICE] Login successful, user data stored');
-      return userData;
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Login failed';
-      console.error('❌ [USER SLICE] Login failed:', errorMessage);
-=======
       // Also keep in localStorage for backward compatibility
       if (typeof window !== 'undefined') {
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));
       }
       
+      console.log('✅ [USER SLICE] Login successful, user data stored');
       return userData;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Login failed';
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
+      console.error('❌ [USER SLICE] Login failed:', errorMessage);
       return rejectWithValue(errorMessage);
     }
   }
@@ -112,16 +103,7 @@ export const logoutUser = createAsyncThunk(
   'user/logout',
   async (_, { rejectWithValue }) => {
     try {
-<<<<<<< HEAD
       console.log('🚪 [USER SLICE] User logging out');
-      authService.logout(true);
-      clearUserCookies();
-      
-      console.log('✅ [USER SLICE] Logout successful');
-      return null;
-    } catch (error) {
-      console.error('❌ [USER SLICE] Logout failed:', error);
-=======
       authService.logout();
       clearUserCookies();
       
@@ -132,24 +114,20 @@ export const logoutUser = createAsyncThunk(
         localStorage.removeItem('userEmail');
       }
       
+      console.log('✅ [USER SLICE] Logout successful');
       return null;
     } catch (error) {
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
+      console.error('❌ [USER SLICE] Logout failed:', error);
       return rejectWithValue('Logout failed');
     }
   }
 );
 
-<<<<<<< HEAD
-// Async thunk for loading user from storage - FIXED: Strict validation
-=======
 // Async thunk for loading user from storage
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
 export const loadUserFromStorage = createAsyncThunk(
   'user/loadFromStorage',
   async (_, { rejectWithValue }) => {
     try {
-<<<<<<< HEAD
       console.log('🔍 [USER SLICE] Loading user from storage');
       
       // Only run on client side
@@ -158,78 +136,7 @@ export const loadUserFromStorage = createAsyncThunk(
         return null;
       }
 
-      // Check localStorage first
-      const token = localStorage.getItem('token');
-      const userStr = localStorage.getItem('user');
-
-      console.log('📊 [USER SLICE] Storage check:', {
-        hasToken: !!token,
-        hasUserStr: !!userStr
-      });
-
-      // If no token OR no user data, user is not authenticated
-      if (!token || !userStr) {
-        console.log('❌ [USER SLICE] No auth data found in localStorage');
-        // Clear any partial data
-        clearUserCookies();
-        return null;
-      }
-
-      // Parse user data
-      let user;
-      try {
-        user = JSON.parse(userStr);
-      } catch (parseError) {
-        console.error('❌ [USER SLICE] Error parsing user:', parseError);
-        // Clear invalid data
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        clearUserCookies();
-        return null;
-      }
-
-      // Check if token is expired
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.exp * 1000 < Date.now()) {
-          console.log('❌ [USER SLICE] Token expired');
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          clearUserCookies();
-          return null;
-        }
-      } catch (tokenError) {
-        console.error('❌ [USER SLICE] Token validation error:', tokenError);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        clearUserCookies();
-        return null;
-      }
-
-      // Valid user found
-      const userData = {
-        ...user,
-        token,
-        isAuthenticated: true,
-        lastUpdated: new Date().toISOString(),
-      };
-
-      // Set cookies for consistency
-      setUserCookies(userData);
-      
-      console.log('✅ [USER SLICE] User loaded successfully from storage');
-      return userData;
-      
-    } catch (error) {
-      console.error('❌ [USER SLICE] General error loading user:', error);
-      // Clear all auth data on error
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-      clearUserCookies();
-=======
-      // First try to get from cookies
+      // Check cookies first
       const userFromCookies = getUserFromCookies();
       
       if (userFromCookies) {
@@ -240,29 +147,44 @@ export const loadUserFromStorage = createAsyncThunk(
       }
       
       // Fallback to localStorage (for backward compatibility)
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token');
-        const userStr = localStorage.getItem('user');
-        
-        if (token && userStr) {
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+      
+      if (token && userStr) {
+        try {
           const user = JSON.parse(userStr);
           const userData = {
             ...user,
             token,
             isAuthenticated: true,
+            lastUpdated: new Date().toISOString(),
           };
           
           // Migrate to cookies
           setUserCookies(userData);
+          console.log('✅ [USER SLICE] User loaded from localStorage and migrated to cookies');
           return userData;
+        } catch (parseError) {
+          console.error('❌ [USER SLICE] Error parsing user from localStorage:', parseError);
+          // Clear invalid data
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          clearUserCookies();
+          return null;
         }
       }
       
       // No user found
+      console.log('❌ [USER SLICE] No auth data found in storage');
       return null;
     } catch (error) {
-      console.error('Error loading user from storage:', error);
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
+      console.error('❌ [USER SLICE] General error loading user:', error);
+      // Clear all auth data on error
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+      clearUserCookies();
       return rejectWithValue('Failed to load user data');
     }
   }
@@ -366,19 +288,13 @@ const userSlice = createSlice({
         state.token = action.payload.token;
         state.role = action.payload.role;
         state.lastUpdated = new Date().toISOString();
-<<<<<<< HEAD
         console.log('✅ [USER SLICE] Login state updated');
-=======
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
         state.isAuthenticated = false;
-<<<<<<< HEAD
         console.log('❌ [USER SLICE] Login rejected:', action.payload);
-=======
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       })
       
       // Logout cases
@@ -393,18 +309,12 @@ const userSlice = createSlice({
         state.isLoading = false;
         state.error = null;
         state.lastUpdated = null;
-<<<<<<< HEAD
         console.log('✅ [USER SLICE] Logout state updated');
-=======
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
-<<<<<<< HEAD
         console.log('❌ [USER SLICE] Logout rejected:', action.payload);
-=======
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       })
       
       // Load user from storage cases
@@ -419,29 +329,20 @@ const userSlice = createSlice({
           state.role = action.payload.role;
           state.isAuthenticated = true;
           state.lastUpdated = new Date().toISOString();
-<<<<<<< HEAD
           console.log('✅ [USER SLICE] User loaded from storage');
-=======
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
         } else {
           state.user = null;
           state.token = null;
           state.role = null;
           state.isAuthenticated = false;
-<<<<<<< HEAD
           console.log('❌ [USER SLICE] No user found in storage');
-=======
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
         }
       })
       .addCase(loadUserFromStorage.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
         state.isAuthenticated = false;
-<<<<<<< HEAD
         console.log('❌ [USER SLICE] Load user rejected:', action.payload);
-=======
->>>>>>> 440e4443cf6219e9c225a3550a37f5457801a70d
       })
       
       // Update profile cases
@@ -475,7 +376,7 @@ export const {
 // Selectors
 export const selectUser = (state) => state.user.user;
 export const selectToken = (state) => state.user.token;
-export const selectRole = (state) => state.user.role;
+export const selectRole = (state) =>state.user.role;
 export const selectIsAuthenticated = (state) => state.user.isAuthenticated;
 export const selectIsLoading = (state) => state.user.isLoading;
 export const selectError = (state) => state.user.error;
