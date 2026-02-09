@@ -6,6 +6,7 @@ import { useState } from "react";
 import FilterSidebar from "@/components/FilterSidebar";
 import DynamicNavbar from "@/components/DynamicNavbar";
 import SecondNavbar from "@/components/SecondNavbar";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   const [openFilter, setOpenFilter] = useState(false);
@@ -173,6 +174,7 @@ export default function Home() {
           </div>
         </div>
       </main>
+      <Footer/>
     </>
   );
 }

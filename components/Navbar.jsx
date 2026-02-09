@@ -2,11 +2,22 @@
 
 import { useState, useEffect, useRef } from "react";
 import { FiMenu, FiX, FiPhone, FiChevronDown } from "react-icons/fi";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const languages = [
   { label: "English", flag: "https://flagcdn.com/w20/us.png" },
   { label: "Spanish", flag: "https://flagcdn.com/w20/es.png" },
   { label: "French", flag: "https://flagcdn.com/w20/fr.png" },
+];
+
+const navItems = [
+  { label: "Home", path: "/" },
+  { label: "Find Job", path: "/jobs" },
+  { label: "Employers", path: "/find-employers" },
+  { label: "Candidates", path: "/candidates" },
+  { label: "About Us", path: "/about_us" },
+  { label: "Contact Us", path: "/contact" },
 ];
 
 const Navbar = () => {
@@ -16,6 +27,8 @@ const Navbar = () => {
   const [isMobile, setIsMobile] = useState(false);
   const langRef = useRef(null);
   const menuRef = useRef(null);
+  
+  const pathname = usePathname();
 
   // Handle responsive behavior
   useEffect(() => {
@@ -44,14 +57,13 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const navItems = [
-    "Home",
-    "Find Job",
-    "Employers",
-    "Candidates",
-    "Pricing Plans",
-    "Customer Supports",
-  ];
+  // Check if a nav item is active
+  const isActive = (path) => {
+    if (path === "/") {
+      return pathname === path;
+    }
+    return pathname.startsWith(path);
+  };
 
   return (
     <nav className="sticky top-0 z-50 h-16 border-b border-gray-200 bg-white shadow-sm md:h-14">
@@ -60,23 +72,25 @@ const Navbar = () => {
         {/* LEFT SECTION */}
         <div className="flex h-full items-center gap-6 md:gap-10">
           {/* Logo */}
-          <span className="text-lg font-bold text-blue-600 sm:text-xl">
+          <Link href="/" className="text-lg font-bold text-blue-600 sm:text-xl hover:text-blue-700 transition-colors">
             JobPortal
-          </span>
+          </Link>
 
           {/* Desktop Navigation - Hidden on mobile */}
           <ul className="hidden h-full md:flex">
             {navItems.map((item) => (
-              <li
-                key={item}
-                className={`relative flex h-full items-center px-3 text-sm cursor-pointer transition-colors duration-200
-                ${
-                  item === "Home"
-                    ? "text-blue-600 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-blue-600"
-                    : "text-gray-700 hover:text-blue-600 hover:after:absolute hover:after:bottom-0 hover:after:left-0 hover:after:h-[2px] hover:after:w-full hover:after:bg-blue-600"
-                }`}
-              >
-                {item}
+              <li key={item.path} className="h-full">
+                <Link
+                  href={item.path}
+                  className={`relative flex h-full items-center px-3 text-sm cursor-pointer transition-colors duration-200
+                  ${
+                    isActive(item.path)
+                      ? "text-blue-600 after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-full after:bg-blue-600"
+                      : "text-gray-700 hover:text-blue-600 hover:after:absolute hover:after:bottom-0 hover:after:left-0 hover:after:h-[2px] hover:after:w-full hover:after:bg-blue-600"
+                  }`}
+                >
+                  {item.label}
+                </Link>
               </li>
             ))}
           </ul>
@@ -162,15 +176,20 @@ const Navbar = () => {
             <ul className="space-y-1">
               {navItems.map((item) => (
                 <li
-                  key={item}
+                  key={item.path}
                   className={`rounded-lg px-4 py-3 text-base font-medium ${
-                    item === "Home"
+                    isActive(item.path)
                       ? "bg-blue-50 text-blue-600"
                       : "text-gray-700 hover:bg-gray-50"
                   }`}
                   onClick={() => setMenuOpen(false)}
                 >
-                  <button className="w-full text-left">{item}</button>
+                  <Link 
+                    href={item.path} 
+                    className="block w-full text-left"
+                  >
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>

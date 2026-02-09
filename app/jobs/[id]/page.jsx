@@ -14,6 +14,9 @@ import {
     Clock,
     Layers,
 } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import SecondNavbar from "@/components/SecondNavbar";
+import Footer from "@/components/Footer";
 
 export default function JobDetail() {
     const [openApply, setOpenApply] = useState(false);
@@ -240,7 +243,11 @@ export default function JobDetail() {
     }
 
     return (
-        <main className="bg-gray-50 min-h-screen">
+     <>
+<Navbar/>
+<SecondNavbar/>
+
+   <main className="bg-gray-50 min-h-screen">
             {/* ================= BREADCRUMB ================= */}
             <div className="bg-white border-b">
                 <div className="max-w-7xl mx-auto px-6 py-4 text-sm text-gray-500">
@@ -486,5 +493,11 @@ export default function JobDetail() {
                 company={job.company}
             />
         </main>
+<Footer/>
+
+
+
+     
+     </>
     );
 }

@@ -47,12 +47,11 @@ const EmployerNavbar = () => {
 
   const navItems = [
     { label: "Home", href: "/" },
-    { label: "Find Candidate", href: "/employer/candidates" },
-    { label: "Post Job", href: "/employer/post-job" },
+    { label: "Find Candidate", href: "/candidates" },
     { label: "Dashboard", href: "/home" },
-    { label: "My Jobs", href: "/employer/jobs" },
-    { label: "Applications", href: "/employer/applications" },
-    { label: "Customer Support", href: "/support" },
+    { label: "My Jobs", href: "/my_jobs" },
+    { label: "About Us", href: "/about_us" },
+    { label: "Contact", href: "/Contact" },
   ];
 
   return (

@@ -2,6 +2,9 @@
 
 import Link from 'next/link';
 import { Search, MapPin } from 'lucide-react';
+import Navbar from '@/components/Navbar';
+import SecondNavbar from '@/components/SecondNavbar';
+import Footer from '@/components/Footer';
 
 export default function FindEmployers() {
   const employers = [
@@ -22,7 +25,10 @@ export default function FindEmployers() {
   ];
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+   <>
+   <Navbar/>
+   <SecondNavbar/>
+ <div className="bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-6 py-8">
         
         {/* Breadcrumb */}
@@ -124,5 +130,9 @@ export default function FindEmployers() {
         </div>
       </div>
     </div>
+
+   <Footer/>
+   
+   </>
   );
 }

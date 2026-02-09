@@ -42,11 +42,7 @@ export default function EmployerSidebar() {
           Overview
         </Link>
 
-        <SidebarItem
-          href="/employer_profile"
-          icon={<FiUser size={18} />}
-          label="Employer Profile"
-        />
+        
 
         <SidebarItem
           href="/post_job"
@@ -72,12 +68,7 @@ export default function EmployerSidebar() {
           label="Plans & Billing"
         />
 
-        <SidebarItem
-          href="/all_companies"
-          icon={<FiUsers size={18} />}
-          label="All Companies"
-        />
-
+        
         <SidebarItem
           href="/employer_settings"
           icon={<FiSettings size={18} />}

@@ -1,5 +1,7 @@
+import Link from "next/link";
 import Image from "next/image";
 import { FaFacebookF, FaTwitter, FaInstagram } from "react-icons/fa";
+import { BriefcaseBusiness, Home, User, FileText, HelpCircle, BookOpen, Phone, Users, Search, Shield, FileCheck } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -10,17 +12,14 @@ const Footer = () => {
 
           {/* Logo + Info */}
           <div className="space-y-5">
-            <div className="flex items-center gap-3">
-              <Image
-                src="/logo.svg"
-                alt="Jobpilot Logo"
-                width={32}
-                height={32}
-              />
+            <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
+              <div className="relative w-8 h-8 flex items-center justify-center">
+                <BriefcaseBusiness className="w-8 h-8 text-blue-500" />
+              </div>
               <span className="text-white text-xl font-semibold">
-                Jobpilot
+                JobPortal
               </span>
-            </div>
+            </Link>
 
             <p className="text-sm">
               Call now:{" "}
@@ -36,10 +35,30 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-medium mb-5">Quick Link</h4>
             <ul className="space-y-3 text-sm">
-              <li className="hover:text-white cursor-pointer">About</li>
-              <li className="text-white cursor-pointer">Contact</li>
-              <li className="hover:text-white cursor-pointer">Pricing</li>
-              <li className="hover:text-white cursor-pointer">Blog</li>
+              <li>
+                <Link href="/about_us" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <User className="w-4 h-4" />
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <Phone className="w-4 h-4" />
+                  Contact
+                </Link>
+              </li>
+              <li>
+                <Link href="/blogs" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <BookOpen className="w-4 h-4" />
+                  Blogs
+                </Link>
+              </li>
+              <li>
+                <Link href="/candidates" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <Users className="w-4 h-4" />
+                  Candidates
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -47,10 +66,30 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-medium mb-5">Candidate</h4>
             <ul className="space-y-3 text-sm">
-              <li className="hover:text-white cursor-pointer">Browse Jobs</li>
-              <li className="hover:text-white cursor-pointer">Browse Employers</li>
-              <li className="hover:text-white cursor-pointer">Candidate Dashboard</li>
-              <li className="hover:text-white cursor-pointer">Saved Jobs</li>
+              <li>
+                <Link href="/jobs" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <Search className="w-4 h-4" />
+                  Find Jobs
+                </Link>
+              </li>
+              <li>
+                <Link href="/find-employers" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <BriefcaseBusiness className="w-4 h-4" />
+                  Find Employers
+                </Link>
+              </li>
+              <li>
+                <Link href="/overview" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <Home className="w-4 h-4" />
+                  Candidate Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link href="/saved-jobs" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <FileText className="w-4 h-4" />
+                  Saved Jobs
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -58,10 +97,30 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-medium mb-5">Employers</h4>
             <ul className="space-y-3 text-sm">
-              <li className="hover:text-white cursor-pointer">Post a Job</li>
-              <li className="hover:text-white cursor-pointer">Browse Candidates</li>
-              <li className="hover:text-white cursor-pointer">Employers Dashboard</li>
-              <li className="hover:text-white cursor-pointer">Applications</li>
+              <li>
+                <Link href="/post_job" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <BriefcaseBusiness className="w-4 h-4" />
+                  Post a Job
+                </Link>
+              </li>
+              <li>
+                <Link href="/candidates" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <Users className="w-4 h-4" />
+                  Browse Candidates
+                </Link>
+              </li>
+              <li>
+                <Link href="/home" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <Home className="w-4 h-4" />
+                  Employer Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link href="/applications" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <FileCheck className="w-4 h-4" />
+                  Applications
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -69,9 +128,24 @@ const Footer = () => {
           <div>
             <h4 className="text-white font-medium mb-5">Support</h4>
             <ul className="space-y-3 text-sm">
-              <li className="hover:text-white cursor-pointer">FAQs</li>
-              <li className="hover:text-white cursor-pointer">Privacy Policy</li>
-              <li className="hover:text-white cursor-pointer">Terms & Conditions</li>
+              <li>
+                <Link href="/faq" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <HelpCircle className="w-4 h-4" />
+                  FAQs
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <Shield className="w-4 h-4" />
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link href="/comming_soon" className="flex items-center gap-2 hover:text-white transition-colors">
+                  <BookOpen className="w-4 h-4" />
+                  Privacy Policy
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -84,13 +158,19 @@ const Footer = () => {
       {/* Bottom Footer */}
       <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between">
         <p className="text-xs">
-          © 2021 Jobpilot - Job Portal. All rights reserved.
+          © {new Date().getFullYear()} JobPortal - Job Portal. All rights reserved.
         </p>
 
         <div className="flex items-center gap-5 mt-4 md:mt-0">
-          <FaFacebookF className="text-sm hover:text-white cursor-pointer" />
-          <FaInstagram className="text-sm hover:text-white cursor-pointer" />
-          <FaTwitter className="text-sm hover:text-white cursor-pointer" />
+          <Link href="https://facebook.com" target="_blank" className="hover:text-white transition-colors">
+            <FaFacebookF className="text-sm" />
+          </Link>
+          <Link href="https://instagram.com" target="_blank" className="hover:text-white transition-colors">
+            <FaInstagram className="text-sm" />
+          </Link>
+          <Link href="https://twitter.com" target="_blank" className="hover:text-white transition-colors">
+            <FaTwitter className="text-sm" />
+          </Link>
         </div>
       </div>
     </footer>

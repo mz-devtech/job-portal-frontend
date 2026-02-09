@@ -32,7 +32,7 @@ export default function CandidateSidebar() {
       {/* Menu */}
       <nav className="flex flex-col gap-1 text-[15px]">
         <Link
-          href="/candidate/overview"
+          href="/overview"
           className="flex items-center gap-3 rounded-md bg-blue-50 px-4 py-2.5 font-medium text-blue-600"
         >
           <FiGrid size={18} />

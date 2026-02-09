@@ -4,6 +4,9 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MapPin, Globe, Phone, Mail, Facebook, Twitter, Linkedin } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import SecondNavbar from "@/components/SecondNavbar";
+import Footer from "@/components/Footer";
 
 const employersData = {
   1: {
@@ -80,7 +83,10 @@ export default function SingleEmployer() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+   <>
+   <Navbar/>
+   <SecondNavbar/>
+ <div className="bg-gray-50 min-h-screen">
       {/* Breadcrumb */}
       <div className="max-w-7xl mx-auto px-6 pt-6">
         <div className="text-sm text-gray-500">
@@ -223,5 +229,10 @@ export default function SingleEmployer() {
         </div>
       </div>
     </div>
+
+   <Footer/>
+   
+   
+   </>
   );
 }
