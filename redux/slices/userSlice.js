@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import Cookies from 'js-cookie';
@@ -214,6 +214,114 @@ export const updateUserProfile = createAsyncThunk(
   }
 );
 
+// Async thunk for refreshing user data - FIXED
+export const refreshUserData = createAsyncThunk(
+  'user/refreshData',
+  async (_, { rejectWithValue, getState }) => {
+    try {
+      console.log('🔄 [USER SLICE] Refreshing user data');
+      
+      // Get current state
+      const state = getState();
+      const currentUserId = state.user.user?.id;
+      
+      if (!currentUserId) {
+        console.log('❌ [USER SLICE] No user ID found');
+        return rejectWithValue('No user ID found');
+      }
+      
+      try {
+        // Fetch fresh user data from API - FIXED: Use authService.getMe()
+        const response = await authService.getMe();
+        
+        console.log('📊 [USER SLICE] getMe response:', response);
+        
+        if (response?.data?.user) {
+          const updatedUser = {
+            ...response.data.user,
+            token: state.user.token, // Keep existing token
+            isAuthenticated: true,
+            lastUpdated: new Date().toISOString(),
+          };
+          
+          // Update cookies
+          setUserCookies(updatedUser);
+          
+          console.log('✅ [USER SLICE] User data refreshed from API');
+          return updatedUser;
+        } else if (response?.user) {
+          // Handle case where response is directly the user object
+          const updatedUser = {
+            ...response.user,
+            token: state.user.token,
+            isAuthenticated: true,
+            lastUpdated: new Date().toISOString(),
+          };
+          
+          // Update cookies
+          setUserCookies(updatedUser);
+          
+          console.log('✅ [USER SLICE] User data refreshed from direct response');
+          return updatedUser;
+        } else {
+          console.log('⚠️ [USER SLICE] No user data in response, falling back to storage');
+          // If API returns no data, try to load from storage
+          return await loadUserFromStorage()(rejectWithValue);
+        }
+      } catch (apiError) {
+        console.error('❌ [USER SLICE] API error:', apiError);
+        // If API fails, try to reload from storage
+        const storageUser = await loadUserFromStorage()(rejectWithValue);
+        if (storageUser) {
+          return storageUser;
+        }
+        throw apiError;
+      }
+    } catch (error) {
+      console.error('❌ [USER SLICE] Refresh error:', error);
+      return rejectWithValue(error.message || 'Failed to refresh user data');
+    }
+  }
+);
+
+// Async thunk to mark profile as complete
+export const markProfileAsComplete = createAsyncThunk(
+  'user/markProfileComplete',
+  async (profileData, { rejectWithValue, getState }) => {
+    try {
+      console.log('✅ [USER SLICE] Marking profile as complete:', profileData);
+      
+      const state = getState();
+      const currentUser = state.user.user;
+      
+      if (!currentUser) {
+        return rejectWithValue('No user found');
+      }
+      
+      const updatedUser = {
+        ...currentUser,
+        isProfileComplete: true,
+        profile: profileData.profile,
+        lastUpdated: new Date().toISOString(),
+      };
+      
+      // Update cookies
+      setUserCookies(updatedUser);
+      
+      // Also update localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('profileComplete', 'true');
+      }
+      
+      return updatedUser;
+    } catch (error) {
+      console.error('❌ [USER SLICE] Mark profile complete error:', error);
+      return rejectWithValue('Failed to mark profile as complete');
+    }
+  }
+);
+
 const initialState = {
   user: null,
   token: null,
@@ -270,6 +378,33 @@ const userSlice = createSlice({
             role: state.role,
           };
           setUserCookies(updatedUserData);
+        }
+      }
+    },
+    // Update profile completion status immediately
+    updateProfileCompletion: (state, action) => {
+      if (state.user) {
+        state.user.isProfileComplete = action.payload.isProfileComplete || true;
+        state.user.profile = action.payload.profile || state.user.profile;
+        state.lastUpdated = new Date().toISOString();
+        
+        console.log('✅ [USER SLICE] Profile completion updated in store:', {
+          isProfileComplete: state.user.isProfileComplete,
+          hasProfile: !!state.user.profile
+        });
+        
+        // Update cookies
+        if (typeof window !== 'undefined') {
+          const updatedUserData = {
+            user: state.user,
+            token: state.token,
+            role: state.role,
+          };
+          setUserCookies(updatedUserData);
+          
+          // Also update localStorage
+          localStorage.setItem('user', JSON.stringify(state.user));
+          localStorage.setItem('profileComplete', 'true');
         }
       }
     },
@@ -360,6 +495,47 @@ const userSlice = createSlice({
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
+      })
+      
+      // Refresh user data cases - FIXED
+      .addCase(refreshUserData.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(refreshUserData.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload) {
+          state.user = action.payload;
+          state.token = action.payload.token || state.token;
+          state.role = action.payload.role;
+          state.isAuthenticated = true;
+          state.lastUpdated = new Date().toISOString();
+          console.log('✅ [USER SLICE] User data refreshed and updated in store');
+        }
+      })
+      .addCase(refreshUserData.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        console.log('❌ [USER SLICE] Refresh failed:', action.payload);
+      })
+      
+      // Mark profile as complete cases
+      .addCase(markProfileAsComplete.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(markProfileAsComplete.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (action.payload) {
+          state.user = action.payload;
+          state.isAuthenticated = true;
+          state.lastUpdated = new Date().toISOString();
+          console.log('✅ [USER SLICE] Profile marked as complete in store');
+        }
+      })
+      .addCase(markProfileAsComplete.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        console.log('❌ [USER SLICE] Mark profile complete failed:', action.payload);
       });
   },
 });
@@ -370,13 +546,14 @@ export const {
   clearUser, 
   setError, 
   clearError, 
-  updateUserData 
+  updateUserData,
+  updateProfileCompletion 
 } = userSlice.actions;
 
 // Selectors
 export const selectUser = (state) => state.user.user;
 export const selectToken = (state) => state.user.token;
-export const selectRole = (state) =>state.user.role;
+export const selectRole = (state) => state.user.role;
 export const selectIsAuthenticated = (state) => state.user.isAuthenticated;
 export const selectIsLoading = (state) => state.user.isLoading;
 export const selectError = (state) => state.user.error;

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import {
   FiUploadCloud,
   FiUser,
@@ -22,7 +23,15 @@ import {
   FiArrowLeft,
   FiHome,
   FiFileText,
+  FiMail,
+  FiMapPin,
+  FiImage
 } from "react-icons/fi";
+import { profileService } from "@/services/profileService";
+import { authService } from "@/services/authService"; // ADD THIS IMPORT
+import { updateProfileCompletion, refreshUserData } from "@/redux/slices/userSlice";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const SOCIAL_PLATFORMS = [
   { label: "Facebook", value: "facebook" },
@@ -33,16 +42,25 @@ const SOCIAL_PLATFORMS = [
 ];
 
 const STEPS = [
-  { id: "company", label: "Company Info", icon: <FiUser /> },
+  { id: "personal", label: "Personal Info", icon: <FiUser /> },
+  { id: "company", label: "Company Info", icon: <FiBriefcase /> },
   { id: "founding", label: "Founding Info", icon: <FiGlobe /> },
-  { id: "social", label: "Social Media Profile", icon: <FiShare2 /> },
+  { id: "social", label: "Social Media", icon: <FiShare2 /> },
   { id: "contact", label: "Contact", icon: <FiPhone /> },
 ];
 
 export default function AccountSetup() {
   const [currentStep, setCurrentStep] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [profileImageUploaded, setProfileImageUploaded] = useState(false); // ADD THIS STATE
   const [formData, setFormData] = useState({
+    personal: {
+      profileImage: null,
+      phone: "",
+      address: "",
+    },
     company: {
       name: "",
       about: "",
@@ -69,6 +87,9 @@ export default function AccountSetup() {
       email: "",
     },
   });
+
+  const dispatch = useDispatch();
+  const router = useRouter();
 
   const nextStep = () => {
     if (currentStep < STEPS.length - 1) {
@@ -118,20 +139,189 @@ export default function AccountSetup() {
     }));
   };
 
-  const handleSubmit = () => {
-    console.log("Form submitted:", formData);
-    // Here you would typically send data to your backend
-    // Show success modal after submission
-    setShowSuccessModal(true);
+  // ADD THIS FUNCTION: Handle profile image upload separately
+  const uploadProfileImage = async () => {
+    try {
+      if (formData.personal.profileImage && formData.personal.profileImage instanceof File) {
+        console.log("📤 Uploading personal profile image...");
+        
+        const personalFormData = new FormData();
+        personalFormData.append("profileImage", formData.personal.profileImage);
+        
+        // Add phone and address if available
+        if (formData.personal.phone) {
+          personalFormData.append("phone", formData.personal.phone);
+        }
+        if (formData.personal.address) {
+          personalFormData.append("address", formData.personal.address);
+        }
+
+        console.log("📦 Personal data to upload:", {
+          hasProfileImage: true,
+          phone: formData.personal.phone,
+          address: formData.personal.address
+        });
+
+        const result = await authService.updateProfile(personalFormData);
+        
+        if (result.success) {
+          console.log("✅ Personal profile image uploaded successfully");
+          setProfileImageUploaded(true);
+          
+          // Update localStorage with new profile image
+          if (typeof window !== "undefined") {
+            try {
+              const currentUserStr = localStorage.getItem("user");
+              if (currentUserStr) {
+                const currentUser = JSON.parse(currentUserStr);
+                const updatedUser = {
+                  ...currentUser,
+                  profileImage: result.user?.profileImage || currentUser.profileImage,
+                  phone: formData.personal.phone || currentUser.phone,
+                  address: formData.personal.address || currentUser.address,
+                };
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                console.log("✅ Updated user profile image in localStorage");
+              }
+            } catch (error) {
+              console.error("Error updating localStorage:", error);
+            }
+          }
+          
+          return true;
+        }
+      }
+      return false; // No image to upload
+    } catch (error) {
+      console.error("❌ Error uploading profile image:", error);
+      // Don't throw error here, just log it
+      return false;
+    }
   };
+
+  const handleSubmit = async () => {
+    // Prevent duplicate submissions
+    if (isSubmitted || loading) return;
+    
+    try {
+      console.log("📋 Form submitted:", formData);
+      setLoading(true);
+      setIsSubmitted(true);
+
+      // STEP 1: First upload the personal profile image (if exists)
+      if (formData.personal.profileImage && formData.personal.profileImage instanceof File) {
+        console.log("🔄 Step 1: Uploading personal profile image...");
+        await uploadProfileImage();
+      } else {
+        console.log("ℹ️ No personal profile image to upload");
+      }
+
+      // STEP 2: Format and send company data
+      console.log("🔄 Step 2: Formatting employer data...");
+      const formattedData = profileService.formatEmployerData(formData);
+      
+      console.log("📦 Formatted data for API:", formattedData);
+
+      // STEP 3: Call profile service for company profile
+      console.log("🔄 Step 3: Creating/updating employer profile...");
+      const result = await profileService.createOrUpdateEmployerProfile(formattedData);
+      
+      console.log("✅ Profile update result:", result);
+
+      if (result.success) {
+        // STEP 4: Update Redux store with profile completion
+        if (result.profile) {
+          console.log("🔄 Step 4: Updating Redux store...");
+          
+          dispatch(updateProfileCompletion({
+            isProfileComplete: true,
+            profile: result.profile
+          }));
+          
+          await dispatch(refreshUserData()).unwrap();
+          
+          console.log("✅ Profile completion state updated in Redux");
+        }
+
+        // STEP 5: Update localStorage with combined data
+        if (typeof window !== "undefined") {
+          try {
+            const currentUserStr = localStorage.getItem("user");
+            if (currentUserStr) {
+              const currentUser = JSON.parse(currentUserStr);
+              
+              // Get profile image from result if available, or keep existing
+              let profileImageUrl = currentUser.profileImage;
+              
+              // If we uploaded a profile image, try to get it from the response
+              if (profileImageUploaded) {
+                // The profile image URL should now be in the user object after authService.updateProfile
+                const updatedUser = authService.getCurrentUser();
+                profileImageUrl = updatedUser?.profileImage || profileImageUrl;
+              }
+              
+              const updatedUser = {
+                ...currentUser,
+                isProfileComplete: true,
+                profile: result.profile,
+                phone: formData.personal.phone || currentUser.phone,
+                address: formData.personal.address || currentUser.address,
+                profileImage: profileImageUrl
+              };
+              localStorage.setItem("user", JSON.stringify(updatedUser));
+              console.log("✅ Updated user in localStorage with all data");
+            }
+            
+            localStorage.setItem("profileComplete", "true");
+          } catch (localStorageError) {
+            console.error("Error updating localStorage:", localStorageError);
+          }
+        }
+
+        // STEP 6: Show success and redirect
+        setLoading(false);
+        setShowSuccessModal(true);
+        
+        setTimeout(() => {
+          console.log("🔀 Redirecting to home page...");
+          router.push("/home");
+        }, 3000);
+
+        return result;
+      } else {
+        throw new Error(result.message || "Failed to save profile");
+      }
+    } catch (error) {
+      console.error("❌ Error submitting profile:", error);
+      toast.error(error.message || "Failed to save profile. Please try again.");
+      
+      // Reset states on error
+      setLoading(false);
+      setIsSubmitted(false);
+    }
+  };
+
+  // Effect to handle modal close and redirect
+  useEffect(() => {
+    if (showSuccessModal) {
+      const timer = setTimeout(() => {
+        console.log("Auto-redirecting to home page...");
+        router.push("/home");
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessModal, router]);
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
-        return <CompanyInfoStep data={formData.company} updateData={updateFormData} />;
+        return <PersonalInfoStep data={formData.personal} updateData={updateFormData} />;
       case 1:
-        return <FoundingInfoStep data={formData.founding} updateData={updateFormData} />;
+        return <CompanyInfoStep data={formData.company} updateData={updateFormData} />;
       case 2:
+        return <FoundingInfoStep data={formData.founding} updateData={updateFormData} />;
+      case 3:
         return (
           <SocialMediaStep
             links={formData.social}
@@ -140,7 +330,7 @@ export default function AccountSetup() {
             removeLink={removeSocialLink}
           />
         );
-      case 3:
+      case 4:
         return <ContactStep data={formData.contact} updateData={updateFormData} />;
       default:
         return null;
@@ -162,11 +352,11 @@ export default function AccountSetup() {
             <div className="h-1 w-40 rounded bg-gray-200">
               <div 
                 className="h-1 rounded bg-blue-600 transition-all duration-300"
-                style={{ width: `${(currentStep + 1) * 25}%` }}
+                style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
               />
             </div>
             <p className="text-xs text-blue-600 mt-1">
-              {Math.round((currentStep + 1) * 25)}% Completed
+              {Math.round(((currentStep + 1) / STEPS.length) * 100)}% Completed
             </p>
           </div>
         </header>
@@ -196,9 +386,9 @@ export default function AccountSetup() {
           <div className="flex justify-between mt-8 pt-6 border-t">
             <button
               onClick={prevStep}
-              disabled={currentStep === 0}
+              disabled={currentStep === 0 || loading}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-md border text-sm ${
-                currentStep === 0
+                currentStep === 0 || loading
                   ? "text-gray-400 border-gray-200 cursor-not-allowed"
                   : "text-gray-700 border-gray-300 hover:bg-gray-50"
               }`}
@@ -209,9 +399,19 @@ export default function AccountSetup() {
 
             <button
               onClick={nextStep}
-              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+              disabled={loading}
+              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {currentStep === STEPS.length - 1 ? "Complete Setup" : "Save & Next →"}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  {currentStep === STEPS.length - 1 ? "Saving..." : "Loading..."}
+                </>
+              ) : (
+                <>
+                  {currentStep === STEPS.length - 1 ? "Complete Setup" : "Save & Next →"}
+                </>
+              )}
             </button>
           </div>
         </main>
@@ -219,134 +419,118 @@ export default function AccountSetup() {
 
       {/* Success Modal */}
       {showSuccessModal && (
-        <SuccessModal onClose={() => setShowSuccessModal(false)} />
+        <SuccessModal onRedirect={() => router.push("/home")} />
       )}
     </>
   );
 }
 
-/* ================= SUCCESS MODAL ================= */
+/* ================= PERSONAL INFO STEP ================= */
 
-function SuccessModal({ onClose }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
-        {/* Modal Header */}
-        <div className="absolute top-4 right-4">
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 transition"
-          >
-            <FiX className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
+function PersonalInfoStep({ data, updateData }) {
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
 
-        {/* Modal Content */}
-        <div className="p-8 text-center">
-          {/* Success Icon */}
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-50 mb-6">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-              <FiCheck className="w-8 h-8 text-green-600" />
-            </div>
-          </div>
-
-          {/* Title */}
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            🎉 Congratulations!
-          </h2>
-
-          {/* Subtitle */}
-          <p className="text-gray-600 mb-2">
-            Your company profile setup is 100% complete
-          </p>
-
-          {/* Description */}
-          <p className="text-gray-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
-            Donec hendrerit, ante mattis pellentesque eleifend, tortor
-            urna malesuada ante, eget aliquam nulla augue hendrerit
-            ligula. Nunc mauris arcu, mattis sed sem vitae.
-          </p>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-3 gap-4 mb-8">
-            <StatCard 
-              icon="🏢" 
-              title="Company Profile" 
-              value="Active" 
-              status="success" 
-            />
-            <StatCard 
-              icon="👥" 
-              title="Team Members" 
-              value="Ready" 
-              status="success" 
-            />
-            <StatCard 
-              icon="🌐" 
-              title="Social Links" 
-              value="Connected" 
-              status="success" 
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={onClose}
-              className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
-            >
-              <FiHome className="w-4 h-4" />
-              Go to Dashboard
-            </button>
-
-            <button
-              onClick={() => {
-                // Handle post job action
-                console.log("Post job clicked");
-                onClose();
-              }}
-              className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
-            >
-              <FiFileText className="w-4 h-4" />
-              Post Your First Job
-            </button>
-          </div>
-
-          {/* Additional Info */}
-          <div className="mt-8 pt-6 border-t">
-            <p className="text-xs text-gray-500">
-              Need help? <a href="#" className="text-blue-600 hover:underline">Contact Support</a> or 
-              <a href="#" className="text-blue-600 hover:underline ml-2">View Setup Guide</a>
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ icon, title, value, status }) {
-  const statusColors = {
-    success: "bg-green-50 text-green-700",
-    warning: "bg-yellow-50 text-yellow-700",
-    info: "bg-blue-50 text-blue-700",
+  const handleFileChange = (field, file) => {
+    updateData("personal", field, file);
+    
+    // Create preview for profile image
+    if (field === "profileImage") {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
-    <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
-      <div className="text-2xl mb-2">{icon}</div>
-      <p className="text-sm font-medium text-gray-700">{title}</p>
-      <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs mt-1 ${statusColors[status]}`}>
-        <div className="w-2 h-2 rounded-full bg-current"></div>
-        {value}
+    <div className="space-y-6">
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+        <p className="text-sm text-gray-600">Add your personal details to complete your profile</p>
+      </div>
+
+      {/* Profile Image */}
+      <div>
+        <h3 className="mb-4 text-sm font-medium text-gray-800">
+          Profile Image
+        </h3>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          <UploadBox
+            title="Upload Profile Photo"
+            note="A photo larger than 400 pixels work best. Max photo size 5 MB."
+            value={data.profileImage}
+            preview={profileImagePreview}
+            onChange={(file) => handleFileChange("profileImage", file)}
+            type="profile"
+          />
+        </div>
+      </div>
+
+      {/* Phone Number */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          Phone Number *
+        </label>
+        <div className="flex">
+          <div className="flex items-center gap-2 border rounded-l-md px-3 bg-gray-50 text-sm min-w-[100px]">
+            <span>🇺🇸</span>
+            <span>+1</span>
+          </div>
+          <input
+            type="tel"
+            placeholder="Phone number..."
+            value={data.phone}
+            onChange={(e) => updateData("personal", "phone", e.target.value)}
+            className="w-full border border-l-0 rounded-r-md px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+            required
+          />
+        </div>
+      </div>
+
+      {/* Address */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          Address *
+        </label>
+        <div className="relative">
+          <textarea
+            rows={3}
+            placeholder="Enter your full address"
+            value={data.address}
+            onChange={(e) => updateData("personal", "address", e.target.value)}
+            className="w-full rounded-md border px-4 py-2.5 pl-10 text-sm focus:border-blue-500 focus:outline-none"
+            required
+          />
+          <FiMapPin className="absolute left-3 top-3 text-gray-400" />
+        </div>
       </div>
     </div>
   );
 }
 
-/* ================= STEP COMPONENTS ================= */
+/* ================= COMPANY INFO STEP ================= */
 
 function CompanyInfoStep({ data, updateData }) {
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null);
+
+  const handleFileChange = (field, file) => {
+    updateData("company", field, file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (field === "logo") {
+        setLogoPreview(reader.result);
+      } else if (field === "banner") {
+        setBannerPreview(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="space-y-6">
       {/* Logo & Banner */}
@@ -361,7 +545,9 @@ function CompanyInfoStep({ data, updateData }) {
             title="Upload Logo"
             note="A photo larger than 400 pixels work best. Max photo size 5 MB."
             value={data.logo}
-            onChange={(file) => updateData("company", "logo", file)}
+            preview={logoPreview}
+            onChange={(file) => handleFileChange("logo", file)}
+            type="logo"
           />
 
           {/* Banner */}
@@ -370,7 +556,9 @@ function CompanyInfoStep({ data, updateData }) {
             note="Banner images optimal dimension 1520x400. Supported format JPEG, PNG. Max photo size 5 MB."
             wide
             value={data.banner}
-            onChange={(file) => updateData("company", "banner", file)}
+            preview={bannerPreview}
+            onChange={(file) => handleFileChange("banner", file)}
+            type="banner"
           />
         </div>
       </div>
@@ -378,7 +566,7 @@ function CompanyInfoStep({ data, updateData }) {
       {/* Company Name */}
       <div>
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          Company name
+          Company name *
         </label>
         <input
           type="text"
@@ -386,13 +574,14 @@ function CompanyInfoStep({ data, updateData }) {
           value={data.name}
           onChange={(e) => updateData("company", "name", e.target.value)}
           className="w-full rounded-md border px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+          required
         />
       </div>
 
       {/* About Us */}
       <div>
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          About Us
+          About Us *
         </label>
 
         <div className="rounded-md border">
@@ -413,12 +602,15 @@ function CompanyInfoStep({ data, updateData }) {
             value={data.about}
             onChange={(e) => updateData("company", "about", e.target.value)}
             className="w-full resize-none px-4 py-3 text-sm focus:outline-none"
+            required
           />
         </div>
       </div>
     </div>
   );
 }
+
+/* ================= FOUNDING INFO STEP ================= */
 
 function FoundingInfoStep({ data, updateData }) {
   return (
@@ -427,19 +619,23 @@ function FoundingInfoStep({ data, updateData }) {
         {/* Organization Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Organization Type
+            Organization Type *
           </label>
           <div className="relative">
             <select
               value={data.organizationType}
               onChange={(e) => updateData("founding", "organizationType", e.target.value)}
               className="w-full border rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none"
+              required
             >
               <option value="">Select...</option>
-              <option value="private">Private Limited</option>
-              <option value="public">Public Limited</option>
-              <option value="llc">LLC</option>
-              <option value="nonprofit">Non-Profit</option>
+              <option value="Private Limited">Private Limited</option>
+              <option value="Public Limited">Public Limited</option>
+              <option value="LLC">LLC</option>
+              <option value="Non-Profit">Non-Profit</option>
+              <option value="Startup">Startup</option>
+              <option value="Government">Government</option>
+              <option value="Educational">Educational</option>
             </select>
             <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
@@ -448,20 +644,31 @@ function FoundingInfoStep({ data, updateData }) {
         {/* Industry Types */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Industry Types
+            Industry Types *
           </label>
           <div className="relative">
             <select
               value={data.industryType}
               onChange={(e) => updateData("founding", "industryType", e.target.value)}
               className="w-full border rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none"
+              required
             >
               <option value="">Select...</option>
-              <option value="tech">Technology</option>
-              <option value="finance">Finance</option>
-              <option value="healthcare">Healthcare</option>
-              <option value="education">Education</option>
-              <option value="retail">Retail</option>
+              <option value="Technology">Technology</option>
+              <option value="Finance">Finance</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Education">Education</option>
+              <option value="Retail">Retail</option>
+              <option value="Manufacturing">Manufacturing</option>
+              <option value="Real Estate">Real Estate</option>
+              <option value="Hospitality">Hospitality</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Media">Media</option>
+              <option value="Construction">Construction</option>
+              <option value="Energy">Energy</option>
+              <option value="Agriculture">Agriculture</option>
+              <option value="Telecommunications">Telecommunications</option>
+              <option value="Automotive">Automotive</option>
             </select>
             <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
@@ -470,20 +677,22 @@ function FoundingInfoStep({ data, updateData }) {
         {/* Team Size */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Team Size
+            Team Size *
           </label>
           <div className="relative">
             <select
               value={data.teamSize}
               onChange={(e) => updateData("founding", "teamSize", e.target.value)}
               className="w-full border rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none"
+              required
             >
               <option value="">Select...</option>
               <option value="1-10">1-10 employees</option>
               <option value="11-50">11-50 employees</option>
               <option value="51-200">51-200 employees</option>
               <option value="201-500">201-500 employees</option>
-              <option value="500+">500+ employees</option>
+              <option value="501-1000">501-1000 employees</option>
+              <option value="1000+">1000+ employees</option>
             </select>
             <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
@@ -492,7 +701,7 @@ function FoundingInfoStep({ data, updateData }) {
         {/* Year of Establishment */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Year of Establishment
+            Year of Establishment *
           </label>
           <div className="relative">
             <input
@@ -500,6 +709,7 @@ function FoundingInfoStep({ data, updateData }) {
               value={data.year}
               onChange={(e) => updateData("founding", "year", e.target.value)}
               className="w-full border rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
             />
             <FiCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
           </div>
@@ -539,6 +749,8 @@ function FoundingInfoStep({ data, updateData }) {
     </div>
   );
 }
+
+/* ================= SOCIAL MEDIA STEP ================= */
 
 function SocialMediaStep({ links, updateLink, addLink, removeLink }) {
   return (
@@ -600,13 +812,15 @@ function SocialMediaStep({ links, updateLink, addLink, removeLink }) {
   );
 }
 
+/* ================= CONTACT STEP ================= */
+
 function ContactStep({ data, updateData }) {
   return (
     <div className="space-y-6 max-w-3xl">
       {/* Map Location */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Map Location
+          Map Location *
         </label>
         <input
           type="text"
@@ -614,13 +828,14 @@ function ContactStep({ data, updateData }) {
           value={data.location}
           onChange={(e) => updateData("contact", "location", e.target.value)}
           className="w-full border rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          required
         />
       </div>
 
       {/* Phone */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Phone
+          Phone *
         </label>
 
         <div className="flex">
@@ -637,6 +852,7 @@ function ContactStep({ data, updateData }) {
             value={data.phone}
             onChange={(e) => updateData("contact", "phone", e.target.value)}
             className="w-full border border-l-0 rounded-r-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            required
           />
         </div>
       </div>
@@ -644,7 +860,7 @@ function ContactStep({ data, updateData }) {
       {/* Email */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Email
+          Email *
         </label>
 
         <div className="flex items-center border rounded-md px-3 py-2">
@@ -655,7 +871,117 @@ function ContactStep({ data, updateData }) {
             value={data.email}
             onChange={(e) => updateData("contact", "email", e.target.value)}
             className="w-full text-sm focus:outline-none"
+            required
           />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ================= SUCCESS MODAL ================= */
+
+function SuccessModal({ onRedirect }) {
+  const [countdown, setCountdown] = useState(3);
+
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      onRedirect();
+    }
+  }, [countdown, onRedirect]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+        {/* Modal Content */}
+        <div className="p-8 text-center">
+          {/* Success Icon */}
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-50 mb-6">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+              <FiCheck className="w-8 h-8 text-green-600" />
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">
+            🎉 Congratulations!
+          </h2>
+
+          {/* Subtitle */}
+          <p className="text-gray-600 mb-2">
+            Your company profile setup is 100% complete
+          </p>
+
+          {/* Description */}
+          <p className="text-gray-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
+            Your company profile has been successfully created and is now active.
+            You can now post jobs and start finding candidates.
+          </p>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
+              <div className="text-2xl mb-2">🏢</div>
+              <p className="text-sm font-medium text-gray-700">Company Profile</p>
+              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs mt-1 bg-green-50 text-green-700">
+                <div className="w-2 h-2 rounded-full bg-current"></div>
+                Active
+              </div>
+            </div>
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
+              <div className="text-2xl mb-2">👤</div>
+              <p className="text-sm font-medium text-gray-700">Personal Info</p>
+              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs mt-1 bg-green-50 text-green-700">
+                <div className="w-2 h-2 rounded-full bg-current"></div>
+                Complete
+              </div>
+            </div>
+            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
+              <div className="text-2xl mb-2">🌐</div>
+              <p className="text-sm font-medium text-gray-700">Social Links</p>
+              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs mt-1 bg-green-50 text-green-700">
+                <div className="w-2 h-2 rounded-full bg-current"></div>
+                Connected
+              </div>
+            </div>
+          </div>
+
+          {/* Countdown Message */}
+          <div className="mb-6">
+            <p className="text-sm text-gray-600">
+              Redirecting to dashboard in <span className="font-bold text-blue-600">{countdown}</span> seconds...
+            </p>
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-1000" 
+                style={{ width: `${(3 - countdown) * 33.33}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={onRedirect}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+            >
+              <FiHome className="w-4 h-4" />
+              Go to Dashboard Now
+            </button>
+          </div>
+
+          {/* Additional Info */}
+          <div className="mt-8 pt-6 border-t">
+            <p className="text-xs text-gray-500">
+              Need help? <a href="#" className="text-blue-600 hover:underline">Contact Support</a> or 
+              <a href="#" className="text-blue-600 hover:underline ml-2">View Setup Guide</a>
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -686,7 +1012,7 @@ function Step({ icon, label, active, completed, onClick, isLast }) {
   );
 }
 
-function UploadBox({ title, note, wide, value, onChange }) {
+function UploadBox({ title, note, wide, value, preview, onChange, type }) {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -708,10 +1034,32 @@ function UploadBox({ title, note, wide, value, onChange }) {
         className="hidden"
         onChange={handleFileChange}
       />
-      {value ? (
+      
+      {preview || value ? (
         <div className="text-green-600">
-          <FiCheck className="text-2xl mx-auto" />
+          {type === "logo" && preview ? (
+            <img 
+              src={preview} 
+              alt="Logo preview" 
+              className="w-20 h-20 object-cover rounded-full mx-auto mb-2"
+            />
+          ) : type === "banner" && preview ? (
+            <img 
+              src={preview} 
+              alt="Banner preview" 
+              className="w-full h-32 object-cover rounded-md mx-auto mb-2"
+            />
+          ) : type === "profile" && preview ? (
+            <img 
+              src={preview} 
+              alt="Profile preview" 
+              className="w-20 h-20 object-cover rounded-full mx-auto mb-2"
+            />
+          ) : (
+            <FiCheck className="text-2xl mx-auto" />
+          )}
           <p className="mt-2 text-sm">File uploaded</p>
+          <p className="text-xs text-gray-400">Click to change</p>
         </div>
       ) : (
         <>

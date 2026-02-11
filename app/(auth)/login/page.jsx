@@ -66,7 +66,7 @@ export default function LoginPage() {
         if (userRole === 'admin') {
           router.push('/');
         } else if (userRole === 'employer') {
-          router.push('/home');
+          router.push('/');
         } else {
           router.push('/'); // Default for candidates
         }

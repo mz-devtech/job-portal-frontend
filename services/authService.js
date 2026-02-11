@@ -270,39 +270,113 @@ export const authService = {
     return localStorage.getItem("userRole");
   },
 
-  // Update user profile
-  async updateProfile(userId, data) {
+ async updateProfile(formData) {
     try {
-      const response = await api.put(`/users/${userId}`, data);
-      toast.success("Profile updated successfully!");
+      console.log("👤 [AUTH SERVICE] Updating user profile...");
+      
+      const response = await api.put("/auth/update-profile", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      // Update stored user data
-      if (response.data.user && typeof window !== "undefined") {
-        const currentUser = this.getCurrentUser();
-        const updatedUser = { ...currentUser, ...response.data.user };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
+      if (response.data.success) {
+        const updatedUser = response.data.user;
+        
+        // Update localStorage
+        if (typeof window !== "undefined") {
+          const currentUser = this.getCurrentUser();
+          const mergedUser = {
+            ...currentUser,
+            ...updatedUser,
+            // Ensure profile image is preserved
+            profileImage: updatedUser.profileImage || currentUser?.profileImage
+          };
+          localStorage.setItem("user", JSON.stringify(mergedUser));
+          console.log("✅ [AUTH SERVICE] User data updated in localStorage");
+        }
+
+        toast.success("Profile updated successfully!");
+        return response.data;
+      } else {
+        throw new Error(response.data.message || "Profile update failed");
       }
-
-      return response.data;
     } catch (error) {
-      const message = error.response?.data?.message || "Profile update failed";
-      toast.error(message);
-      throw error;
+      console.error("❌ [AUTH SERVICE] Update profile error:", error);
+      
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to update profile";
+
+      toast.error(errorMessage);
+      throw new Error(errorMessage);
     }
   },
 
-  // Change password
-  async changePassword(data) {
+  // UPDATED: Get current user with fallback to localStorage
+  getCurrentUser() {
+    if (typeof window === "undefined") return null;
+
     try {
-      const response = await api.put("/auth/change-password", data);
+      const userStr = localStorage.getItem("user");
+      if (!userStr) return null;
+
+      const user = JSON.parse(userStr);
+      
+      // Ensure all fields have default values
+      return {
+        id: user.id || user._id || "",
+        name: user.name || "",
+        email: user.email || "",
+        username: user.username || "",
+        role: user.role || "",
+        phone: user.phone || "",
+        address: user.address || "",
+        profileImage: user.profileImage || "",
+        isEmailVerified: user.isEmailVerified || false,
+        isProfileComplete: user.isProfileComplete || false,
+        profile: user.profile || null,
+        ...user // Spread any other properties
+      };
+    } catch (error) {
+      console.error("❌ [AUTH SERVICE] Error parsing user data:", error);
+      return null;
+    }
+  },
+
+
+// In authService.js - changePassword method
+async changePassword(data) {
+  try {
+    console.log("🔐 [AUTH SERVICE] Changing password...");
+    
+    const response = await api.put("/auth/change-password", data);
+    
+    if (response.data.success) {
+      // If a new token is returned, update localStorage
+      if (response.data.token && typeof window !== "undefined") {
+        localStorage.setItem("token", response.data.token);
+        console.log("✅ [AUTH SERVICE] Token updated after password change");
+      }
+      
       toast.success("Password changed successfully!");
       return response.data;
-    } catch (error) {
-      const message = error.response?.data?.message || "Password change failed";
-      toast.error(message);
-      throw error;
+    } else {
+      throw new Error(response.data.message || "Password change failed");
     }
-  },
+  } catch (error) {
+    console.error("❌ [AUTH SERVICE] Change password error:", error);
+    
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to change password";
+    
+    toast.error(errorMessage);
+    throw new Error(errorMessage);
+  }
+},
 
   // Check if email is verified (for protected routes)
   isEmailVerified() {

@@ -1,9 +1,20 @@
 "use client";
 
 import { FiBookmark, FiBell } from "react-icons/fi";
-import ProfileAlert from "./ProfileAlert";
+import ProfileAlert from "../../components/dashboard/ProfileAlert";
+import { useSelector } from "react-redux";
+import { selectUser, selectRole, selectIsAuthenticated } from "../../redux/slices/userSlice";
 
 export default function CandidateMain() {
+  const user = useSelector(selectUser);
+  const userRole = useSelector(selectRole);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  
+  // Handle edit profile click
+  const handleEditProfile = () => {
+    window.location.href = "/candidate/settings";
+  };
+
   return (
     <main
       className="
@@ -21,7 +32,7 @@ export default function CandidateMain() {
     >
       {/* Heading */}
       <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-        Hello, Esther Howard
+        Hello, {user?.name || user?.username || "Esther Howard"}
       </h2>
       <p className="mt-1 text-sm text-gray-500">
         Here is your daily activities and job alerts
@@ -34,7 +45,14 @@ export default function CandidateMain() {
         <StatCard title="Job Alerts" value="574" bg="bg-green-50" />
       </div>
 
-    <ProfileAlert/>
+      {/* Profile Alert - Shows only when profile is incomplete */}
+      {isAuthenticated && userRole === "candidate" && (
+        <ProfileAlert 
+          onClick={handleEditProfile}
+          title="Complete Your Profile to Stand Out!"
+          description="Finish setting up your profile to increase your chances of getting hired. Add your skills, experience, and portfolio."
+        />
+      )}
 
       {/* Table */}
       <div className="mt-8 rounded-lg bg-white shadow-sm">
