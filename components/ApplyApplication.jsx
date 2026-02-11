@@ -1,22 +1,17 @@
 "use client";
 
-import { X, Bold, Italic, List, Link, Type, Underline, Upload, ExternalLink } from "lucide-react";
+import { X, Bold, Italic, List, Link, Type, Underline, Upload, Loader2, FileText } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { applicationService } from "@/services/applicationService";
 
-export default function ApplyApplication({ open, onClose, jobTitle, company }) {
+export default function ApplyApplication({ open, onClose, jobId, jobTitle, company, onSuccess }) {
   const [coverLetter, setCoverLetter] = useState("");
-  const [selectedResume, setSelectedResume] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [urlText, setUrlText] = useState("");
-  const [resumeOptions, setResumeOptions] = useState([
-    { id: 1, name: "Select a resume...", value: "" },
-    { id: 2, name: "Resume_2024.pdf", value: "resume_2024.pdf" },
-    { id: 3, name: "Resume_Designer.pdf", value: "resume_designer.pdf" },
-    { id: 4, name: "Resume_Developer.pdf", value: "resume_developer.pdf" },
-  ]);
+  const [error, setError] = useState("");
   
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -32,10 +27,12 @@ export default function ApplyApplication({ open, onClose, jobTitle, company }) {
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
+    setError("");
+    
     if (file) {
       // Check file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size exceeds 5MB limit");
+        setError("File size exceeds 5MB limit");
         return;
       }
       
@@ -44,21 +41,11 @@ export default function ApplyApplication({ open, onClose, jobTitle, company }) {
       const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
       
       if (!allowedTypes.includes(fileExtension)) {
-        alert("Please upload PDF, DOC, or DOCX files only");
+        setError("Please upload PDF, DOC, or DOCX files only");
         return;
       }
       
       setSelectedFile(file);
-      
-      // Add new option to dropdown
-      const newResume = {
-        id: Date.now(),
-        name: file.name,
-        value: `uploaded_${file.name}`
-      };
-      
-      setResumeOptions(prev => [newResume, ...prev]);
-      setSelectedResume(newResume.value);
     }
   };
 
@@ -130,11 +117,12 @@ export default function ApplyApplication({ open, onClose, jobTitle, company }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
     
-    if (!selectedResume) {
-      alert("Please select or upload a resume to continue");
+    if (!selectedFile) {
+      setError("Please upload a resume to continue");
       return;
     }
     
@@ -143,47 +131,55 @@ export default function ApplyApplication({ open, onClose, jobTitle, company }) {
       coverLetter.replace(/<[^>]*>/g, '').trim();
     
     if (!plainText) {
-      alert("Please write a cover letter");
+      setError("Please write a cover letter");
       return;
     }
     
     setIsSubmitting(true);
     
-    // Prepare form data for upload
-    const formData = new FormData();
-    if (selectedFile) {
+    try {
+      // Prepare form data for upload
+      const formData = new FormData();
+      formData.append('jobId', jobId);
       formData.append('resume', selectedFile);
-    }
-    formData.append('coverLetter', coverLetter);
-    formData.append('jobTitle', jobTitle);
-    formData.append('company', company);
-    formData.append('selectedResume', selectedResume);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Application submitted:', {
-        jobTitle,
-        company,
-        resume: selectedResume,
-        file: selectedFile?.name,
-        coverLetter
-      });
+      formData.append('coverLetter', coverLetter);
       
-      setIsSubmitting(false);
-      onClose();
+      // Submit application
+      await applicationService.applyForJob(jobId, formData);
+      
+      // Reset form
       resetForm();
-    }, 1500);
+      
+      // Close modal
+      onClose();
+      
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+    } catch (error) {
+      console.error("Application submission error:", error);
+      setError(error.response?.data?.message || "Failed to submit application. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetForm = () => {
     setCoverLetter("");
-    setSelectedResume("");
     setSelectedFile(null);
     setUrlInput("");
     setUrlText("");
+    setError("");
     if (editorRef.current) {
       editorRef.current.innerHTML = "";
     }
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
   };
 
   if (!open) return null;
@@ -253,7 +249,7 @@ export default function ApplyApplication({ open, onClose, jobTitle, company }) {
         {/* Overlay */}
         <div
           className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-          onClick={onClose}
+          onClick={handleClose}
         />
 
         {/* Modal */}
@@ -268,7 +264,7 @@ export default function ApplyApplication({ open, onClose, jobTitle, company }) {
                 </p>
               </div>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="p-2 hover:bg-gray-100 rounded-lg transition"
                 type="button"
               >
@@ -279,75 +275,72 @@ export default function ApplyApplication({ open, onClose, jobTitle, company }) {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
-            {/* Field 1: Resume Selection */}
+            {/* Error Message */}
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
+            {/* Field 1: Resume Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Choose Resume *
+                Upload Resume *
               </label>
               
-              <div className="space-y-4">
-                {/* Dropdown for existing resumes */}
-                <select
-                  value={selectedResume}
-                  onChange={(e) => setSelectedResume(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              {!selectedFile ? (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition flex flex-col items-center justify-center gap-2"
                 >
-                  {resumeOptions.map((option) => (
-                    <option key={option.id} value={option.value}>
-                      {option.name}
-                    </option>
-                  ))}
-                </select>
-                
-                {/* Upload section */}
-                <div className="text-center">
-                  <div className="text-sm text-gray-500 mb-2">or</div>
-                  
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition flex flex-col items-center justify-center gap-2"
-                  >
-                    <Upload size={20} className="text-gray-500" />
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">
-                        Upload from device
-                      </span>
-                      <p className="text-xs text-gray-500 mt-1">
-                        PDF, DOC, DOCX up to 5MB
-                      </p>
-                    </div>
-                  </button>
-                  
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  
-                  {selectedFile && (
-                    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center">
-                            <Upload size={16} className="text-green-600" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {selectedFile.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                          </div>
-                        </div>
+                  <Upload size={32} className="text-gray-400" />
+                  <div>
+                    <span className="text-sm font-medium text-gray-700">
+                      Click to upload resume
+                    </span>
+                    <p className="text-xs text-gray-500 mt-1">
+                      PDF, DOC, DOCX up to 5MB
+                    </p>
+                  </div>
+                </button>
+              ) : (
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <FileText size={20} className="text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {selectedFile.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(selectedFile.size / 1024).toFixed(0)} KB
+                        </p>
                       </div>
                     </div>
-                  )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFile(null);
+                        setError("");
+                      }}
+                      className="text-red-600 hover:text-red-800 p-1"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
             </div>
 
             {/* Field 2: Rich Text Editor */}
@@ -439,22 +432,11 @@ export default function ApplyApplication({ open, onClose, jobTitle, company }) {
               </div>
             </div>
 
-            {/* Editor Instructions */}
-            <div className="text-xs text-gray-500 p-3 bg-gray-50 rounded-lg">
-              <p className="font-medium mb-1">How to use the editor:</p>
-              <ul className="list-disc list-inside space-y-1">
-                <li><strong>Select text</strong> and click buttons to format</li>
-                <li>Click <strong>List button</strong> to create bullet points</li>
-                <li>Click <strong>Link button</strong> to insert clickable URLs</li>
-                <li>Use <strong>keyboard shortcuts</strong>: Ctrl+B, Ctrl+I, Ctrl+U</li>
-              </ul>
-            </div>
-
             {/* Footer Actions */}
-            <div className="flex justify-between items-center pt-4 border-t">
+            <div className="flex justify-end gap-3 pt-4 border-t">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="px-5 py-2.5 text-gray-600 font-medium hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
               >
                 Cancel
@@ -467,7 +449,7 @@ export default function ApplyApplication({ open, onClose, jobTitle, company }) {
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     Submitting...
                   </>
                 ) : (
