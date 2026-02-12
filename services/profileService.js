@@ -304,5 +304,27 @@ export const profileService = {
       console.error("Error checking profile completion:", error);
       return { needsCompletion: false };
     }
+  },
+
+// ============================================
+// GET SAVED CANDIDATES COUNT (For Employer Dashboard)
+// ============================================
+async getSavedCandidatesCount() {
+  try {
+    console.log("📊 [CANDIDATE SERVICE] Fetching saved candidates count");
+    
+    const response = await api.get('/candidate-profile/saved/count');
+    
+    if (response.data.success) {
+      console.log("✅ [CANDIDATE SERVICE] Saved candidates count fetched:", response.data.count);
+      return response.data.count;
+    } else {
+      throw new Error(response.data.message || "Failed to fetch saved candidates count");
+    }
+  } catch (error) {
+    console.error("❌ [CANDIDATE SERVICE] Get saved candidates count error:", error);
+    return 0; // Return 0 on error
   }
+},
+
 };

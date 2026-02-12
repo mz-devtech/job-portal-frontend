@@ -77,58 +77,6 @@ html, body {
   height: 100%;
 }
 
-/* Ensure main content can scroll */
-#__next, /* For Next.js */
-main,
-.main-content,
-.scrollable-content {
-  height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* Custom utility classes */
-.input {
-  width: 100%;
-  padding: 0.625rem 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  outline: none;
-  transition: all 0.15s ease-in-out;
-}
-
-.input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.eye-btn {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ca3af;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-}
-
-.eye-btn:hover {
-  color: #6b7280;
-}
-
-/* Custom focus styles */
-*:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-/* Smooth transitions */
-button, input, select, textarea {
-  transition: all 0.15s ease-in-out;
-}
 
 /* Animations */
 @keyframes slideDown {
@@ -176,8 +124,34 @@ button, input, select, textarea {
   height: 0 !important;
 }
 
-/* Ensure proper stacking */
-body > div:first-child {
-  height: 100%;
-  overflow: auto;
+
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease-out;
 }

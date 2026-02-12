@@ -45,10 +45,22 @@ export default function CandidateMain() {
         appliedJobs: appsResponse.pagination?.totalApplications || 0,
       }));
 
-      // Fetch saved jobs count
-      // You'll need to implement this in savedJobService
-      // const savedResponse = await savedJobService.getSavedJobs({ limit: 1 });
-      // setStats(prev => ({ ...prev, favoriteJobs: savedResponse.pagination?.totalSaved || 0 }));
+      // Fetch saved jobs count using the dedicated API endpoint
+      try {
+        const savedJobsCount = await savedJobService.getSavedJobsCount();
+        setStats(prev => ({ 
+          ...prev, 
+          favoriteJobs: savedJobsCount || 0 
+        }));
+        console.log("✅ Saved jobs count fetched:", savedJobsCount);
+      } catch (error) {
+        console.error("Failed to fetch saved jobs count:", error);
+        setStats(prev => ({ ...prev, favoriteJobs: 0 }));
+      }
+
+      // Job alerts count (you can implement this later)
+      // For now, we'll keep it as 0 or fetch from another service
+      setStats(prev => ({ ...prev, jobAlerts: 0 }));
 
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
@@ -99,13 +111,13 @@ export default function CandidateMain() {
     >
       {/* Heading */}
       <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-        Hello, {user?.name || user?.username || "Esther Howard"} 👋
+        Hello, {user?.name || user?.username || "Candidate"} 👋
       </h2>
       <p className="mt-1 text-sm text-gray-500">
         Here is your daily activities and job alerts
       </p>
 
-      {/* Stats */}
+      {/* Stats Cards */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard 
           title="Applied Jobs" 
@@ -116,8 +128,8 @@ export default function CandidateMain() {
           link="/candidate/applied-jobs"
         />
         <StatCard 
-          title="Favorite Jobs" 
-          value={stats.favoriteJobs || 238} 
+          title="Saved Jobs" 
+          value={stats.favoriteJobs} 
           bg="bg-yellow-50"
           icon={Bookmark}
           color="text-yellow-600"
@@ -125,7 +137,7 @@ export default function CandidateMain() {
         />
         <StatCard 
           title="Job Alerts" 
-          value={stats.jobAlerts || 12} 
+          value={stats.jobAlerts} 
           bg="bg-green-50"
           icon={Bell}
           color="text-green-600"
@@ -176,10 +188,10 @@ export default function CandidateMain() {
                   <tr key={app._id} className="border-t hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <p className="font-medium text-gray-800">
-                        {app.job.jobTitle}
+                        {app.job?.jobTitle || 'Unknown Job'}
                       </p>
                       <span className={`mt-1 inline-block rounded px-2 py-0.5 text-xs ${getStatusBadge(app.status)}`}>
-                        {app.status}
+                        {app.status?.charAt(0).toUpperCase() + app.status?.slice(1) || 'Pending'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-gray-500">
@@ -188,12 +200,12 @@ export default function CandidateMain() {
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center gap-1 text-green-600">
                         <span className="h-2 w-2 rounded-full bg-green-500" />
-                        {app.status === "pending" ? "Active" : app.status}
+                        {app.status === "pending" ? "Active" : app.status?.charAt(0).toUpperCase() + app.status?.slice(1)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <Link
-                        href={`/jobs/${app.job._id}`}
+                        href={`/jobs/${app.job?._id}`}
                         className="rounded border px-4 py-1 text-blue-600 hover:bg-blue-50"
                       >
                         View Details
@@ -217,12 +229,29 @@ export default function CandidateMain() {
           </div>
         )}
       </div>
+
+      {/* Quick Actions */}
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <QuickActionCard
+          title="Browse Jobs"
+          description="Find your next opportunity"
+          icon={Briefcase}
+          href="/"
+          color="bg-blue-600 hover:bg-blue-700"
+        />
+        <QuickActionCard
+          title="Saved Jobs"
+          description={`You have ${stats.favoriteJobs} saved job${stats.favoriteJobs !== 1 ? 's' : ''}`}
+          icon={Bookmark}
+          href="/candidate/saved-jobs"
+          color="bg-yellow-600 hover:bg-yellow-700"
+        />
+      </div>
     </main>
   );
 }
 
-/* ---------- Small Components ---------- */
-
+/* ---------- Stat Card Component ---------- */
 function StatCard({ title, value, bg, icon: Icon, color, link }) {
   return (
     <Link href={link} className={`rounded-lg p-5 ${bg} hover:shadow-md transition`}>
@@ -230,12 +259,30 @@ function StatCard({ title, value, bg, icon: Icon, color, link }) {
         <div>
           <p className="text-sm text-gray-500">{title}</p>
           <p className="mt-2 text-2xl sm:text-3xl font-bold text-gray-900">
-            {value.toLocaleString()}
+            {value !== undefined ? value.toLocaleString() : '0'}
           </p>
         </div>
         <div className={`w-12 h-12 rounded-full bg-white flex items-center justify-center ${color}`}>
           <Icon className="w-6 h-6" />
         </div>
+      </div>
+    </Link>
+  );
+}
+
+/* ---------- Quick Action Card Component ---------- */
+function QuickActionCard({ title, description, icon: Icon, href, color }) {
+  return (
+    <Link href={href}>
+      <div className={`${color} rounded-lg p-5 text-white transition shadow-sm hover:shadow-md cursor-pointer`}>
+        <div className="flex items-center justify-between mb-3">
+          <div className="p-2 bg-white/20 rounded-lg">
+            <Icon className="w-5 h-5" />
+          </div>
+          <span className="text-white/60 text-lg leading-none">→</span>
+        </div>
+        <h4 className="font-semibold text-white mb-1">{title}</h4>
+        <p className="text-sm text-white/80">{description}</p>
       </div>
     </Link>
   );

@@ -13,10 +13,12 @@ import {
   FiClock,
   FiCheckCircle,
   FiAlertCircle,
+  FiEdit,
 } from "react-icons/fi";
 import { jobService } from "@/services/jobService";
 import toast from "react-hot-toast";
 import EmployerSidebar from "@/components/dashboard/employer/EmployerSideBar";
+import EditJobModal from "@/components/dashboard/employer/EditJobModal";
 
 export default function MyJobsMain() {
   const [jobs, setJobs] = useState([]);
@@ -35,7 +37,13 @@ export default function MyJobsMain() {
     currentPage: 1,
     totalPages: 1,
     totalJobs: 0,
+    hasPrevPage: false,
+    hasNextPage: false,
   });
+
+  // Edit Job Modal State
+  const [editingJob, setEditingJob] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -63,6 +71,8 @@ export default function MyJobsMain() {
           currentPage: 1,
           totalPages: 1,
           totalJobs: response.jobs?.length || 0,
+          hasPrevPage: false,
+          hasNextPage: false,
         });
       }
     } catch (error) {
@@ -81,7 +91,7 @@ export default function MyJobsMain() {
       const result = await jobService.deleteJob(jobId);
       if (result) {
         toast.success("Job deleted successfully");
-        fetchJobs(); // Refresh the list
+        fetchJobs();
       }
     } catch (error) {
       toast.error("Failed to delete job");
@@ -96,7 +106,7 @@ export default function MyJobsMain() {
       const response = await jobService.expireJob(jobId);
       if (response) {
         toast.success("Job marked as expired");
-        fetchJobs(); // Refresh the list
+        fetchJobs();
       }
     } catch (error) {
       toast.error("Failed to expire job");
@@ -106,7 +116,6 @@ export default function MyJobsMain() {
   // Duplicate job
   const handleDuplicateJob = async (job) => {
     try {
-      // Create a new job object from existing one
       const newJobData = {
         jobTitle: `${job.jobTitle} (Copy)`,
         jobDescription: job.jobDescription,
@@ -130,7 +139,7 @@ export default function MyJobsMain() {
         applicationMethod: job.applicationMethod,
         applicationEmail: job.applicationEmail,
         applicationUrl: job.applicationUrl,
-        expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+        expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       };
       
       await jobService.createJob(newJobData);
@@ -141,12 +150,24 @@ export default function MyJobsMain() {
     }
   };
 
+  // Edit job
+  const handleEditJob = (job) => {
+    setEditingJob(job);
+    setShowEditModal(true);
+  };
+
+  // Handle job updated
+  const handleJobUpdated = () => {
+    fetchJobs();
+  };
+
   useEffect(() => {
     fetchJobs();
   }, [filter, debouncedSearch, pagination.currentPage]);
 
   // Format date for display
   const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
       month: "short",
@@ -338,6 +359,7 @@ export default function MyJobsMain() {
                         onDelete={() => handleDeleteJob(job._id)}
                         onExpire={() => handleExpireJob(job._id)}
                         onDuplicate={() => handleDuplicateJob(job)}
+                        onEdit={() => handleEditJob(job)}
                         formatDate={formatDate}
                         getStatusBadge={getStatusBadge}
                       />
@@ -400,13 +422,26 @@ export default function MyJobsMain() {
           )}
         </div>
       </main>
+
+      {/* Edit Job Modal */}
+      {showEditModal && editingJob && (
+        <EditJobModal
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingJob(null);
+          }}
+          jobId={editingJob._id}
+          onJobUpdated={handleJobUpdated}
+        />
+      )}
     </div>
   );
 }
 
 /* ---------------- Job Row ---------------- */
 
-function JobRow({ job, onDelete, onExpire, onDuplicate, formatDate, getStatusBadge }) {
+function JobRow({ job, onDelete, onExpire, onDuplicate, onEdit, formatDate, getStatusBadge }) {
   const [open, setOpen] = useState(false);
   
   const statusBadge = getStatusBadge(job);
@@ -479,6 +514,16 @@ function JobRow({ job, onDelete, onExpire, onDuplicate, formatDate, getStatusBad
                 Pending: {job.applicationStats.pending}
               </span>
             )}
+            {job.applicationStats?.reviewed > 0 && (
+              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                Reviewed: {job.applicationStats.reviewed}
+              </span>
+            )}
+            {job.applicationStats?.shortlisted > 0 && (
+              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+                Shortlisted: {job.applicationStats.shortlisted}
+              </span>
+            )}
             {job.applicationStats?.interview > 0 && (
               <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">
                 Interview: {job.applicationStats.interview}
@@ -517,6 +562,7 @@ function JobRow({ job, onDelete, onExpire, onDuplicate, formatDate, getStatusBad
             onDelete={onDelete}
             onExpire={onExpire}
             onDuplicate={onDuplicate}
+            onEdit={onEdit}
             onClose={() => setOpen(false)}
           />
         )}
@@ -527,7 +573,7 @@ function JobRow({ job, onDelete, onExpire, onDuplicate, formatDate, getStatusBad
 
 /* ---------------- Dropdown ---------------- */
 
-function ActionsDropdown({ jobId, job, onDelete, onExpire, onDuplicate, onClose }) {
+function ActionsDropdown({ jobId, job, onDelete, onExpire, onDuplicate, onEdit, onClose }) {
   return (
     <div
       className="absolute right-6 top-12 z-20 w-56 rounded-lg border bg-white shadow-lg py-1"
@@ -541,22 +587,30 @@ function ActionsDropdown({ jobId, job, onDelete, onExpire, onDuplicate, onClose 
         </div>
       </Link>
 
-      <Link href={`/employer/jobs/${jobId}/applications`}>
+      <Link href={`/my_jobs/${jobId}/applications`}>
         <div className="flex items-center gap-2 px-4 py-2.5 text-sm text-blue-600 hover:bg-gray-50 transition cursor-pointer font-medium">
           <FiUsers className="w-4 h-4" />
           View Applications ({job.applicationsCount || 0})
         </div>
       </Link>
 
-      <Link href={`/employer/jobs/${jobId}/edit`}>
-        <div className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition cursor-pointer">
-          <FiPlusCircle className="w-4 h-4" />
-          Edit Job
-        </div>
-      </Link>
+      {/* Edit Job Button */}
+      <div 
+        onClick={() => {
+          onEdit();
+          onClose();
+        }}
+        className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+      >
+        <FiEdit className="w-4 h-4" />
+        Edit Job
+      </div>
 
       <div 
-        onClick={onDuplicate}
+        onClick={() => {
+          onDuplicate();
+          onClose();
+        }}
         className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition cursor-pointer"
       >
         <FiPlusCircle className="w-4 h-4" />
@@ -567,7 +621,10 @@ function ActionsDropdown({ jobId, job, onDelete, onExpire, onDuplicate, onClose 
 
       {job.status === 'Active' && job.daysRemaining > 0 && (
         <div 
-          onClick={onExpire}
+          onClick={() => {
+            onExpire();
+            onClose();
+          }}
           className="flex items-center gap-2 px-4 py-2.5 text-sm text-orange-600 hover:bg-orange-50 transition cursor-pointer"
         >
           <FiXCircle className="w-4 h-4" />
@@ -576,7 +633,10 @@ function ActionsDropdown({ jobId, job, onDelete, onExpire, onDuplicate, onClose 
       )}
 
       <div 
-        onClick={onDelete}
+        onClick={() => {
+          onDelete();
+          onClose();
+        }}
         className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition cursor-pointer"
       >
         <FiTrash2 className="w-4 h-4" />
