@@ -24,8 +24,15 @@ import {
   FiMapPin,
   FiImage,
   FiPhone,
-  FiHome
+  FiHome,
+  FiCamera,
+  FiGlobe,
+  FiBriefcase,
+  FiShare2,
+  FiLoader,
+  FiTrash2
 } from "react-icons/fi";
+import { Sparkles, Shield, ArrowRight, Building, Users, Globe, Share2, Phone, Briefcase, CheckCircle } from 'lucide-react';
 import { profileService } from "@/services/profileService";
 import { authService } from "@/services/authService";
 import { useSelector, useDispatch } from "react-redux";
@@ -34,11 +41,11 @@ import toast from "react-hot-toast";
 import { selectUser } from "@/redux/slices/userSlice";
 
 const SOCIAL_OPTIONS = [
-  { label: "Facebook", icon: <FiFacebook />, value: "facebook" },
-  { label: "Twitter", icon: <FiTwitter />, value: "twitter" },
-  { label: "Instagram", icon: <FiInstagram />, value: "instagram" },
-  { label: "Youtube", icon: <FiYoutube />, value: "youtube" },
-  { label: "LinkedIn", icon: <FiLinkedin />, value: "linkedin" },
+  { label: "Facebook", icon: <FiFacebook />, value: "facebook", color: "bg-blue-100 text-blue-600" },
+  { label: "Twitter", icon: <FiTwitter />, value: "twitter", color: "bg-sky-100 text-sky-600" },
+  { label: "Instagram", icon: <FiInstagram />, value: "instagram", color: "bg-pink-100 text-pink-600" },
+  { label: "Youtube", icon: <FiYoutube />, value: "youtube", color: "bg-red-100 text-red-600" },
+  { label: "LinkedIn", icon: <FiLinkedin />, value: "linkedin", color: "bg-blue-100 text-blue-700" },
 ];
 
 const ORGANIZATION_TYPES = [
@@ -102,35 +109,21 @@ export default function SettingsMain() {
   });
   const [profileImagePreview, setProfileImagePreview] = useState("");
   const [editingPersonal, setEditingPersonal] = useState(false);
+  const [hoveredTab, setHoveredTab] = useState(null);
   
   const reduxUser = useSelector(selectUser);
   const dispatch = useDispatch();
 
-  console.log("🔍 [SETTINGS MAIN] Component mounted");
-  console.log("📊 [SETTINGS MAIN] Current reduxUser:", reduxUser);
-  console.log("🖼️ [SETTINGS MAIN] Current profileImagePreview:", profileImagePreview);
-
   // Load profile and user data on component mount
   useEffect(() => {
-    console.log("🔄 [SETTINGS MAIN] useEffect - Loading user data");
     loadUserData();
   }, []);
 
   // Combine user and profile data when both are loaded
   useEffect(() => {
-    console.log("🔄 [SETTINGS MAIN] useEffect - reduxUser changed:", reduxUser);
-    
     if (reduxUser) {
-      console.log("👤 [SETTINGS MAIN] Redux user updated:");
-      console.log("   - Name:", reduxUser.name);
-      console.log("   - Email:", reduxUser.email);
-      console.log("   - Profile Image:", reduxUser.profileImage);
-      console.log("   - Phone:", reduxUser.phone);
-      console.log("   - Address:", reduxUser.address);
-      
       setUserData(reduxUser);
       
-      // Combine user data with any existing profile data
       setPersonalInfo({
         name: reduxUser.name || "",
         username: reduxUser.username || "",
@@ -140,63 +133,31 @@ export default function SettingsMain() {
         profileImage: reduxUser.profileImage || ""
       });
       
-      // Set profile image from user data
       if (reduxUser.profileImage) {
-        console.log("✅ [SETTINGS MAIN] Setting profile image from reduxUser:", reduxUser.profileImage);
         setProfileImagePreview(reduxUser.profileImage);
-      } else {
-        console.log("⚠️ [SETTINGS MAIN] No profile image in reduxUser");
       }
-    } else {
-      console.log("⚠️ [SETTINGS MAIN] No reduxUser available");
     }
   }, [reduxUser]);
 
   // Update personal info when profileData is loaded
   useEffect(() => {
     if (profileData) {
-      console.log("📊 [SETTINGS MAIN] Profile data loaded:");
-      console.log("   - Profile phone:", profileData.phone);
-      console.log("   - Profile location:", profileData.location);
-      console.log("   - Profile profileImage:", profileData.profileImage);
-      console.log("   - Full profileData:", profileData);
-      
-      // Update phone and address from profile if they exist there
-      setPersonalInfo(prev => {
-        const updated = {
-          ...prev,
-          phone: profileData.phone || prev.phone,
-          address: profileData.location || prev.address,
-          // IMPORTANT: Profile image should come from USER data, not profile data
-          profileImage: prev.profileImage // Keep existing profile image from user data
-        };
-        console.log("🔄 [SETTINGS MAIN] Updated personalInfo:", updated);
-        return updated;
-      });
-      
-      // DO NOT update profile image from profile data - it's empty in Profile model
-      if (profileData.profileImage) {
-        console.log("⚠️ [SETTINGS MAIN] Profile data has profileImage:", profileData.profileImage);
-      } else {
-        console.log("ℹ️ [SETTINGS MAIN] Profile data has NO profileImage (expected)");
-      }
+      setPersonalInfo(prev => ({
+        ...prev,
+        phone: profileData.phone || prev.phone,
+        address: profileData.location || prev.address,
+        profileImage: prev.profileImage
+      }));
     }
   }, [profileData]);
 
   const loadUserData = async () => {
     try {
-      console.log("🔄 [SETTINGS MAIN] loadUserData called");
       setLoading(true);
       
-      // Get user data from Redux
-      const currentUser = reduxUser;
+      const currentUser = reduxUser || authService.getCurrentUser();
       
       if (currentUser) {
-        console.log("👤 [SETTINGS MAIN] User data from Redux:");
-        console.log("   - Name:", currentUser.name);
-        console.log("   - Profile Image:", currentUser.profileImage);
-        console.log("   - Full user:", currentUser);
-        
         setUserData(currentUser);
         setPersonalInfo({
           name: currentUser.name || "",
@@ -207,88 +168,28 @@ export default function SettingsMain() {
           profileImage: currentUser.profileImage || ""
         });
         
-        // Set profile image if exists
         if (currentUser.profileImage) {
-          console.log("✅ [SETTINGS MAIN] Setting profile image preview from Redux:", currentUser.profileImage);
           setProfileImagePreview(currentUser.profileImage);
-        } else {
-          console.log("⚠️ [SETTINGS MAIN] No profile image in Redux user");
-        }
-      } else {
-        console.log("🔄 [SETTINGS MAIN] No reduxUser, falling back to localStorage");
-        // Fallback to localStorage
-        const storedUser = authService.getCurrentUser();
-        if (storedUser) {
-          console.log("👤 [SETTINGS MAIN] User data from localStorage:", storedUser);
-          setUserData(storedUser);
-          setPersonalInfo({
-            name: storedUser.name || "",
-            username: storedUser.username || "",
-            email: storedUser.email || "",
-            phone: storedUser.phone || "",
-            address: storedUser.address || "",
-            profileImage: storedUser.profileImage || ""
-          });
-          
-          if (storedUser.profileImage) {
-            console.log("✅ [SETTINGS MAIN] Setting profile image from localStorage:", storedUser.profileImage);
-            setProfileImagePreview(storedUser.profileImage);
-          }
-        } else {
-          console.log("⚠️ [SETTINGS MAIN] No user data in localStorage either");
         }
       }
       
-      // Load profile data
-      console.log("🔄 [SETTINGS MAIN] Fetching profile data...");
       try {
         const profile = await profileService.getMyProfile();
         if (profile) {
-          console.log("✅ [SETTINGS MAIN] Profile loaded successfully:");
-          console.log("   - Profile ID:", profile._id);
-          console.log("   - Profile completion:", profile.completionPercentage);
-          console.log("   - Profile phone:", profile.phone);
-          console.log("   - Profile location:", profile.location);
-          console.log("   - Profile profileImage:", profile.profileImage);
-          console.log("   - Full profile:", profile);
-          
           setProfileData(profile);
           
-          // Update personal info with profile data (except profile image)
-          setPersonalInfo(prev => {
-            const updated = {
-              ...prev,
-              phone: profile.phone || prev.phone,
-              address: profile.location || prev.address,
-              // DO NOT update profileImage from profile data
-              profileImage: prev.profileImage
-            };
-            console.log("🔄 [SETTINGS MAIN] Updated personalInfo after profile load:", updated);
-            return updated;
-          });
-          
-          // Check if profile has profileImage (it shouldn't for employers)
-          if (profile.profileImage) {
-            console.log("⚠️ [SETTINGS MAIN] WARNING: Profile data has profileImage:", profile.profileImage);
-            console.log("⚠️ [SETTINGS MAIN] This might indicate a data inconsistency");
-          }
-        } else {
-          console.log("ℹ️ [SETTINGS MAIN] No profile found via profileService.getMyProfile()");
+          setPersonalInfo(prev => ({
+            ...prev,
+            phone: profile.phone || prev.phone,
+            address: profile.location || prev.address,
+          }));
         }
       } catch (profileError) {
-        console.log("❌ [SETTINGS MAIN] Error fetching profile:", profileError.message);
-        console.log("ℹ️ [SETTINGS MAIN] Profile not found or error");
+        console.log("No profile found");
       }
       
-      console.log("✅ [SETTINGS MAIN] Data loading complete");
-      console.log("📊 [SETTINGS MAIN] Final state:");
-      console.log("   - userData:", userData);
-      console.log("   - personalInfo:", personalInfo);
-      console.log("   - profileImagePreview:", profileImagePreview);
-      console.log("   - profileData:", profileData);
-      
     } catch (error) {
-      console.error("❌ [SETTINGS MAIN] Error loading data:", error);
+      console.error("Error loading data:", error);
       toast.error("Failed to load user data");
     } finally {
       setLoading(false);
@@ -361,13 +262,11 @@ export default function SettingsMain() {
   };
 
   const updatePersonalInfo = (field, value) => {
-    console.log(`🔄 [SETTINGS MAIN] Updating personalInfo.${field}:`, value);
     setPersonalInfo(prev => ({
       ...prev,
       [field]: value
     }));
     
-    // If updating phone or address, also update profile data
     if (field === 'phone' || field === 'address') {
       if (field === 'phone') {
         updateContactInfo('phone', value);
@@ -381,60 +280,36 @@ export default function SettingsMain() {
   // Handle profile image upload
   const handleProfileImageUpload = async (file) => {
     try {
-      console.log("📤 [SETTINGS MAIN] Uploading profile image...");
-      console.log("📄 File:", file);
-      
       if (!file) {
         toast.error("Please select an image");
         return;
       }
 
-      // Create preview immediately for better UX
       const reader = new FileReader();
       reader.onloadend = () => {
-        console.log("🖼️ [SETTINGS MAIN] Created local preview");
         setProfileImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
 
-      // Create FormData for user update
       const formData = new FormData();
       formData.append("profileImage", file);
       
-      // Add other personal data if available
-      if (personalInfo.phone) {
-        formData.append("phone", personalInfo.phone);
-      }
-      if (personalInfo.address) {
-        formData.append("address", personalInfo.address);
-      }
-      if (personalInfo.name) {
-        formData.append("name", personalInfo.name);
-      }
-      if (personalInfo.email) {
-        formData.append("email", personalInfo.email);
-      }
+      if (personalInfo.phone) formData.append("phone", personalInfo.phone);
+      if (personalInfo.address) formData.append("address", personalInfo.address);
+      if (personalInfo.name) formData.append("name", personalInfo.name);
+      if (personalInfo.email) formData.append("email", personalInfo.email);
 
-      console.log("📦 [SETTINGS MAIN] FormData prepared for upload");
-      
-      // Upload to server via authService
       setSaving(true);
       const response = await authService.updateProfile(formData);
-      
-      console.log("✅ [SETTINGS MAIN] Profile image upload response:", response);
       
       if (response.success) {
         toast.success("Profile image updated successfully!");
         
-        // Update local state with the response data
         const updatedUserData = {
           ...userData,
           ...response.user,
           profileImage: response.user?.profileImage || profileImagePreview
         };
-        
-        console.log("🔄 [SETTINGS MAIN] Updated userData:", updatedUserData);
-        console.log("🖼️ [SETTINGS MAIN] New profileImage URL:", response.user?.profileImage);
         
         setUserData(updatedUserData);
         setPersonalInfo(prev => ({
@@ -442,7 +317,6 @@ export default function SettingsMain() {
           profileImage: response.user?.profileImage || prev.profileImage
         }));
         
-        // Update profile data if it exists
         if (profileData) {
           setProfileData(prev => ({
             ...prev,
@@ -451,20 +325,14 @@ export default function SettingsMain() {
           }));
         }
         
-        // Update the preview with the actual Cloudinary URL
         if (response.user?.profileImage) {
-          console.log("✅ [SETTINGS MAIN] Setting profile image preview to Cloudinary URL:", response.user.profileImage);
           setProfileImagePreview(response.user.profileImage);
         }
         
-        // Refresh user data in Redux
-        console.log("🔄 [SETTINGS MAIN] Refreshing Redux data...");
         dispatch(refreshUserData());
-      } else {
-        console.error("❌ [SETTINGS MAIN] Upload response not successful:", response);
       }
     } catch (error) {
-      console.error("❌ [SETTINGS MAIN] Error uploading profile image:", error);
+      console.error("Error uploading profile image:", error);
       toast.error("Failed to upload profile image");
     } finally {
       setSaving(false);
@@ -476,7 +344,6 @@ export default function SettingsMain() {
     try {
       setSaving(true);
       
-      // Format data for API
       const formattedData = {
         companyInfo: profileData?.companyInfo || {},
         foundingInfo: profileData?.foundingInfo || {},
@@ -488,8 +355,6 @@ export default function SettingsMain() {
         }
       };
 
-      console.log("💾 [SETTINGS MAIN] Saving profile data:", formattedData);
-      
       const result = await profileService.createOrUpdateEmployerProfile({
         ...formattedData,
         files: {
@@ -499,14 +364,13 @@ export default function SettingsMain() {
       });
 
       if (result.success) {
-        console.log("✅ [SETTINGS MAIN] Profile saved successfully:", result);
         toast.success("Company profile updated successfully!");
         await loadUserData();
       } else {
         throw new Error(result.message || "Failed to update profile");
       }
     } catch (error) {
-      console.error("❌ [SETTINGS MAIN] Error saving profile:", error);
+      console.error("Error saving profile:", error);
       toast.error(error.message || "Failed to save changes");
     } finally {
       setSaving(false);
@@ -516,10 +380,6 @@ export default function SettingsMain() {
   // Save personal information changes
   const savePersonalInfo = async () => {
     try {
-      console.log("💾 [SETTINGS MAIN] Saving personal info...");
-      console.log("📊 Personal info to save:", personalInfo);
-      
-      // Validate personal info
       if (!personalInfo.name || !personalInfo.email) {
         toast.error("Name and email are required");
         return;
@@ -532,54 +392,32 @@ export default function SettingsMain() {
 
       setSaving(true);
       
-      // Prepare FormData for the update
       const formData = new FormData();
-      
-      // Add personal info fields
       formData.append("name", personalInfo.name);
       formData.append("email", personalInfo.email);
-      if (personalInfo.phone) {
-        formData.append("phone", personalInfo.phone);
-      }
-      if (personalInfo.address) {
-        formData.append("address", personalInfo.address);
-      }
-      if (personalInfo.username) {
-        formData.append("username", personalInfo.username);
-      }
+      if (personalInfo.phone) formData.append("phone", personalInfo.phone);
+      if (personalInfo.address) formData.append("address", personalInfo.address);
+      if (personalInfo.username) formData.append("username", personalInfo.username);
 
-      console.log("📦 [SETTINGS MAIN] FormData prepared for personal info update");
-
-      // Check if email has changed
       const emailChanged = personalInfo.email !== userData?.email;
       
       if (emailChanged) {
-        toast("Please verify your new email address. Verification email will be sent.", {
-          icon: "📧",
-          duration: 4000
-        });
+        toast("Please verify your new email address", { icon: "📧" });
       }
 
-      // Update user profile via auth service
       const result = await authService.updateProfile(formData);
       
-      console.log("✅ [SETTINGS MAIN] Personal info update response:", result);
-      
       if (result.success) {
-        toast.success("Personal information updated successfully!");
+        toast.success("Personal information updated!");
         
-        // Update local user data
         const updatedUser = {
           ...userData,
           ...result.user,
           profileImage: result.user?.profileImage || userData?.profileImage
         };
         
-        console.log("🔄 [SETTINGS MAIN] Updated user data:", updatedUser);
-        
         setUserData(updatedUser);
         
-        // Also update profile data with contact info
         if (profileData) {
           setProfileData(prev => ({
             ...prev,
@@ -589,21 +427,16 @@ export default function SettingsMain() {
           }));
         }
         
-        // Update profile image preview if it changed
         if (result.user?.profileImage) {
-          console.log("✅ [SETTINGS MAIN] Updating profile image preview:", result.user.profileImage);
           setProfileImagePreview(result.user.profileImage);
         }
         
-        // Refresh Redux store
         dispatch(refreshUserData());
-        
-        // Exit edit mode
         setEditingPersonal(false);
       }
       
     } catch (error) {
-      console.error("❌ [SETTINGS MAIN] Error saving personal info:", error);
+      console.error("Error saving personal info:", error);
       toast.error(error.message || "Failed to update personal information");
     } finally {
       setSaving(false);
@@ -613,7 +446,6 @@ export default function SettingsMain() {
   // Handle password change
   const handlePasswordChange = async () => {
     try {
-      // Validate passwords
       if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
         toast.error("Please fill in all password fields");
         return;
@@ -631,7 +463,6 @@ export default function SettingsMain() {
 
       setSaving(true);
       
-      // Call auth service to change password
       const result = await authService.changePassword({
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword,
@@ -640,8 +471,6 @@ export default function SettingsMain() {
 
       if (result.success) {
         toast.success("Password changed successfully!");
-        
-        // Clear password fields
         setPasswordData({
           currentPassword: "",
           newPassword: "",
@@ -649,7 +478,7 @@ export default function SettingsMain() {
         });
       }
     } catch (error) {
-      console.error("❌ [SETTINGS MAIN] Error changing password:", error);
+      console.error("Error changing password:", error);
       toast.error(error.message || "Failed to change password");
     } finally {
       setSaving(false);
@@ -659,14 +488,11 @@ export default function SettingsMain() {
   // Handle file upload for company
   const handleFileUpload = async (field, file) => {
     try {
-      console.log(`📤 [SETTINGS MAIN] Uploading ${field}:`, file);
-      
       if (!file) {
         toast.error("Please select a file");
         return;
       }
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         if (field === 'logo') {
@@ -677,19 +503,16 @@ export default function SettingsMain() {
       };
       reader.readAsDataURL(file);
       
-      // Store file for upload
       if (field === 'logo') {
         updateCompanyInfo('logoFile', file);
-        updateCompanyInfo('logo', reader.result);
       } else if (field === 'banner') {
         updateCompanyInfo('bannerFile', file);
-        updateCompanyInfo('banner', reader.result);
       }
       
       toast.success(`${field} uploaded successfully!`);
       
     } catch (error) {
-      console.error(`❌ [SETTINGS MAIN] Error handling ${field}:`, error);
+      console.error(`Error handling ${field}:`, error);
       toast.error(`Failed to upload ${field}`);
     }
   };
@@ -710,10 +533,18 @@ export default function SettingsMain() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile data...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-white">
+        <div className="relative text-center animate-fadeIn">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-8 bg-blue-100 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          <p className="mt-4 text-sm text-gray-600 flex items-center gap-2">
+            <FiLoader className="w-4 h-4 animate-spin" />
+            Loading profile data...
+          </p>
         </div>
       </div>
     );
@@ -725,146 +556,230 @@ export default function SettingsMain() {
     ...profileData,
     phone: personalInfo.phone || userData?.phone || profileData?.phone || "",
     address: personalInfo.address || userData?.address || profileData?.location || "",
-    profileImage: profileImagePreview || userData?.profileImage || "" // Profile image comes from userData
+    profileImage: profileImagePreview || userData?.profileImage || ""
   };
 
-  console.log("📊 [SETTINGS MAIN] Combined data for display:");
-  console.log("   - Name:", combinedData.name);
-  console.log("   - Profile Image URL:", combinedData.profileImage);
-  console.log("   - Phone:", combinedData.phone);
-  console.log("   - Address:", combinedData.address);
-  console.log("   - Full combinedData:", combinedData);
-
   return (
-    <main className="w-full min-h-screen bg-gray-50 px-4 py-6 sm:px-6 md:ml-[260px] md:w-[calc(100%-260px)] md:h-[calc(100vh-7rem)] md:overflow-y-auto">
-      {/* Page Title */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900">
-          Settings
-        </h2>
-        {profileData && (
-          <div className="flex items-center gap-2 text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-lg">
-            <FiCheck />
-            <span>Profile Complete ({profileData.completionPercentage || 0}%)</span>
+    <main className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-white px-3 py-4 sm:px-4 md:ml-[270px] md:w-[calc(100%-270px)] md:h-[calc(100vh-7rem)] md:overflow-y-auto relative">
+      
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto">
+        {/* Page Title */}
+        <div className="flex justify-between items-center animate-fadeIn ml-4">
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg blur opacity-30"></div>
+              <div className="relative w-8 h-8 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+                <FiUser className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              Settings
+              <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
+            </h2>
           </div>
-        )}
-      </div>
-
-      {/* Tabs */}
-      <div className="mt-6 flex gap-6 border-b text-sm overflow-x-auto">
-        <Tab 
-          label="Personal Info" 
-          active={activeTab === "personal"} 
-          onClick={() => setActiveTab("personal")}
-        />
-        <Tab 
-          label="Company Info" 
-          active={activeTab === "company"} 
-          onClick={() => setActiveTab("company")}
-        />
-        <Tab 
-          label="Founding Info" 
-          active={activeTab === "founding"} 
-          onClick={() => setActiveTab("founding")}
-        />
-        <Tab 
-          label="Social Media Profile" 
-          active={activeTab === "social"} 
-          onClick={() => setActiveTab("social")}
-        />
-        <Tab 
-          label="Account Setting" 
-          active={activeTab === "account"} 
-          onClick={() => setActiveTab("account")}
-        />
-      </div>
-
-      {/* Save Button - Global */}
-      <div className="mt-4 flex justify-end">
-        <button
-          onClick={saveProfile}
-          disabled={saving}
-          className="flex items-center gap-2 rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {saving ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <FiSave />
-              Save All Changes
-            </>
+          {profileData && (
+            <div className="flex items-center gap-1.5 text-xs text-green-600 bg-green-50 px-2.5 py-1 rounded-full animate-slideIn">
+              <FiCheck className="w-3 h-3" />
+              <span>{profileData.completionPercentage || 0}% Complete</span>
+            </div>
           )}
-        </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="mt-4 flex gap-4 border-b text-xs overflow-x-auto pb-1 animate-fadeIn">
+          <Tab 
+            label="Personal Info" 
+            icon={<FiUser className="w-3.5 h-3.5" />}
+            active={activeTab === "personal"} 
+            hovered={hoveredTab === "personal"}
+            onHover={() => setHoveredTab("personal")}
+            onLeave={() => setHoveredTab(null)}
+            onClick={() => setActiveTab("personal")}
+          />
+          <Tab 
+            label="Company Info" 
+            icon={<Building className="w-3.5 h-3.5" />}
+            active={activeTab === "company"} 
+            hovered={hoveredTab === "company"}
+            onHover={() => setHoveredTab("company")}
+            onLeave={() => setHoveredTab(null)}
+            onClick={() => setActiveTab("company")}
+          />
+          <Tab 
+            label="Founding Info" 
+            icon={<Globe className="w-3.5 h-3.5" />}
+            active={activeTab === "founding"} 
+            hovered={hoveredTab === "founding"}
+            onHover={() => setHoveredTab("founding")}
+            onLeave={() => setHoveredTab(null)}
+            onClick={() => setActiveTab("founding")}
+          />
+          <Tab 
+            label="Social Media" 
+            icon={<Share2 className="w-3.5 h-3.5" />}
+            active={activeTab === "social"} 
+            hovered={hoveredTab === "social"}
+            onHover={() => setHoveredTab("social")}
+            onLeave={() => setHoveredTab(null)}
+            onClick={() => setActiveTab("social")}
+          />
+          <Tab 
+            label="Account" 
+            icon={<FiLock className="w-3.5 h-3.5" />}
+            active={activeTab === "account"} 
+            hovered={hoveredTab === "account"}
+            onHover={() => setHoveredTab("account")}
+            onLeave={() => setHoveredTab(null)}
+            onClick={() => setActiveTab("account")}
+          />
+        </div>
+
+        {/* Save Button - Global */}
+        <div className="mt-3 flex justify-end animate-fadeIn">
+          <button
+            onClick={saveProfile}
+            disabled={saving}
+            className="group relative flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-xs font-medium text-white hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            {saving ? (
+              <>
+                <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <FiSave className="w-3.5 h-3.5" />
+                <span>Save All Changes</span>
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Content based on active tab */}
+        <div className="mt-3 animate-fadeIn">
+          {activeTab === "personal" && (
+            <PersonalInfoTab 
+              userData={combinedData}
+              profileData={profileData}
+              personalInfo={personalInfo}
+              profileImagePreview={profileImagePreview}
+              editingPersonal={editingPersonal}
+              onUpdatePersonal={updatePersonalInfo}
+              onToggleEditPersonal={() => setEditingPersonal(!editingPersonal)}
+              onSavePersonalInfo={savePersonalInfo}
+              onProfileImageUpload={handleProfileImageUpload}
+              saving={saving}
+            />
+          )}
+          {activeTab === "company" && (
+            <CompanyInfoTab 
+              data={profileData?.companyInfo || {}} 
+              onUpdate={updateCompanyInfo}
+              onFileUpload={handleFileUpload}
+            />
+          )}
+          {activeTab === "founding" && (
+            <FoundingInfoTab 
+              data={profileData?.foundingInfo || {}}
+              onUpdate={updateFoundingInfo}
+            />
+          )}
+          {activeTab === "social" && (
+            <SocialMediaTab 
+              links={profileData?.socialLinks || []}
+              onUpdate={updateSocialLinks}
+              onAdd={addSocialLink}
+              onRemove={removeSocialLink}
+            />
+          )}
+          {activeTab === "account" && (
+            <AccountSettingsTab 
+              profileData={profileData}
+              userData={combinedData}
+              passwordData={passwordData}
+              onUpdateContact={updateContactInfo}
+              onUpdatePassword={updatePasswordData}
+              onChangePassword={handlePasswordChange}
+              onDelete={handleDeleteProfile}
+              saving={saving}
+            />
+          )}
+        </div>
       </div>
 
-      {/* Content based on active tab */}
-      {activeTab === "personal" && (
-        <PersonalInfoTab 
-          userData={combinedData}
-          profileData={profileData}
-          personalInfo={personalInfo}
-          profileImagePreview={profileImagePreview}
-          editingPersonal={editingPersonal}
-          onUpdatePersonal={updatePersonalInfo}
-          onToggleEditPersonal={() => setEditingPersonal(!editingPersonal)}
-          onSavePersonalInfo={savePersonalInfo}
-          onProfileImageUpload={handleProfileImageUpload}
-          saving={saving}
-        />
-      )}
-      {activeTab === "company" && (
-        <CompanyInfoTab 
-          data={profileData?.companyInfo || {}} 
-          onUpdate={updateCompanyInfo}
-          onFileUpload={handleFileUpload}
-        />
-      )}
-      {activeTab === "founding" && (
-        <FoundingInfoTab 
-          data={profileData?.foundingInfo || {}}
-          onUpdate={updateFoundingInfo}
-        />
-      )}
-      {activeTab === "social" && (
-        <SocialMediaTab 
-          links={profileData?.socialLinks || []}
-          onUpdate={updateSocialLinks}
-          onAdd={addSocialLink}
-          onRemove={removeSocialLink}
-        />
-      )}
-      {activeTab === "account" && (
-        <AccountSettingsTab 
-          profileData={profileData}
-          userData={combinedData}
-          passwordData={passwordData}
-          onUpdateContact={updateContactInfo}
-          onUpdatePassword={updatePasswordData}
-          onChangePassword={handlePasswordChange}
-          onDelete={handleDeleteProfile}
-          saving={saving}
-        />
-      )}
+      <style jsx>{`
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(20px, -30px) scale(1.1); }
+          66% { transform: translate(-15px, 15px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateX(-5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out forwards;
+        }
+        
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+      `}</style>
     </main>
   );
 }
 
 /* ================= COMPONENTS ================= */
 
-function Tab({ label, active, onClick }) {
+function Tab({ label, icon, active, hovered, onHover, onLeave, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`pb-3 px-1 transition whitespace-nowrap ${
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+      className={`flex items-center gap-1.5 pb-2 px-2 text-xs font-medium transition-all duration-300 relative group ${
         active
-          ? "border-b-2 border-blue-600 font-medium text-blue-600"
+          ? "text-blue-600"
           : "text-gray-500 hover:text-gray-700"
       }`}
     >
+      <span className={`transition-transform duration-300 ${hovered ? 'scale-110' : ''}`}>
+        {icon}
+      </span>
       {label}
+      {active && (
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 animate-slideIn"></div>
+      )}
     </button>
   );
 }
@@ -881,68 +796,60 @@ function PersonalInfoTab({
   onProfileImageUpload,
   saving 
 }) {
-  console.log("🖼️ [PERSONAL INFO TAB] Rendering with:");
-  console.log("   - userData:", userData);
-  console.log("   - profileImagePreview:", profileImagePreview);
-  console.log("   - personalInfo:", personalInfo);
-  console.log("   - profileData:", profileData);
+  const [isHoveringImage, setIsHoveringImage] = useState(false);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
-    console.log("📤 [PERSONAL INFO TAB] File selected:", file);
     if (file) {
       onProfileImageUpload(file);
     }
   };
 
   return (
-    <div className="mt-6 rounded-lg bg-white p-6 shadow-sm space-y-8">
+    <div className="rounded-lg bg-white p-4 shadow-sm border border-gray-200 space-y-5">
       {/* Profile Image */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <FiImage className="text-blue-600" />
-            <h3 className="text-sm font-semibold text-gray-800">
+      <section className="animate-slideIn">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1.5">
+            <FiImage className="text-blue-600 w-4 h-4" />
+            <h3 className="text-xs font-semibold text-gray-800">
               Profile Image
             </h3>
           </div>
           <button
-            onClick={() => {
-              console.log("🖱️ [PERSONAL INFO TAB] Change photo clicked");
-              document.getElementById('profile-image-input')?.click();
-            }}
-            className="text-sm text-blue-600 hover:text-blue-700"
+            onClick={() => document.getElementById('profile-image-input')?.click()}
+            className="group flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 transition-colors"
           >
-            Change Photo
+            <FiCamera className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+            Change
           </button>
         </div>
 
         <div className="flex flex-col items-center">
-          <div className="relative">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-lg">
+          <div 
+            className="relative"
+            onMouseEnter={() => setIsHoveringImage(true)}
+            onMouseLeave={() => setIsHoveringImage(false)}
+          >
+            <div className={`w-24 h-24 rounded-full overflow-hidden border-3 border-white shadow-lg transition-transform duration-300 ${isHoveringImage ? 'scale-105' : ''}`}>
               {profileImagePreview ? (
-                <>
-                  <img 
-                    src={profileImagePreview} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      console.error("❌ [PERSONAL INFO TAB] Image failed to load:", profileImagePreview);
-                      e.target.onerror = null;
-                      e.target.src = "https://via.placeholder.com/128";
-                    }}
-                    onLoad={() => console.log("✅ [PERSONAL INFO TAB] Image loaded successfully")}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 hover:opacity-100 transition-opacity">
-                    <span className="text-white text-sm">Click to change</span>
-                  </div>
-                </>
+                <img 
+                  src={profileImagePreview} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                  <FiUser className="w-16 h-16 text-gray-400" />
+                <div className="w-full h-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+                  <FiUser className="w-10 h-10 text-gray-400" />
                 </div>
               )}
             </div>
+            
+            {/* Upload overlay */}
+            <div className={`absolute inset-0 flex items-center justify-center rounded-full bg-black/40 transition-opacity duration-300 ${isHoveringImage ? 'opacity-100' : 'opacity-0'}`}>
+              <FiCamera className="w-6 h-6 text-white" />
+            </div>
+            
             <input
               id="profile-image-input"
               type="file"
@@ -951,106 +858,98 @@ function PersonalInfoTab({
               onChange={handleFileChange}
             />
           </div>
-          <p className="mt-3 text-sm text-gray-500">
-            Click "Change Photo" to upload a new profile picture
+          <p className="mt-2 text-xs text-gray-500">
+            Click "Change" to upload a new profile picture
           </p>
-          {profileImagePreview && (
-            <p className="mt-2 text-xs text-gray-400">
-              Current image: {profileImagePreview.length > 50 ? profileImagePreview.substring(0, 50) + "..." : profileImagePreview}
-            </p>
-          )}
         </div>
       </section>
 
       {/* Personal Information */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <FiUser className="text-blue-600" />
-            <h3 className="text-sm font-semibold text-gray-800">
+      <section className="animate-slideIn">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1.5">
+            <FiUser className="text-blue-600 w-4 h-4" />
+            <h3 className="text-xs font-semibold text-gray-800">
               Personal Information
             </h3>
           </div>
           <button
             onClick={onToggleEditPersonal}
-            className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
+            className="group flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 transition-colors"
           >
-            <FiEdit className="w-4 h-4" />
-            {editingPersonal ? "Cancel Edit" : "Edit"}
+            <FiEdit className={`w-3.5 h-3.5 transition-transform duration-300 ${editingPersonal ? 'rotate-180' : 'group-hover:scale-110'}`} />
+            {editingPersonal ? "Cancel" : "Edit"}
           </button>
         </div>
 
         {editingPersonal ? (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1">
                   Full Name *
                 </label>
                 <input
                   type="text"
                   value={personalInfo.name}
                   onChange={(e) => onUpdatePersonal("name", e.target.value)}
-                  className="w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                   placeholder="Enter your full name"
-                  required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Username *
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Username
                 </label>
                 <input
                   type="text"
                   value={personalInfo.username}
                   onChange={(e) => onUpdatePersonal("username", e.target.value)}
-                  className="w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                   placeholder="Choose a username"
-                  required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1">
                   Email Address *
                 </label>
                 <input
                   type="email"
                   value={personalInfo.email}
                   onChange={(e) => onUpdatePersonal("email", e.target.value)}
-                  className="w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                   placeholder="your.email@example.com"
-                  required
                 />
-                <p className="mt-1 text-xs text-gray-500">
-                  Changing your email will require verification
+                <p className="mt-1 text-xs text-gray-400">
+                  Changing email requires verification
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1">
                   Phone Number
                 </label>
-                <div className="flex items-center gap-2">
-                  <FiPhone className="text-gray-400" />
+                <div className="relative">
+                  <FiPhone className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
                   <input
                     type="tel"
                     value={personalInfo.phone}
                     onChange={(e) => onUpdatePersonal("phone", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-md border border-gray-200 pl-7 pr-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs font-medium text-gray-600 mb-1">
                   Address
                 </label>
-                <div className="flex items-center gap-2">
-                  <FiHome className="text-gray-400 flex-shrink-0" />
+                <div className="relative">
+                  <FiHome className="absolute left-2 top-2 text-gray-400 w-3.5 h-3.5" />
                   <textarea
-                    rows={3}
+                    rows={2}
                     value={personalInfo.address}
                     onChange={(e) => onUpdatePersonal("address", e.target.value)}
-                    className="w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-md border border-gray-200 pl-7 pr-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none"
                     placeholder="Enter your full address"
                   />
                 </div>
@@ -1059,22 +958,22 @@ function PersonalInfoTab({
             <div className="flex justify-end gap-2">
               <button
                 onClick={onToggleEditPersonal}
-                className="px-4 py-2 text-sm text-gray-700 border rounded-md hover:bg-gray-50"
+                className="px-3 py-1.5 text-xs text-gray-600 border border-gray-200 rounded-md hover:bg-gray-50 transition-all"
               >
                 Cancel
               </button>
               <button
                 onClick={onSavePersonalInfo}
                 disabled={saving}
-                className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="px-3 py-1.5 text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-md hover:shadow-md transition-all transform hover:scale-105 disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
         ) : (
-          <div className="bg-gray-50 p-4 rounded-md">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gray-50/50 p-3 rounded-md border border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-gray-500">Full Name</p>
                 <p className="text-sm font-medium text-gray-900">
@@ -1092,28 +991,30 @@ function PersonalInfoTab({
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
                   {personalInfo.email || userData?.email || "Not set"}
                   {userData?.isEmailVerified && (
-                    <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded">Verified</span>
+                    <span className="text-xs text-green-600 bg-green-50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                      <FiCheck className="w-2.5 h-2.5" /> Verified
+                    </span>
                   )}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-gray-500">Phone Number</p>
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
-                  <FiPhone className="text-gray-400" />
+                  <FiPhone className="text-gray-400 w-3 h-3" />
                   {personalInfo.phone || userData?.phone || profileData?.phone || "Not set"}
                 </p>
               </div>
               <div className="md:col-span-2">
                 <p className="text-xs text-gray-500">Address</p>
                 <p className="text-sm font-medium text-gray-900 flex items-center gap-1">
-                  <FiHome className="text-gray-400 flex-shrink-0" />
+                  <FiHome className="text-gray-400 w-3 h-3 flex-shrink-0" />
                   {personalInfo.address || userData?.address || profileData?.location || "Not set"}
                 </p>
               </div>
             </div>
-            <div className="mt-3">
+            <div className="mt-2">
               <p className="text-xs text-gray-500">Account Role</p>
-              <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded capitalize">
+              <span className="inline-block px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded capitalize">
                 {userData?.role || "Not set"}
               </span>
             </div>
@@ -1122,35 +1023,37 @@ function PersonalInfoTab({
       </section>
 
       {/* Account Summary */}
-      <section>
-        <h3 className="text-sm font-semibold text-gray-800 mb-3">
+      <section className="animate-slideIn">
+        <h3 className="text-xs font-semibold text-gray-800 mb-2 flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-yellow-500" />
           Account Summary
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-blue-50 p-4 rounded-md">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-md border border-blue-100">
             <p className="text-xs text-gray-500">Profile Completion</p>
-            <p className="text-2xl font-bold text-blue-600">{profileData?.completionPercentage || 0}%</p>
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <p className="text-lg font-bold text-blue-600">{profileData?.completionPercentage || 0}%</p>
+            <div className="w-full bg-gray-200 rounded-full h-1.5 mt-1">
               <div 
-                className="bg-blue-600 h-2 rounded-full" 
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 h-1.5 rounded-full transition-all duration-500" 
                 style={{ width: `${profileData?.completionPercentage || 0}%` }}
               ></div>
             </div>
           </div>
-          <div className="bg-green-50 p-4 rounded-md">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-3 rounded-md border border-green-100">
             <p className="text-xs text-gray-500">Account Status</p>
-            <p className="text-2xl font-bold text-green-600">Active</p>
-            <p className="text-xs text-green-600 mt-1">
+            <p className="text-lg font-bold text-green-600">Active</p>
+            <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse"></span>
               {userData?.isEmailVerified ? "Email Verified" : "Email Not Verified"}
             </p>
           </div>
-          <div className="bg-purple-50 p-4 rounded-md">
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-3 rounded-md border border-purple-100">
             <p className="text-xs text-gray-500">Member Since</p>
-            <p className="text-2xl font-bold text-purple-600">
+            <p className="text-lg font-bold text-purple-600">
               {userData?.createdAt ? new Date(userData.createdAt).getFullYear() : "N/A"}
             </p>
             <p className="text-xs text-gray-600 mt-1">
-              {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString() : ""}
+              {userData?.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ""}
             </p>
           </div>
         </div>
@@ -1160,6 +1063,8 @@ function PersonalInfoTab({
 }
 
 function CompanyInfoTab({ data, onUpdate, onFileUpload }) {
+  const [activeUpload, setActiveUpload] = useState(null);
+
   const handleLogoUpload = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -1175,17 +1080,22 @@ function CompanyInfoTab({ data, onUpdate, onFileUpload }) {
   };
 
   return (
-    <div className="mt-6 rounded-lg bg-white p-6 shadow-sm">
-      <h3 className="font-semibold text-gray-800">
+    <div className="rounded-lg bg-white p-4 shadow-sm border border-gray-200 space-y-4">
+      <h3 className="text-xs font-semibold text-gray-800 flex items-center gap-1.5">
+        <Building className="w-4 h-4 text-indigo-500" />
         Logo & Banner Image
       </h3>
 
-      <div className="mt-6 grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-12 gap-3">
         <div className="col-span-12 md:col-span-4">
           <UploadBox 
             title="Upload Logo" 
             preview={data?.logo}
-            onChange={handleLogoUpload}
+            onUpload={handleLogoUpload}
+            onFocus={() => setActiveUpload('logo')}
+            onBlur={() => setActiveUpload(null)}
+            isActive={activeUpload === 'logo'}
+            type="logo"
           />
         </div>
         <div className="col-span-12 md:col-span-8">
@@ -1193,13 +1103,17 @@ function CompanyInfoTab({ data, onUpdate, onFileUpload }) {
             title="Banner Image" 
             large 
             preview={data?.banner}
-            onChange={handleBannerUpload}
+            onUpload={handleBannerUpload}
+            onFocus={() => setActiveUpload('banner')}
+            onBlur={() => setActiveUpload(null)}
+            isActive={activeUpload === 'banner'}
+            type="banner"
           />
         </div>
       </div>
 
-      <div className="mt-6">
-        <label className="block text-sm font-medium text-gray-700">
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">
           Company name *
         </label>
         <input
@@ -1207,22 +1121,20 @@ function CompanyInfoTab({ data, onUpdate, onFileUpload }) {
           value={data?.companyName || ""}
           onChange={(e) => onUpdate("companyName", e.target.value)}
           placeholder="Enter company name"
-          className="mt-2 w-full rounded-md border px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          required
+          className="w-full rounded-md border border-gray-200 px-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all hover:border-blue-400"
         />
       </div>
 
-      <div className="mt-6">
-        <label className="block text-sm font-medium text-gray-700">
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">
           About us *
         </label>
         <textarea
-          rows={5}
+          rows={4}
           value={data?.aboutUs || ""}
           onChange={(e) => onUpdate("aboutUs", e.target.value)}
-          placeholder="Write down about your company here. Let the candidate know who we are..."
-          className="mt-2 w-full rounded-md border px-4 py-3 text-sm focus:border-blue-500 focus:outline-none"
-          required
+          placeholder="Write down about your company here..."
+          className="w-full rounded-md border border-gray-200 px-3 py-2 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all hover:border-blue-400 resize-none"
         />
       </div>
     </div>
@@ -1230,55 +1142,74 @@ function CompanyInfoTab({ data, onUpdate, onFileUpload }) {
 }
 
 function FoundingInfoTab({ data, onUpdate }) {
+  const [activeField, setActiveField] = useState(null);
+
   return (
-    <div className="mt-6 rounded-lg bg-white p-6 shadow-sm">
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+    <div className="rounded-lg bg-white p-4 shadow-sm border border-gray-200">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <Select 
           label="Organization Type" 
           value={data?.organizationType || ""}
           options={ORGANIZATION_TYPES}
           onChange={(value) => onUpdate("organizationType", value)}
+          onFocus={() => setActiveField('org')}
+          onBlur={() => setActiveField(null)}
+          isActive={activeField === 'org'}
         />
         <Select 
           label="Industry Types" 
           value={data?.industryType || ""}
           options={INDUSTRY_TYPES}
           onChange={(value) => onUpdate("industryType", value)}
+          onFocus={() => setActiveField('industry')}
+          onBlur={() => setActiveField(null)}
+          isActive={activeField === 'industry'}
         />
         <Select 
           label="Team Size" 
           value={data?.teamSize || ""}
           options={TEAM_SIZES}
           onChange={(value) => onUpdate("teamSize", value)}
+          onFocus={() => setActiveField('team')}
+          onBlur={() => setActiveField(null)}
+          isActive={activeField === 'team'}
         />
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
         <DateInput 
           label="Year of Establishment" 
           value={data?.yearOfEstablishment ? new Date(data.yearOfEstablishment).toISOString().split('T')[0] : ""}
           onChange={(value) => onUpdate("yearOfEstablishment", value)}
+          onFocus={() => setActiveField('year')}
+          onBlur={() => setActiveField(null)}
+          isActive={activeField === 'year'}
         />
         <TextInput
           label="Company Website"
           value={data?.companyWebsite || ""}
           onChange={(value) => onUpdate("companyWebsite", value)}
-          placeholder="Website url..."
-          icon={<FiLink />}
+          placeholder="https://..."
+          icon={<FiLink className="w-3.5 h-3.5" />}
           type="url"
+          onFocus={() => setActiveField('website')}
+          onBlur={() => setActiveField(null)}
+          isActive={activeField === 'website'}
         />
       </div>
 
-      <div className="mt-6">
-        <label className="block text-sm font-medium text-gray-700">
+      <div className="mt-3">
+        <label className="block text-xs font-medium text-gray-600 mb-1">
           Company Vision
         </label>
         <textarea
-          rows={5}
+          rows={4}
           value={data?.companyVision || ""}
           onChange={(e) => onUpdate("companyVision", e.target.value)}
-          placeholder="Tell us what Vision of your company..."
-          className="mt-2 w-full rounded-md border px-4 py-3 text-sm focus:border-blue-500 focus:outline-none"
+          placeholder="Tell us about your company vision..."
+          className="w-full rounded-md border border-gray-200 px-3 py-2 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all hover:border-blue-400 resize-none"
+          onFocus={() => setActiveField('vision')}
+          onBlur={() => setActiveField(null)}
         />
       </div>
     </div>
@@ -1286,16 +1217,23 @@ function FoundingInfoTab({ data, onUpdate }) {
 }
 
 function SocialMediaTab({ links, onUpdate, onAdd, onRemove }) {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
   return (
-    <div className="mt-6 rounded-lg bg-white p-6 shadow-sm">
-      <h3 className="mb-4 text-sm font-semibold text-gray-800">
+    <div className="rounded-lg bg-white p-4 shadow-sm border border-gray-200">
+      <h3 className="text-xs font-semibold text-gray-800 mb-3 flex items-center gap-1.5">
+        <Share2 className="w-4 h-4 text-pink-500" />
         Social Media Profile
       </h3>
-      <div className="space-y-4">
+      <div className="space-y-2">
         {links.map((item, index) => (
           <SocialRow
             key={index}
             item={item}
+            index={index}
+            hovered={hoveredIndex === index}
+            onHover={() => setHoveredIndex(index)}
+            onLeave={() => setHoveredIndex(null)}
             onChange={(key, value) => onUpdate(index, key, value)}
             onRemove={() => onRemove(index)}
           />
@@ -1303,9 +1241,9 @@ function SocialMediaTab({ links, onUpdate, onAdd, onRemove }) {
       </div>
       <button
         onClick={onAdd}
-        className="mt-4 flex items-center gap-2 rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-700 hover:bg-gray-200"
+        className="mt-3 flex items-center gap-1 rounded-md bg-gray-50 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-all border border-gray-200 hover:border-blue-400 group"
       >
-        <FiPlus />
+        <FiPlus className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" />
         Add New Social Link
       </button>
     </div>
@@ -1327,6 +1265,7 @@ function AccountSettingsTab({
     new: false,
     confirm: false
   });
+  const [activeField, setActiveField] = useState(null);
 
   const togglePasswordVisibility = (field) => {
     setShowPassword(prev => ({
@@ -1336,30 +1275,34 @@ function AccountSettingsTab({
   };
 
   return (
-    <div className="mt-6 rounded-lg bg-white p-6 shadow-sm space-y-8">
-      <section>
-        <div className="flex items-center gap-2 mb-4">
-          <FiMail className="text-blue-600" />
-          <h3 className="text-sm font-semibold text-gray-800">
+    <div className="rounded-lg bg-white p-4 shadow-sm border border-gray-200 space-y-5">
+      <section className="animate-slideIn">
+        <div className="flex items-center gap-1.5 mb-3">
+          <FiMail className="text-blue-600 w-4 h-4" />
+          <h3 className="text-xs font-semibold text-gray-800">
             Company Contact Information
           </h3>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div>
-            <label className="text-sm text-gray-600">Map Location *</label>
-            <input
-              type="text"
-              value={profileData?.location || userData?.address || ""}
-              onChange={(e) => onUpdateContact("location", e.target.value)}
-              placeholder="Enter your company location"
-              className="mt-1 w-full rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-              required
-            />
+            <label className="text-xs text-gray-600 mb-1 block">Map Location *</label>
+            <div className="relative">
+              <FiMapPin className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+              <input
+                type="text"
+                value={profileData?.location || userData?.address || ""}
+                onChange={(e) => onUpdateContact("location", e.target.value)}
+                placeholder="Enter your company location"
+                className="w-full rounded-md border border-gray-200 pl-7 pr-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all hover:border-blue-400"
+                onFocus={() => setActiveField('location')}
+                onBlur={() => setActiveField(null)}
+              />
+            </div>
           </div>
           <div>
-            <label className="text-sm text-gray-600">Company Phone *</label>
-            <div className="mt-1 flex">
-              <div className="flex items-center gap-2 border border-r-0 rounded-l-md px-3 bg-gray-50 text-sm min-w-[100px]">
+            <label className="text-xs text-gray-600 mb-1 block">Company Phone *</label>
+            <div className="flex">
+              <div className="flex items-center gap-1 border border-r-0 rounded-l-md px-2 bg-gray-50 text-xs min-w-[70px]">
                 <span>🇺🇸</span>
                 <span>+1</span>
               </div>
@@ -1368,49 +1311,49 @@ function AccountSettingsTab({
                 value={profileData?.phone || userData?.phone || ""}
                 onChange={(e) => onUpdateContact("phone", e.target.value)}
                 placeholder="Company phone number"
-                className="w-full rounded-r-md border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                required
+                className="w-full rounded-r-md border border-gray-200 px-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all hover:border-blue-400"
+                onFocus={() => setActiveField('phone')}
+                onBlur={() => setActiveField(null)}
               />
             </div>
           </div>
           <div>
-            <label className="text-sm text-gray-600">Company Contact Email *</label>
-            <div className="relative mt-1">
+            <label className="text-xs text-gray-600 mb-1 block">Company Contact Email *</label>
+            <div className="relative">
+              <FiMail className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
               <input
                 type="email"
                 value={profileData?.email || userData?.email || ""}
                 onChange={(e) => onUpdateContact("email", e.target.value)}
                 placeholder="contact@company.com"
-                className="w-full rounded-md border px-3 py-2 pl-10 text-sm focus:border-blue-500 focus:outline-none"
-                required
+                className="w-full rounded-md border border-gray-200 pl-7 pr-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all hover:border-blue-400"
+                onFocus={() => setActiveField('email')}
+                onBlur={() => setActiveField(null)}
               />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <FiMail />
-              </span>
             </div>
-            <p className="mt-1 text-xs text-gray-500">
-              This email is used for company communications and job applications
-            </p>
           </div>
         </div>
       </section>
 
-      <hr />
+      <hr className="border-gray-200" />
 
-      <section>
-        <div className="flex items-center gap-2 mb-4">
-          <FiLock className="text-blue-600" />
-          <h3 className="text-sm font-semibold text-gray-800">
+      <section className="animate-slideIn">
+        <div className="flex items-center gap-1.5 mb-3">
+          <FiLock className="text-blue-600 w-4 h-4" />
+          <h3 className="text-xs font-semibold text-gray-800">
             Change Password
           </h3>
         </div>
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-3">
           <PasswordInput 
             label="Current Password" 
             value={passwordData.currentPassword}
             onChange={(value) => onUpdatePassword("currentPassword", value)}
             show={showPassword.current}
             onToggle={() => togglePasswordVisibility('current')}
+            onFocus={() => setActiveField('current')}
+            onBlur={() => setActiveField(null)}
+            isActive={activeField === 'current'}
           />
           <PasswordInput 
             label="New Password" 
@@ -1418,6 +1361,9 @@ function AccountSettingsTab({
             onChange={(value) => onUpdatePassword("newPassword", value)}
             show={showPassword.new}
             onToggle={() => togglePasswordVisibility('new')}
+            onFocus={() => setActiveField('new')}
+            onBlur={() => setActiveField(null)}
+            isActive={activeField === 'new'}
           />
           <PasswordInput 
             label="Confirm Password" 
@@ -1425,51 +1371,59 @@ function AccountSettingsTab({
             onChange={(value) => onUpdatePassword("confirmPassword", value)}
             show={showPassword.confirm}
             onToggle={() => togglePasswordVisibility('confirm')}
+            onFocus={() => setActiveField('confirm')}
+            onBlur={() => setActiveField(null)}
+            isActive={activeField === 'confirm'}
           />
         </div>
         <button
           onClick={onChangePassword}
           disabled={saving || !passwordData.currentPassword || !passwordData.newPassword}
-          className="mt-4 flex items-center gap-2 rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-3 group relative flex items-center gap-1 rounded-md bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-1.5 text-xs font-medium text-white hover:shadow-md transition-all transform hover:scale-105 disabled:opacity-50 overflow-hidden"
         >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           {saving ? (
             <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
               Changing...
             </>
           ) : (
-            "Change Password"
+            <>
+              Change Password
+              <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+            </>
           )}
         </button>
       </section>
 
-      <hr />
+      <hr className="border-gray-200" />
 
-      <section>
-        <h3 className="text-sm font-semibold text-gray-800 mb-2">
+      <section className="animate-slideIn">
+        <h3 className="text-xs font-semibold text-gray-800 mb-2 flex items-center gap-1.5">
+          <FiAlertCircle className="w-4 h-4 text-red-500" />
           Delete Your Company
         </h3>
-        <div className="flex items-start gap-2 p-4 bg-red-50 rounded-md mb-4">
-          <FiAlertCircle className="text-red-500 mt-1 flex-shrink-0" />
-          <p className="text-sm text-red-700">
+        <div className="flex items-start gap-2 p-3 bg-red-50 rounded-md border border-red-100 mb-2">
+          <FiAlertCircle className="text-red-500 mt-0.5 flex-shrink-0 w-3.5 h-3.5" />
+          <p className="text-xs text-red-700">
             <strong>Warning:</strong> Deleting your profile will permanently remove all your company information, jobs, and related data. This action cannot be undone.
           </p>
         </div>
-        <p className="text-sm text-gray-500 max-w-2xl mb-4">
-          If you delete your profile, you will no longer be able to post jobs, view candidates, or access any of your company data. You will need to create a new profile if you wish to use our services again in the future.
-        </p>
         <button
           onClick={onDelete}
-          className="mt-4 flex items-center gap-2 px-4 py-2 text-sm text-white bg-red-600 rounded-md hover:bg-red-700"
+          className="flex items-center gap-1 px-3 py-1.5 text-xs text-white bg-gradient-to-r from-red-600 to-red-500 rounded-md hover:shadow-md transition-all transform hover:scale-105"
         >
-          ⛔ Delete Company Profile
+          <FiTrash2 className="w-3.5 h-3.5" />
+          Delete Company Profile
         </button>
       </section>
     </div>
   );
 }
 
-function UploadBox({ title, large, preview, onChange }) {
+function UploadBox({ title, large, preview, onUpload, onFocus, onBlur, isActive, type }) {
+  const [isHovering, setIsHovering] = useState(false);
+
   const handleClick = () => {
     const inputId = `file-input-${title.replace(/\s+/g, '-').toLowerCase()}`;
     document.getElementById(inputId)?.click();
@@ -1477,30 +1431,35 @@ function UploadBox({ title, large, preview, onChange }) {
 
   return (
     <div>
-      <p className="text-sm font-medium text-gray-700">{title}</p>
+      <p className="text-xs font-medium text-gray-600 mb-1">{title}</p>
       <div
-        className={`mt-2 flex cursor-pointer items-center justify-center rounded-md border border-dashed bg-gray-50 hover:bg-gray-100 ${
-          large ? "h-48" : "h-32"
-        } ${preview ? "p-2" : ""}`}
+        className={`relative flex cursor-pointer items-center justify-center rounded-md border-2 border-dashed transition-all duration-300 overflow-hidden group
+          ${large ? "h-32" : "h-24"}
+          ${isActive ? "border-blue-500 bg-blue-50" : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"}
+          ${preview ? "bg-gray-50" : ""}
+        `}
         onClick={handleClick}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        tabIndex={0}
       >
         {preview ? (
-          <div className="text-center w-full h-full">
+          <div className="relative w-full h-full">
             <img 
               src={preview} 
               alt={title}
-              className={`mx-auto ${large ? "h-full w-full object-cover rounded-md" : "h-24 w-24 object-cover rounded-full"}`}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = large ? "https://via.placeholder.com/800x200" : "https://via.placeholder.com/128";
-              }}
+              className={`w-full h-full object-cover transition-transform duration-300 ${isHovering ? 'scale-105' : ''}`}
             />
-            <p className="mt-2 text-xs text-blue-600">Click to change</p>
+            <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-300 ${isHovering ? 'opacity-100' : 'opacity-0'}`}>
+              <FiCamera className="w-5 h-5 text-white" />
+            </div>
           </div>
         ) : (
           <div className="text-center text-gray-500">
-            <FiUpload className="mx-auto text-xl" />
-            <p className="mt-2 text-sm">Click to upload</p>
+            <FiUpload className={`mx-auto text-lg transition-transform duration-300 ${isHovering ? 'scale-110' : ''}`} />
+            <p className="mt-1 text-xs">Click to upload</p>
             <p className="text-xs text-gray-400">PNG, JPG up to 5MB</p>
           </div>
         )}
@@ -1509,30 +1468,30 @@ function UploadBox({ title, large, preview, onChange }) {
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              // Create a change event to pass the file
-              const event = { target: { files: [file] } };
-              onChange(event);
-            }
-          }}
+          onChange={onUpload}
         />
       </div>
     </div>
   );
 }
 
-function Select({ label, value, options, onChange }) {
+function Select({ label, value, options, onChange, onFocus, onBlur, isActive }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">{label} *</label>
-      <div className="relative mt-2">
+      <label className="block text-xs font-medium text-gray-600 mb-1">{label} *</label>
+      <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none rounded-md border px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          required
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className={`w-full appearance-none rounded-md border px-3 py-1.5 text-xs pr-7 transition-all duration-300 focus:outline-none focus:ring-1
+            ${isActive ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-400'}
+          `}
         >
           {options.map((option, index) => (
             <option key={index} value={option === "Select..." ? "" : option}>
@@ -1540,60 +1499,85 @@ function Select({ label, value, options, onChange }) {
             </option>
           ))}
         </select>
-        <FiChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <FiChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 transition-all duration-300
+          ${isActive || isHovered ? 'text-blue-500 rotate-180' : 'text-gray-400'}
+        `} />
       </div>
     </div>
   );
 }
 
-function DateInput({ label, value, onChange }) {
+function DateInput({ label, value, onChange, onFocus, onBlur, isActive }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">{label} *</label>
-      <div className="relative mt-2">
+      <label className="block text-xs font-medium text-gray-600 mb-1">{label} *</label>
+      <div className="relative">
         <input
           type="date"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-md border px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
-          required
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className={`w-full rounded-md border px-3 py-1.5 text-xs transition-all duration-300 focus:outline-none focus:ring-1
+            ${isActive ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-400'}
+          `}
         />
-        <FiCalendar className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <FiCalendar className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 transition-all duration-300
+          ${isActive || isHovered ? 'text-blue-500' : 'text-gray-400'}
+        `} />
       </div>
     </div>
   );
 }
 
-function TextInput({ label, value, onChange, placeholder, icon, type = "text" }) {
+function TextInput({ label, value, onChange, placeholder, icon, type = "text", onFocus, onBlur, isActive }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
-      <div className="relative mt-2">
+      <label className="block text-xs font-medium text-gray-600 mb-1">{label}</label>
+      <div className="relative">
+        <span className={`absolute left-2 top-1/2 -translate-y-1/2 transition-all duration-300
+          ${isActive || isHovered ? 'text-blue-500' : 'text-gray-400'}
+        `}>
+          {icon}
+        </span>
         <input
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-md border px-4 py-2 pl-10 text-sm focus:border-blue-500 focus:outline-none"
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className={`w-full rounded-md border pl-7 pr-3 py-1.5 text-xs transition-all duration-300 focus:outline-none focus:ring-1
+            ${isActive ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-400'}
+          `}
         />
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-          {icon}
-        </span>
       </div>
     </div>
   );
 }
 
-function SocialRow({ item, onChange, onRemove }) {
+function SocialRow({ item, index, hovered, onHover, onLeave, onChange, onRemove }) {
   const selected = SOCIAL_OPTIONS.find((s) => s.value === item.platform);
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <div className="relative w-full sm:w-48">
+    <div 
+      className={`flex flex-col gap-2 sm:flex-row sm:items-center p-2 rounded-md transition-all duration-300 ${hovered ? 'bg-gray-50' : ''}`}
+      onMouseEnter={onHover}
+      onMouseLeave={onLeave}
+    >
+      <div className="relative w-full sm:w-36">
         <select
           value={item.platform}
           onChange={(e) => onChange("platform", e.target.value)}
-          className="w-full appearance-none rounded-md border px-3 py-2 pr-8 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-full appearance-none rounded-md border border-gray-200 px-3 py-1.5 pr-7 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 hover:border-blue-400 transition-all"
         >
           {SOCIAL_OPTIONS.map((s) => (
             <option key={s.value} value={s.value}>{s.label}</option>
@@ -1608,37 +1592,48 @@ function SocialRow({ item, onChange, onRemove }) {
         placeholder="Profile link/url..."
         value={item.url}
         onChange={(e) => onChange("url", e.target.value)}
-        className="w-full flex-1 rounded-md border px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+        className="w-full flex-1 rounded-md border border-gray-200 px-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 hover:border-blue-400 transition-all"
       />
       <button
         onClick={onRemove}
-        className="flex h-10 w-10 items-center justify-center rounded-md border text-gray-400 hover:bg-gray-100 hover:text-red-500 self-start sm:self-auto"
+        className={`flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 transition-all duration-300 self-start sm:self-auto
+          ${hovered ? 'bg-red-50 border-red-200 text-red-500' : 'text-gray-400 hover:bg-gray-100 hover:text-red-500'}
+        `}
       >
-        <FiX />
+        <FiX className="w-3.5 h-3.5" />
       </button>
     </div>
   );
 }
 
-function PasswordInput({ label, value, onChange, show, onToggle }) {
+function PasswordInput({ label, value, onChange, show, onToggle, onFocus, onBlur, isActive }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <div>
-      <label className="text-sm text-gray-600">{label} *</label>
-      <div className="relative mt-1">
+      <label className="text-xs text-gray-600 mb-1 block">{label} *</label>
+      <div className="relative">
         <input
           type={show ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
           placeholder="••••••••"
-          className="w-full rounded-md border px-3 py-2 pr-10 text-sm focus:border-blue-500 focus:outline-none"
-          required
+          className={`w-full rounded-md border px-3 py-1.5 pr-8 text-xs transition-all duration-300 focus:outline-none focus:ring-1
+            ${isActive ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-400'}
+          `}
         />
         <button
           type="button"
           onClick={onToggle}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          className={`absolute right-2 top-1/2 -translate-y-1/2 transition-all duration-300
+            ${isActive || isHovered ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600'}
+          `}
         >
-          <FiEye />
+          <FiEye className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

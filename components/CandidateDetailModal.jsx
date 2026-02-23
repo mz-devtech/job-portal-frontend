@@ -8,7 +8,8 @@ import {
   Send, Download, ExternalLink, FileText,
   Clock, CheckCircle, XCircle, AlertCircle,
   ChevronRight, User, Filter, Building2,
-  Sparkles, Target, TrendingUp
+  Sparkles, Target, TrendingUp, Heart,
+  Star, Shield, BadgeCheck, Zap
 } from "lucide-react";
 import { candidateService } from "@/services/candidateService";
 import { profileService } from "@/services/profileService";
@@ -24,10 +25,12 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
   const [activeTab, setActiveTab] = useState('profile');
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [applicationsLoading, setApplicationsLoading] = useState(false);
+  const [modalAnimation, setModalAnimation] = useState('animate-scaleIn');
 
   useEffect(() => {
     if (isOpen && candidateId) {
       fetchCandidateDetails();
+      setModalAnimation('animate-scaleIn');
     }
   }, [isOpen, candidateId]);
 
@@ -346,120 +349,165 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Overlay */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fadeIn"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative bg-white w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl">
+      <div className={`relative bg-white w-full max-w-7xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl ${modalAnimation}`}>
+        {/* Decorative elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+        </div>
+
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition z-10"
+          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-300 hover:rotate-90 z-20 group"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
         </button>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-            <p className="text-gray-600">Loading candidate profile...</p>
+            <div className="relative">
+              <Loader2 className="w-16 h-16 text-blue-600 animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 bg-blue-100 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            <p className="mt-4 text-gray-600 animate-pulse">Loading candidate profile...</p>
           </div>
         ) : candidateData ? (
           <>
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-10">
-              <div className="flex items-end gap-6">
+            {/* Header with Gradient */}
+            <div className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 px-8 py-8 overflow-hidden">
+              {/* Decorative elements */}
+              <div className="absolute inset-0">
+                <div className="absolute top-0 left-0 w-full h-full bg-[url('/grid.svg')] opacity-10"></div>
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+              </div>
+
+              <div className="relative flex items-end gap-6">
                 {/* Profile Image */}
-                <div className="w-24 h-24 rounded-xl border-4 border-white bg-white shadow-lg overflow-hidden">
-                  {candidateData.personalInfo?.profileImage ? (
-                    <img
-                      src={candidateData.personalInfo.profileImage}
-                      alt={candidateData.personalInfo?.fullName || candidateData.user?.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold">
-                      {getInitials(
-                        candidateData.personalInfo?.fullName || candidateData.user?.name
-                      )}
+                <div className="group relative">
+                  <div className="w-20 h-20 rounded-xl border-4 border-white bg-white shadow-xl overflow-hidden transform transition-all duration-500 group-hover:scale-105 group-hover:rotate-3">
+                    {candidateData.personalInfo?.profileImage ? (
+                      <img
+                        src={candidateData.personalInfo.profileImage}
+                        alt={candidateData.personalInfo?.fullName || candidateData.user?.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
+                        {getInitials(
+                          candidateData.personalInfo?.fullName || candidateData.user?.name
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -inset-2 bg-gradient-to-r from-blue-400 to-purple-400 rounded-xl opacity-0 group-hover:opacity-30 blur transition-opacity duration-500"></div>
+                  
+                  {/* Verified Badge */}
+                  {candidateData.completionPercentage >= 80 && (
+                    <div className="absolute -top-2 -right-2">
+                      <div className="relative">
+                        <BadgeCheck className="w-5 h-5 text-green-500 fill-white animate-pulse" />
+                        <div className="absolute inset-0 bg-green-400 rounded-full opacity-30 animate-ping"></div>
+                      </div>
                     </div>
                   )}
                 </div>
 
                 {/* Name & Title */}
                 <div className="flex-1 text-white">
-                  <h1 className="text-3xl font-bold mb-2">
-                    {candidateData.personalInfo?.fullName || candidateData.user?.name}
-                  </h1>
-                  <p className="text-xl text-white/90 mb-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h1 className="text-2xl font-bold animate-slideInLeft">
+                      {candidateData.personalInfo?.fullName || candidateData.user?.name}
+                    </h1>
+                    {candidateData.completionPercentage >= 80 && (
+                      <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse" />
+                    )}
+                  </div>
+                  <p className="text-base text-white/90 mb-2 flex items-center gap-2">
                     {candidateData.personalInfo?.title || "Professional"}
+                    {candidateData.personalInfo?.title && (
+                      <span className="w-1 h-1 bg-white/60 rounded-full"></span>
+                    )}
                   </p>
                   
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-white/80">
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-white/80">
                     {candidateData.accountSettings?.contact?.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
+                      <span className="flex items-center gap-1 hover:text-white transition-colors duration-300 group">
+                        <MapPin className="w-3 h-3 group-hover:scale-110 transition-transform duration-300" />
                         {candidateData.accountSettings.contact.location}
                       </span>
                     )}
                     
                     {candidateData.profileDetails?.dateOfBirth && (
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
+                      <span className="flex items-center gap-1 hover:text-white transition-colors duration-300 group">
+                        <Calendar className="w-3 h-3 group-hover:scale-110 transition-transform duration-300" />
                         {formatDOB(candidateData.profileDetails.dateOfBirth)}
                       </span>
                     )}
                     
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-all duration-300 hover:scale-105 ${
                       candidateData.completionPercentage >= 80
                         ? 'bg-green-500 text-white'
                         : candidateData.completionPercentage >= 50
                         ? 'bg-yellow-500 text-white'
                         : 'bg-red-500 text-white'
                     }`}>
-                      {candidateData.completionPercentage}% Profile Complete
+                      <Zap className="w-3 h-3" />
+                      {candidateData.completionPercentage}% Complete
                     </span>
 
                     {/* Total Applications Badge */}
                     {applications.length > 0 && (
-                      <span className="flex items-center gap-1 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">
-                        <Briefcase className="w-4 h-4" />
-                        {applications.length} {applications.length === 1 ? 'Application' : 'Applications'}
+                      <span className="flex items-center gap-1 px-2 py-0.5 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-all duration-300">
+                        <Briefcase className="w-3 h-3" />
+                        {applications.length} {applications.length === 1 ? 'App' : 'Apps'}
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <button
                     onClick={handleSaveCandidate}
                     disabled={saving}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                    className={`group relative flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm transition-all duration-300 transform hover:scale-105 overflow-hidden ${
                       isSaved
                         ? 'bg-white text-blue-600 hover:bg-blue-50'
                         : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30'
                     }`}
                   >
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    
                     {saving ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
                     ) : isSaved ? (
-                      <BookmarkCheck className="w-4 h-4" />
+                      <Heart className="w-3.5 h-3.5 fill-current animate-bounceIn" />
                     ) : (
-                      <Bookmark className="w-4 h-4" />
+                      <Heart className="w-3.5 h-3.5" />
                     )}
                     {isSaved ? 'Saved' : 'Save'}
                   </button>
                   
                   <button
                     onClick={handleSendEmail}
-                    className="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition flex items-center gap-2"
+                    className="group relative bg-white text-blue-600 px-4 py-2 rounded-xl text-sm hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg overflow-hidden flex items-center gap-1.5"
                   >
-                    <Send className="w-4 h-4" />
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-200/30 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    <Send className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform duration-300" />
                     Contact
                   </button>
                 </div>
@@ -467,11 +515,11 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
             </div>
 
             {/* Tabs */}
-            <div className="border-b px-8">
-              <div className="flex gap-6">
+            <div className="border-b px-8 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+              <div className="flex gap-2">
                 {[
                   { id: 'profile', label: 'Profile', icon: User },
-                  { id: 'experience', label: 'Experience & Education', icon: Briefcase },
+                  { id: 'experience', label: 'Experience', icon: Briefcase },
                   { 
                     id: 'applications', 
                     label: `Applications ${applications.length > 0 ? `(${applications.length})` : ''}`, 
@@ -481,31 +529,39 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`py-4 px-2 text-sm font-medium capitalize border-b-2 transition flex items-center gap-2 ${
+                    className={`relative py-3 px-3 text-xs font-medium capitalize transition-all duration-300 flex items-center gap-1.5 group ${
                       activeTab === tab.id
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                        ? 'text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
-                    <tab.icon className="w-4 h-4" />
+                    <tab.icon className={`w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110 ${
+                      activeTab === tab.id ? 'text-blue-600' : ''
+                    }`} />
                     {tab.label}
+                    {activeTab === tab.id && (
+                      <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full animate-slideIn"></span>
+                    )}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Content */}
-            <div className="p-8">
+            <div className="p-6">
               {/* PROFILE TAB */}
               {activeTab === 'profile' && (
-                <div className="grid grid-cols-3 gap-8">
+                <div className="grid grid-cols-3 gap-6">
                   {/* Left Column - Bio & Details */}
-                  <div className="col-span-2 space-y-6">
+                  <div className="col-span-2 space-y-4">
                     {/* Biography */}
                     {candidateData.profileDetails?.biography && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-3">About</h3>
-                        <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                      <div className="group bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                        <h3 className="text-base font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                          <User className="w-4 h-4 text-blue-500" />
+                          About
+                        </h3>
+                        <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line group-hover:text-gray-700 transition-colors duration-300">
                           {candidateData.profileDetails.biography}
                         </p>
                       </div>
@@ -513,13 +569,17 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
 
                     {/* Skills & Tags */}
                     {candidateData.personalInfo?.skills && candidateData.personalInfo.skills.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-3">Skills</h3>
-                        <div className="flex flex-wrap gap-2">
+                      <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-all duration-300">
+                        <h3 className="text-base font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-blue-500" />
+                          Skills
+                        </h3>
+                        <div className="flex flex-wrap gap-1.5">
                           {candidateData.personalInfo.skills.map((skill, index) => (
                             <span
                               key={index}
-                              className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm"
+                              className="px-2 py-1 bg-gradient-to-r from-blue-50 to-indigo-50 text-gray-700 rounded-lg text-xs hover:from-blue-100 hover:to-indigo-100 transition-all duration-300 transform hover:scale-105 cursor-default"
+                              style={{ animationDelay: `${index * 50}ms` }}
                             >
                               {skill}
                             </span>
@@ -530,18 +590,21 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
 
                     {/* Education */}
                     {candidateData.personalInfo?.education && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-3">Education</h3>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div className="flex items-start gap-3">
-                            <GraduationCap className="w-5 h-5 text-gray-500 mt-0.5" />
+                      <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-lg transition-all duration-300">
+                        <h3 className="text-base font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                          <GraduationCap className="w-4 h-4 text-blue-500" />
+                          Education
+                        </h3>
+                        <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 p-3 rounded-xl">
+                          <div className="flex items-start gap-2">
+                            <GraduationCap className="w-4 h-4 text-blue-500 mt-0.5" />
                             <div>
-                              <p className="font-medium text-gray-800">
+                              <p className="font-medium text-gray-800 text-sm">
                                 {candidateData.personalInfo.education}
                               </p>
                               {candidateData.personalInfo?.institution && (
-                                <p className="text-sm text-gray-600">
-                                  {candidateData.personalInfo.institution}
+                                <p className="text-xs text-gray-600 mt-1">
+                                  <span className="font-medium">Institution:</span> {candidateData.personalInfo.institution}
                                 </p>
                               )}
                             </div>
@@ -552,53 +615,59 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
                   </div>
 
                   {/* Right Column - Personal Info & Contact */}
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {/* Personal Information */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="font-semibold text-gray-800 mb-4">Personal Information</h3>
+                    <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-5 border border-gray-200 hover:shadow-lg transition-all duration-300">
+                      <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <User className="w-4 h-4 text-blue-500" />
+                        Personal Info
+                      </h3>
                       
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {candidateData.profileDetails?.nationality && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Nationality</span>
-                            <span className="font-medium">{candidateData.profileDetails.nationality}</span>
+                          <div className="flex justify-between items-center py-1.5 border-b border-gray-200/50 text-sm">
+                            <span className="text-gray-500 text-xs">Nationality</span>
+                            <span className="font-medium text-gray-800 text-xs">{candidateData.profileDetails.nationality}</span>
                           </div>
                         )}
                         
                         {candidateData.profileDetails?.dateOfBirth && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Date of Birth</span>
-                            <span className="font-medium">{formatDOB(candidateData.profileDetails.dateOfBirth)}</span>
+                          <div className="flex justify-between items-center py-1.5 border-b border-gray-200/50 text-sm">
+                            <span className="text-gray-500 text-xs">Date of Birth</span>
+                            <span className="font-medium text-gray-800 text-xs">{formatDOB(candidateData.profileDetails.dateOfBirth)}</span>
                           </div>
                         )}
                         
                         {candidateData.profileDetails?.gender && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Gender</span>
-                            <span className="font-medium">{candidateData.profileDetails.gender}</span>
+                          <div className="flex justify-between items-center py-1.5 border-b border-gray-200/50 text-sm">
+                            <span className="text-gray-500 text-xs">Gender</span>
+                            <span className="font-medium text-gray-800 text-xs">{candidateData.profileDetails.gender}</span>
                           </div>
                         )}
                         
                         {candidateData.profileDetails?.maritalStatus && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Marital Status</span>
-                            <span className="font-medium">{candidateData.profileDetails.maritalStatus}</span>
+                          <div className="flex justify-between items-center py-1.5 text-sm">
+                            <span className="text-gray-500 text-xs">Marital Status</span>
+                            <span className="font-medium text-gray-800 text-xs">{candidateData.profileDetails.maritalStatus}</span>
                           </div>
                         )}
                       </div>
                     </div>
 
                     {/* Contact Information */}
-                    <div className="bg-gray-50 rounded-lg p-6">
-                      <h3 className="font-semibold text-gray-800 mb-4">Contact</h3>
+                    <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl p-5 border border-gray-200 hover:shadow-lg transition-all duration-300">
+                      <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-blue-500" />
+                        Contact
+                      </h3>
                       
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {candidateData.accountSettings?.contact?.email && (
-                          <div className="flex items-center gap-3">
-                            <Mail className="w-4 h-4 text-gray-500" />
+                          <div className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg transition-all duration-300 group">
+                            <Mail className="w-3.5 h-3.5 text-blue-500 group-hover:scale-110 transition-transform duration-300" />
                             <a 
                               href={`mailto:${candidateData.accountSettings.contact.email}`}
-                              className="text-sm text-blue-600 hover:underline"
+                              className="text-xs text-blue-600 hover:underline flex-1 truncate"
                             >
                               {candidateData.accountSettings.contact.email}
                             </a>
@@ -606,11 +675,11 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
                         )}
                         
                         {candidateData.accountSettings?.contact?.phone && (
-                          <div className="flex items-center gap-3">
-                            <Phone className="w-4 h-4 text-gray-500" />
+                          <div className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg transition-all duration-300 group">
+                            <Phone className="w-3.5 h-3.5 text-blue-500 group-hover:scale-110 transition-transform duration-300" />
                             <a 
                               href={`tel:${candidateData.accountSettings.contact.phone}`}
-                              className="text-sm text-gray-700 hover:text-blue-600"
+                              className="text-xs text-gray-700 hover:text-blue-600 flex-1"
                             >
                               {candidateData.accountSettings.contact.phone}
                             </a>
@@ -618,13 +687,13 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
                         )}
                         
                         {candidateData.personalInfo?.website && (
-                          <div className="flex items-center gap-3">
-                            <Globe className="w-4 h-4 text-gray-500" />
+                          <div className="flex items-center gap-2 p-1.5 hover:bg-white rounded-lg transition-all duration-300 group">
+                            <Globe className="w-3.5 h-3.5 text-blue-500 group-hover:scale-110 transition-transform duration-300" />
                             <a 
                               href={candidateData.personalInfo.website}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm text-blue-600 hover:underline"
+                              className="text-xs text-blue-600 hover:underline flex-1 truncate"
                             >
                               {candidateData.personalInfo.website.replace(/^https?:\/\//, '')}
                             </a>
@@ -638,17 +707,20 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
                       <button
                         onClick={handleDownloadCV}
                         disabled={downloading}
-                        className="w-full flex items-center justify-center gap-2 bg-white border-2 border-blue-600 text-blue-600 px-4 py-3 rounded-lg hover:bg-blue-50 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="group relative w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl overflow-hidden font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                       >
+                        {/* Shine effect */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                        
                         {downloading ? (
                           <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Opening Resume...
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            Opening...
                           </>
                         ) : (
                           <>
-                            <Download className="w-4 h-4" />
-                            Download CV / Resume
+                            <Download className="w-3.5 h-3.5 group-hover:scale-110 transition-transform duration-300" />
+                            Download CV
                           </>
                         )}
                       </button>
@@ -656,11 +728,13 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
 
                     {/* Resume Info */}
                     {candidateData.resume && (
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="flex items-center gap-3">
-                          <FileText className="w-5 h-5 text-gray-500" />
+                      <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-3 border border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 bg-white rounded-lg">
+                            <FileText className="w-4 h-4 text-blue-500" />
+                          </div>
                           <div className="flex-1">
-                            <p className="text-sm font-medium text-gray-800">
+                            <p className="text-xs font-medium text-gray-800">
                               {candidateData.resume.originalName || "Resume"}
                             </p>
                             {candidateData.resume.size && (
@@ -676,34 +750,40 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
                 </div>
               )}
 
-              {/* EXPERIENCE & EDUCATION TAB */}
+              {/* EXPERIENCE TAB */}
               {activeTab === 'experience' && (
-                <div className="space-y-8">
+                <div className="space-y-6">
                   {/* Experience Summary Card */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-white rounded-lg shadow-sm">
+                  <div className="relative bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-xl p-5 overflow-hidden group">
+                    <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+                    <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+                    
+                    <div className="relative flex items-start gap-3">
+                      <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                         {candidateData.personalInfo?.experience ? (
                           (() => {
                             const ExpIcon = getExperienceIcon(candidateData.personalInfo.experience);
-                            return <ExpIcon className="w-6 h-6 text-blue-600" />;
+                            return <ExpIcon className="w-6 h-6 text-white" />;
                           })()
                         ) : (
-                          <Briefcase className="w-6 h-6 text-blue-600" />
+                          <Briefcase className="w-6 h-6 text-white" />
                         )}
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm text-blue-600 font-medium mb-1">Experience Level</p>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                        <p className="text-xs text-white/80 font-medium mb-1 flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3" />
+                          Experience Level
+                        </p>
+                        <h3 className="text-xl font-bold text-white mb-1">
                           {candidateData.personalInfo?.experience || "Not specified"}
                         </h3>
                         <div className="flex items-center gap-2">
-                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                          <span className="px-2 py-0.5 bg-white/20 backdrop-blur-sm text-white rounded-full text-xs font-medium">
                             {getExperienceLevel(candidateData.personalInfo?.experience)}
                           </span>
                           {candidateData.personalInfo?.experience && (
-                            <span className="text-sm text-gray-600">
-                              Total work experience
+                            <span className="text-xs text-white/80">
+                              Total experience
                             </span>
                           )}
                         </div>
@@ -713,29 +793,29 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
 
                   {/* Education Card */}
                   {candidateData.personalInfo?.education && (
-                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition">
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 bg-purple-50 rounded-lg">
-                          <GraduationCap className="w-6 h-6 text-purple-600" />
+                    <div className="group bg-white rounded-xl border border-gray-200 p-5 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                          <GraduationCap className="w-5 h-5 text-purple-600" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm text-purple-600 font-medium mb-1">Education</p>
-                          <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                          <p className="text-xs text-purple-600 font-medium mb-1">Education</p>
+                          <h4 className="text-base font-semibold text-gray-900 mb-1 group-hover:text-purple-600 transition-colors duration-300">
                             {candidateData.personalInfo.education}
                           </h4>
                           {candidateData.personalInfo?.institution && (
-                            <p className="text-gray-700">
+                            <p className="text-xs text-gray-700">
                               <span className="font-medium">Institution:</span> {candidateData.personalInfo.institution}
                             </p>
                           )}
                           {candidateData.personalInfo?.fieldOfStudy && (
-                            <p className="text-gray-700 mt-1">
-                              <span className="font-medium">Field of Study:</span> {candidateData.personalInfo.fieldOfStudy}
+                            <p className="text-xs text-gray-700 mt-0.5">
+                              <span className="font-medium">Field:</span> {candidateData.personalInfo.fieldOfStudy}
                             </p>
                           )}
                           {candidateData.personalInfo?.graduationYear && (
-                            <p className="text-gray-700 mt-1">
-                              <span className="font-medium">Graduation Year:</span> {candidateData.personalInfo.graduationYear}
+                            <p className="text-xs text-gray-700 mt-0.5">
+                              <span className="font-medium">Year:</span> {candidateData.personalInfo.graduationYear}
                             </p>
                           )}
                         </div>
@@ -745,11 +825,14 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
 
                   {/* If no experience or education */}
                   {!candidateData.personalInfo?.experience && !candidateData.personalInfo?.education && (
-                    <div className="text-center py-16 bg-gray-50 rounded-lg">
-                      <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600 font-medium">No experience or education information available</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        This candidate hasn't added their experience or education details yet
+                    <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl border-2 border-dashed border-gray-200">
+                      <div className="relative inline-block">
+                        <Briefcase className="w-12 h-12 text-gray-400" />
+                        <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-100 rounded-full animate-pulse"></div>
+                      </div>
+                      <p className="text-gray-700 font-medium text-base mt-3 mb-1">No information available</p>
+                      <p className="text-xs text-gray-500 max-w-md mx-auto">
+                        Candidate hasn't added experience or education details yet
                       </p>
                     </div>
                   )}
@@ -758,31 +841,34 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
 
               {/* APPLICATIONS TAB */}
               {activeTab === 'applications' && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                   {/* Header with Stats */}
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800">Job Applications</h3>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <h3 className="text-base font-semibold text-gray-800 flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-blue-500" />
+                        Job Applications
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-1">
                         {applicationsLoading 
                           ? "Loading applications..." 
                           : applications.length > 0 
-                            ? `Track and manage ${applications.length} application${applications.length > 1 ? 's' : ''} from this candidate`
-                            : "This candidate hasn't applied to any jobs yet"
+                            ? `Track ${applications.length} application${applications.length > 1 ? 's' : ''}`
+                            : "No applications yet"
                         }
                       </p>
                     </div>
                     
                     {/* Stats Summary */}
                     {applications.length > 0 && !applicationsLoading && (
-                      <div className="flex items-center gap-3">
-                        <div className="px-4 py-2 bg-blue-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
                           <p className="text-xs text-blue-600">Total</p>
-                          <p className="text-xl font-bold text-blue-700">{applications.length}</p>
+                          <p className="text-lg font-bold text-blue-700">{applications.length}</p>
                         </div>
-                        <div className="px-4 py-2 bg-green-50 rounded-lg">
+                        <div className="px-3 py-1.5 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
                           <p className="text-xs text-green-600">Active</p>
-                          <p className="text-xl font-bold text-green-700">
+                          <p className="text-lg font-bold text-green-700">
                             {applications.filter(app => 
                               !['rejected', 'hired'].includes(app.status?.toLowerCase?.() || '')
                             ).length}
@@ -794,13 +880,18 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
                   
                   {/* Applications List */}
                   {applicationsLoading ? (
-                    <div className="flex flex-col items-center justify-center py-16 bg-gray-50 rounded-lg">
-                      <Loader2 className="w-12 h-12 text-blue-600 animate-spin mb-4" />
-                      <p className="text-gray-600">Loading applications...</p>
+                    <div className="flex flex-col items-center justify-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+                      <div className="relative">
+                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-6 h-6 bg-blue-100 rounded-full animate-pulse"></div>
+                        </div>
+                      </div>
+                      <p className="mt-3 text-sm text-gray-600 animate-pulse">Loading...</p>
                     </div>
                   ) : applications.length > 0 ? (
-                    <div className="space-y-4">
-                      {applications.map((application) => {
+                    <div className="space-y-3">
+                      {applications.map((application, index) => {
                         const statusBadge = getStatusBadge(application.status);
                         const StatusIcon = statusBadge.icon;
                         const companyName = application.job?.employer?.companyName || 'Company';
@@ -810,161 +901,187 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
                         return (
                           <div 
                             key={application._id} 
-                            className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition cursor-pointer"
+                            className="group bg-white border border-gray-200 rounded-xl hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer animate-fadeIn"
+                            style={{ animationDelay: `${index * 100}ms` }}
                             onClick={() => setSelectedApplication(
                               selectedApplication?._id === application._id ? null : application
                             )}
                           >
+                            {/* Shine effect */}
+                            <div className="absolute inset-0 rounded-xl overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                              <div className="absolute -inset-full top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                            </div>
+
                             {/* Main Application Row */}
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <div className="flex items-start gap-4">
-                                  {/* Company Logo Placeholder */}
-                                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-lg">
-                                    {getCompanyInitials(companyName)}
-                                  </div>
-                                  
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-3 mb-1 flex-wrap">
-                                      <h4 className="font-semibold text-gray-900 text-lg">
-                                        {jobTitle}
-                                      </h4>
-                                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text}`}>
-                                        <StatusIcon className="w-3 h-3" />
-                                        {statusBadge.label}
-                                      </span>
+                            <div className="p-4">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-start gap-3">
+                                    {/* Company Logo Placeholder */}
+                                    <div className="relative">
+                                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                                        {getCompanyInitials(companyName)}
+                                      </div>
+                                      <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-xl opacity-0 group-hover:opacity-30 blur transition-opacity duration-300"></div>
                                     </div>
                                     
-                                    <p className="text-gray-700 font-medium mb-2">
-                                      {companyName}
-                                    </p>
-                                    
-                                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                                      {location && (
-                                        <span className="flex items-center gap-1">
-                                          <MapPin className="w-4 h-4" />
-                                          {location.city || location.address || 'Location not specified'}
-                                          {location.isRemote && ' (Remote)'}
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                        <h4 className="font-semibold text-gray-900 text-sm group-hover:text-blue-600 transition-colors duration-300">
+                                          {jobTitle}
+                                        </h4>
+                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text} transition-all duration-300 group-hover:scale-105`}>
+                                          <StatusIcon className="w-3 h-3" />
+                                          {statusBadge.label}
                                         </span>
-                                      )}
-                                      <span className="flex items-center gap-1">
-                                        <Briefcase className="w-4 h-4" />
-                                        {application.job?.jobType || 'Full Time'}
-                                      </span>
-                                      <span className="flex items-center gap-1">
-                                        <Clock className="w-4 h-4" />
-                                        Applied {formatDate(application.appliedAt)}
-                                      </span>
+                                      </div>
+                                      
+                                      <p className="text-gray-700 text-xs font-medium mb-1 flex items-center gap-1.5">
+                                        <Building2 className="w-3 h-3 text-gray-400" />
+                                        {companyName}
+                                      </p>
+                                      
+                                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
+                                        {location && (
+                                          <span className="flex items-center gap-1 group-hover:text-blue-600 transition-colors duration-300">
+                                            <MapPin className="w-3 h-3" />
+                                            {location.city || 'Location'}
+                                            {location.isRemote && ' (Remote)'}
+                                          </span>
+                                        )}
+                                        <span className="flex items-center gap-1 group-hover:text-blue-600 transition-colors duration-300">
+                                          <Briefcase className="w-3 h-3" />
+                                          {application.job?.jobType || 'Full Time'}
+                                        </span>
+                                        <span className="flex items-center gap-1 group-hover:text-blue-600 transition-colors duration-300">
+                                          <Clock className="w-3 h-3" />
+                                          {formatDate(application.appliedAt)}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
+                                
+                                {/* View Details Arrow */}
+                                <button className="p-1.5 hover:bg-gray-100 rounded-lg transition-all duration-300 group-hover:scale-110">
+                                  <ChevronRight className={`w-4 h-4 text-gray-500 transition-all duration-300 ${
+                                    selectedApplication?._id === application._id ? 'rotate-90 text-blue-600' : ''
+                                  }`} />
+                                </button>
                               </div>
-                              
-                              {/* View Details Arrow */}
-                              <button className="p-2 hover:bg-gray-100 rounded-lg transition">
-                                <ChevronRight className={`w-5 h-5 text-gray-500 transition-transform ${
-                                  selectedApplication?._id === application._id ? 'rotate-90' : ''
-                                }`} />
-                              </button>
                             </div>
 
                             {/* Expanded Details */}
                             {selectedApplication?._id === application._id && (
-                              <div className="mt-6 pt-6 border-t border-gray-200">
-                                <div className="grid grid-cols-3 gap-6">
-                                  {/* Application Details */}
-                                  <div className="col-span-2 space-y-4">
-                                    {/* Cover Letter */}
-                                    {application.coverLetter && (
-                                      <div>
-                                        <h5 className="text-sm font-medium text-gray-700 mb-2">Cover Letter</h5>
-                                        <div 
-                                          className="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg prose prose-sm max-w-none"
-                                          dangerouslySetInnerHTML={{ 
-                                            __html: application.coverLetter || "<p>No cover letter provided.</p>" 
-                                          }}
-                                        />
-                                      </div>
-                                    )}
+                              <div className="px-4 pb-4 animate-slideDown">
+                                <div className="pt-4 border-t border-gray-200">
+                                  <div className="grid grid-cols-3 gap-4">
+                                    {/* Application Details */}
+                                    <div className="col-span-2 space-y-3">
+                                      {/* Cover Letter */}
+                                      {application.coverLetter && (
+                                        <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-3">
+                                          <h5 className="text-xs font-medium text-gray-700 mb-1.5 flex items-center gap-1">
+                                            <FileText className="w-3 h-3 text-blue-500" />
+                                            Cover Letter
+                                          </h5>
+                                          <div 
+                                            className="text-xs text-gray-600 prose prose-xs max-w-none"
+                                            dangerouslySetInnerHTML={{ 
+                                              __html: application.coverLetter || "<p>No cover letter provided.</p>" 
+                                            }}
+                                          />
+                                        </div>
+                                      )}
 
-                                    {/* Timeline */}
-                                    {application.statusHistory?.length > 0 && (
-                                      <div>
-                                        <h5 className="text-sm font-medium text-gray-700 mb-3">Application Timeline</h5>
-                                        <div className="space-y-3">
-                                          {application.statusHistory.map((history, idx) => {
-                                            const historyStatus = getStatusBadge(history.status);
-                                            const HistoryIcon = historyStatus.icon;
-                                            return (
-                                              <div key={idx} className="flex items-start gap-3">
-                                                <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                                  <HistoryIcon className="w-3 h-3 text-gray-600" />
+                                      {/* Timeline */}
+                                      {application.statusHistory?.length > 0 && (
+                                        <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-3">
+                                          <h5 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                                            <Clock className="w-3 h-3 text-blue-500" />
+                                            Timeline
+                                          </h5>
+                                          <div className="space-y-2">
+                                            {application.statusHistory.map((history, idx) => {
+                                              const historyStatus = getStatusBadge(history.status);
+                                              const HistoryIcon = historyStatus.icon;
+                                              return (
+                                                <div key={idx} className="flex items-start gap-2 group/item">
+                                                  <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover/item:scale-110 transition-transform duration-300">
+                                                    <HistoryIcon className="w-3 h-3 text-gray-600" />
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-xs text-gray-800">
+                                                      <span className="font-medium text-blue-600">{historyStatus.label}</span>
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                      {formatDate(history.updatedAt)}
+                                                      {history.note && ` • ${history.note}`}
+                                                    </p>
+                                                  </div>
                                                 </div>
-                                                <div>
-                                                  <p className="text-sm text-gray-800">
-                                                    Status changed to <span className="font-medium">{historyStatus.label}</span>
-                                                  </p>
-                                                  <p className="text-xs text-gray-500">
-                                                    {formatDate(history.updatedAt)}
-                                                    {history.note && ` • ${history.note}`}
-                                                  </p>
-                                                </div>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Sidebar - Application Meta */}
-                                  <div className="space-y-4">
-                                    <div className="bg-gray-50 rounded-lg p-4">
-                                      <h5 className="text-sm font-medium text-gray-700 mb-3">Application Info</h5>
-                                      <div className="space-y-2">
-                                        <div className="flex justify-between">
-                                          <span className="text-xs text-gray-500">Application ID</span>
-                                          <span className="text-xs font-mono text-gray-700">{application._id.slice(-8)}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                          <span className="text-xs text-gray-500">Applied</span>
-                                          <span className="text-xs text-gray-700">{formatDate(application.appliedAt)}</span>
-                                        </div>
-                                        {application.updatedAt && (
-                                          <div className="flex justify-between">
-                                            <span className="text-xs text-gray-500">Last Updated</span>
-                                            <span className="text-xs text-gray-700">{formatDate(application.updatedAt)}</span>
+                                              );
+                                            })}
                                           </div>
-                                        )}
-                                      </div>
+                                        </div>
+                                      )}
                                     </div>
 
-                                    {/* Quick Actions */}
-                                    <div className="bg-gray-50 rounded-lg p-4">
-                                      <h5 className="text-sm font-medium text-gray-700 mb-3">Quick Actions</h5>
-                                      <div className="space-y-2">
-                                        {application.job?._id && (
-                                          <>
-                                            <a
-                                              href={`/employer/jobs/${application.job._id}/applications`}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="flex items-center justify-between w-full px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                            >
-                                              <span>View all applications</span>
-                                              <ExternalLink className="w-4 h-4" />
-                                            </a>
-                                            <a
-                                              href={`/jobs/${application.job._id}`}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition"
-                                            >
-                                              <span>View job details</span>
-                                              <ExternalLink className="w-4 h-4" />
-                                            </a>
-                                          </>
-                                        )}
+                                    {/* Sidebar - Application Meta */}
+                                    <div className="space-y-3">
+                                      <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-3">
+                                        <h5 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                                          <Shield className="w-3 h-3 text-blue-500" />
+                                          Info
+                                        </h5>
+                                        <div className="space-y-1.5">
+                                          <div className="flex justify-between items-center py-1 border-b border-gray-200/50">
+                                            <span className="text-xs text-gray-500">App ID</span>
+                                            <span className="text-xs font-mono text-gray-700 bg-white px-1.5 py-0.5 rounded">{application._id.slice(-6)}</span>
+                                          </div>
+                                          <div className="flex justify-between items-center py-1 border-b border-gray-200/50">
+                                            <span className="text-xs text-gray-500">Applied</span>
+                                            <span className="text-xs text-gray-700 font-medium">{formatDate(application.appliedAt)}</span>
+                                          </div>
+                                          {application.updatedAt && (
+                                            <div className="flex justify-between items-center py-1">
+                                              <span className="text-xs text-gray-500">Updated</span>
+                                              <span className="text-xs text-gray-700 font-medium">{formatDate(application.updatedAt)}</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {/* Quick Actions */}
+                                      <div className="bg-gradient-to-r from-gray-50 to-blue-50/30 rounded-xl p-3">
+                                        <h5 className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                                          <Zap className="w-3 h-3 text-blue-500" />
+                                          Actions
+                                        </h5>
+                                        <div className="space-y-1.5">
+                                          {application.job?._id && (
+                                            <>
+                                              <a
+                                                href={`/employer/jobs/${application.job._id}/applications`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-between w-full px-2 py-1.5 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300 group/action"
+                                              >
+                                                <span>All applications</span>
+                                                <ExternalLink className="w-3 h-3 group-hover/action:translate-x-0.5 group-hover/action:-translate-y-0.5 transition-transform duration-300" />
+                                              </a>
+                                              <a
+                                                href={`/jobs/${application.job._id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center justify-between w-full px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-300 group/action"
+                                              >
+                                                <span>Job details</span>
+                                                <ExternalLink className="w-3 h-3 group-hover/action:translate-x-0.5 group-hover/action:-translate-y-0.5 transition-transform duration-300" />
+                                              </a>
+                                            </>
+                                          )}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -976,13 +1093,16 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-16 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
-                      <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FileText className="w-10 h-10 text-gray-400" />
+                    <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl border-2 border-dashed border-gray-200">
+                      <div className="relative inline-block">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <div className="absolute -top-2 -right-2 w-5 h-5 bg-blue-100 rounded-full animate-pulse"></div>
                       </div>
-                      <p className="text-gray-700 font-medium text-lg mb-2">No job applications yet</p>
-                      <p className="text-gray-500 text-sm max-w-md mx-auto">
-                        This candidate hasn't applied to any jobs yet. When they do, their applications will appear here.
+                      <p className="text-gray-700 font-medium text-sm mt-3 mb-1">No applications yet</p>
+                      <p className="text-xs text-gray-500 max-w-md mx-auto">
+                        Candidate hasn't applied to any jobs yet
                       </p>
                     </div>
                   )}
@@ -991,15 +1111,133 @@ export default function CandidateDetailModal({ isOpen, onClose, candidateId, can
             </div>
           </>
         ) : (
-          <div className="text-center py-20">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <User className="w-10 h-10 text-gray-400" />
+          <div className="text-center py-16">
+            <div className="relative inline-block">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="w-10 h-10 text-gray-400" />
+              </div>
+              <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-100 rounded-full animate-pulse"></div>
             </div>
-            <p className="text-gray-600 font-medium">Candidate not found</p>
-            <p className="text-sm text-gray-500 mt-1">The candidate you're looking for doesn't exist or has been removed</p>
+            <p className="text-gray-700 font-medium text-base mb-1">Candidate not found</p>
+            <p className="text-xs text-gray-500 max-w-md mx-auto">
+              The candidate you're looking for doesn't exist or has been removed
+            </p>
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes slideIn {
+          from {
+            transform: translateX(-100%);
+          }
+          to {
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes slideInLeft {
+          from {
+            opacity: 0;
+            transform: translateX(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
+        @keyframes bounceIn {
+          0% {
+            opacity: 0;
+            transform: scale(0.3);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.1);
+          }
+          70% {
+            transform: scale(0.9);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes blob {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out;
+        }
+        
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out;
+        }
+        
+        .animate-slideInLeft {
+          animation: slideInLeft 0.5s ease-out;
+        }
+        
+        .animate-slideDown {
+          animation: slideDown 0.3s ease-out;
+        }
+        
+        .animate-bounceIn {
+          animation: bounceIn 0.5s ease-out;
+        }
+        
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        
+        .animation-delay-2000 {
+          animation-delay: 2000ms;
+        }
+      `}</style>
     </div>
   );
 }

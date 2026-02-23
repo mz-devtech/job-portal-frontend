@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { authService } from '@/services/authService';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { Mail, CheckCircle, XCircle, ArrowRight, RotateCw, Shield, Sparkles, Clock } from 'lucide-react';
 
 export default function VerifyPage() {
   const router = useRouter();
@@ -177,130 +178,306 @@ export default function VerifyPage() {
   // If no email found, show loading/redirect
   if (!email) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading verification session...</p>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-4">
+        <div className="relative w-full max-w-md">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+          </div>
+          
+          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-200/50 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Mail className="w-6 h-6 text-blue-500 animate-pulse" />
+                </div>
+              </div>
+            </div>
+            
+            <h2 className="text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+              Loading Verification
+            </h2>
+            
+            <p className="text-gray-500 text-sm animate-pulse">
+              Please wait while we load your verification session...
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
-            <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h2 className="text-3xl font-extrabold text-gray-900">
-            Verify Your Email
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Enter the 6-digit verification code sent to
-          </p>
-          <p className="font-medium text-gray-900 break-words">{email}</p>
-          <p className="mt-1 text-xs text-gray-500">
-            After verification, you'll need to login with your credentials
-          </p>
-          <p className="mt-1 text-xs text-gray-500">
-            Check your inbox and spam folder
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="relative w-full max-w-md">
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {/* 6-digit code input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-4">
-              Verification Code
-            </label>
-            <div className="flex justify-between space-x-3" onPaste={handlePaste}>
-              {code.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={(el) => inputsRef.current[index] = el}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  disabled={isLoading || isVerified}
-                  className="w-14 h-14 text-center text-2xl font-bold border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              ))}
+        {/* Main Card */}
+        <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-200/50 animate-scaleIn">
+          
+          {/* Header */}
+          <div className="text-center mb-8 animate-fadeInDown">
+            <div className="relative inline-block">
+              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 mx-auto mb-4 group hover:scale-110 transition-transform duration-300">
+                <Mail className="h-8 w-8 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
+              </div>
+              <Sparkles className="absolute -top-2 -right-2 w-5 h-5 text-yellow-400 animate-pulse" />
             </div>
-            <p className="mt-3 text-sm text-gray-500 text-center">
-              Enter the 6-digit code from your email
-            </p>
+            
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+              {isVerified ? 'Email Verified!' : 'Verify Your Email'}
+            </h2>
+            
+            {!isVerified && (
+              <>
+                <p className="text-sm text-gray-600 mb-1">
+                  Enter the 6-digit verification code sent to
+                </p>
+                <p className="font-medium text-gray-900 break-words bg-blue-50 inline-block px-4 py-1.5 rounded-full text-sm">
+                  {email}
+                </p>
+                <div className="mt-3 flex items-center justify-center gap-2 text-xs text-gray-500">
+                  <Clock className="w-3 h-3 text-blue-500" />
+                  <span>Code expires in 10 minutes</span>
+                </div>
+              </>
+            )}
           </div>
 
-          <div className="space-y-4">
-            <button
-              type="submit"
-              disabled={isLoading || isVerified || code.some(digit => digit === '')}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              {isLoading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Verifying...
-                </span>
-              ) : isVerified ? (
-                <span className="flex items-center">
-                  <svg className="w-5 h-5 mr-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                  </svg>
-                  Verified! Redirecting to login...
-                </span>
-              ) : (
-                'Verify Email'
-              )}
-            </button>
-
-            <div className="text-center space-y-3">
-              <button
-                type="button"
-                onClick={handleResendCode}
-                disabled={countdown > 0 || isLoading || isVerified}
-                className="text-sm text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                {countdown > 0 ? `Resend code in ${countdown}s` : "Didn't receive a code? Resend"}
-              </button>
+          {/* Success State */}
+          {isVerified ? (
+            <div className="text-center animate-scaleIn">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-green-200 rounded-full animate-ping opacity-30"></div>
+                <div className="relative flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 mx-auto animate-bounceIn">
+                  <CheckCircle className="h-10 w-10 text-green-600" />
+                </div>
+                <Sparkles className="absolute -top-2 -right-2 w-6 h-6 text-yellow-400 animate-pulse" />
+              </div>
               
-              <div className="pt-4 border-t border-gray-200 space-y-2">
-                <p className="text-sm text-gray-600">
-                  Wrong email?{' '}
-                  <Link 
-                    href="/register" 
-                    className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                    onClick={() => {
-                      localStorage.removeItem('userEmail');
-                      localStorage.removeItem('userRole');
-                    }}
-                  >
-                    Register again
-                  </Link>
-                </p>
-                <p className="text-sm text-gray-600">
-                  Already verified?{' '}
-                  <Link 
-                    href="/login" 
-                    className="font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                  >
-                    Log in here
-                  </Link>
-                </p>
+              <p className="text-gray-600 mb-4">
+                Your email has been verified successfully!
+              </p>
+              
+              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                <span>Redirecting to login</span>
+                <ArrowRight className="w-4 h-4 animate-pulse" />
               </div>
             </div>
+          ) : (
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              {/* 6-digit code input */}
+              <div className="animate-fadeInUp" style={{ animationDelay: '100ms' }}>
+                <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+                  Verification Code
+                </label>
+                <div 
+                  className="flex justify-center gap-2 sm:gap-3" 
+                  onPaste={handlePaste}
+                >
+                  {code.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => inputsRef.current[index] = el}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                      disabled={isLoading}
+                      className={`w-12 h-12 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-bold border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-400 ${
+                        digit ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      style={{ animationDelay: `${150 + index * 50}ms` }}
+                    />
+                  ))}
+                </div>
+                <p className="mt-3 text-xs text-gray-500 text-center flex items-center justify-center gap-1">
+                  <Mail className="w-3 h-3 text-blue-500" />
+                  Enter the 6-digit code from your email
+                </p>
+              </div>
+
+              <div className="space-y-4 animate-fadeInUp" style={{ animationDelay: '200ms' }}>
+                <button
+                  type="submit"
+                  disabled={isLoading || code.some(digit => digit === '')}
+                  className="relative w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3.5 px-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] hover:shadow-xl overflow-hidden group"
+                >
+                  {/* Shine effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  
+                  {isLoading ? (
+                    <span className="flex items-center justify-center">
+                      <RotateCw className="animate-spin h-5 w-5 mr-2" />
+                      Verifying...
+                    </span>
+                  ) : (
+                    <span className="flex items-center justify-center gap-2">
+                      Verify Email
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                    </span>
+                  )}
+                </button>
+
+                <div className="text-center space-y-4">
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={countdown > 0 || isLoading}
+                    className="group text-sm text-blue-600 hover:text-blue-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-all duration-300"
+                  >
+                    {countdown > 0 ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Clock className="w-4 h-4 animate-pulse" />
+                        Resend code in {countdown}s
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-1">
+                        Didn't receive a code? 
+                        <span className="font-medium underline decoration-2 decoration-transparent hover:decoration-blue-600 transition-all duration-300">
+                          Resend
+                        </span>
+                      </span>
+                    )}
+                  </button>
+                  
+                  <div className="pt-4 border-t border-gray-200 space-y-3">
+                    <Link 
+                      href="/register" 
+                      className="block text-sm text-gray-600 hover:text-gray-900 transition-colors duration-300 group"
+                      onClick={() => {
+                        localStorage.removeItem('userEmail');
+                        localStorage.removeItem('userRole');
+                      }}
+                    >
+                      <span className="flex items-center justify-center gap-1">
+                        Wrong email? 
+                        <span className="text-blue-600 group-hover:text-blue-700 font-medium">
+                          Register again
+                        </span>
+                        <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" />
+                      </span>
+                    </Link>
+                    
+                    <Link 
+                      href="/login" 
+                      className="block text-sm text-gray-600 hover:text-gray-900 transition-colors duration-300 group"
+                    >
+                      <span className="flex items-center justify-center gap-1">
+                        Already verified? 
+                        <span className="text-blue-600 group-hover:text-blue-700 font-medium">
+                          Log in here
+                        </span>
+                        <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" />
+                      </span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* Security Note */}
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <p className="text-xs text-gray-500 flex items-center justify-center gap-2">
+              <Shield className="w-3 h-3 text-blue-500" />
+              Your verification code is encrypted and secure
+              <Shield className="w-3 h-3 text-blue-500" />
+            </p>
           </div>
-        </form>
+        </div>
       </div>
+
+      <style jsx>{`
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes bounceIn {
+          0% {
+            opacity: 0;
+            transform: scale(0.3);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.1);
+          }
+          70% {
+            transform: scale(0.9);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes blob {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        
+        .animate-scaleIn {
+          animation: scaleIn 0.6s ease-out;
+        }
+        
+        .animate-fadeInDown {
+          animation: fadeInDown 0.6s ease-out forwards;
+          opacity: 0;
+        }
+        
+        .animate-fadeInUp {
+          animation: fadeInUp 0.6s ease-out forwards;
+          opacity: 0;
+        }
+        
+        .animate-bounceIn {
+          animation: bounceIn 0.5s ease-out;
+        }
+        
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        
+        .animation-delay-2000 {
+          animation-delay: 2000ms;
+        }
+      `}</style>
     </div>
   );
 }

@@ -5,20 +5,35 @@ import SecondNavbar from "@/components/SecondNavbar";
 import EmployerSidebar from "@/components/dashboard/employer/EmployerSideBar";
 import ApplicationsMain from "@/components/dashboard/employer/ApplicationsMain";
 
+// page.jsx
 export default function Page() {
   return (
     <>
-      {/* Fixed Nav */}
-      <div className="fixed top-0 left-0 right-0 z-50">
+    <div className="fixed top-0 left-0 right-0 z-50">
         <EmployerNavbar />
         <SecondNavbar />
       </div>
 
-      {/* Body */}
-      <div className="flex pt-28">
+      <div className="pt-14">
         <EmployerSidebar />
         <ApplicationsMain />
       </div>
     </>
   );
 }
+
+
+
+// export default function Page() {
+//   return (
+//     <>
+//       {/* Fixed Nav */}
+      
+//       {/* Body */}
+//       <div className="flex pt-28">
+//         <EmployerSidebar />
+//         <ApplicationsMain />
+//       </div>
+//     </>
+//   );
+// }

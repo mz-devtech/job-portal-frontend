@@ -18,6 +18,11 @@ import {
   FiChevronDown,
   FiChevronLeft,
   FiChevronRight,
+  FiClock,
+  FiBriefcase,
+  FiStar,
+  FiEye,
+  FiCheck
 } from "react-icons/fi";
 import {
   DndContext,
@@ -41,7 +46,6 @@ import { jobService } from "@/services/jobService";
 import { applicationService } from "@/services/applicationService";
 import { statusService } from "@/services/statusService";
 import toast from "react-hot-toast";
-import EmployerSidebar from "@/components/dashboard/employer/EmployerSideBar";
 import StatusManagementModal from "@/components/dashboard/employer/StatusManagementModal";
 
 export default function JobApplicationsPage() {
@@ -368,240 +372,255 @@ export default function JobApplicationsPage() {
   };
 
   if (!mounted) {
-    // Return a skeleton loader with fixed className strings to avoid hydration mismatch
     return (
-      <div className="flex pt-28">
-        <EmployerSidebar />
-        <main className="w-full min-h-screen bg-gray-50 px-6 py-6 md:ml-[260px] md:w-[calc(100%-260px)] flex items-center justify-center">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-            <p className="mt-3 text-gray-600">Loading applications...</p>
-          </div>
-        </main>
-      </div>
+      <main className="w-full min-h-screen bg-gray-50 px-6 py-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <p className="mt-3 text-gray-600">Loading applications...</p>
+        </div>
+      </main>
     );
   }
 
   if (loading) {
     return (
-      <div className="flex pt-28">
-        <EmployerSidebar />
-        <main className="w-full min-h-screen bg-gray-50 px-6 py-6 md:ml-[260px] md:w-[calc(100%-260px)] flex items-center justify-center">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-            <p className="mt-3 text-gray-600">Loading applications...</p>
-          </div>
-        </main>
-      </div>
+      <main className="w-full min-h-screen bg-gray-50 px-6 py-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <p className="mt-3 text-gray-600">Loading applications...</p>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="flex pt-28">
-      <EmployerSidebar />
-      
-      <main className="w-full min-h-screen bg-gray-50 px-6 py-6 md:ml-[260px] md:w-[calc(100%-260px)]">
-        {/* Breadcrumb - Matching screenshot */}
-        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-          <Link href="/employer/my-jobs" className="hover:text-blue-600">
-            My Jobs
-          </Link>
-          <span>/</span>
-          <span className="text-gray-700">{job?.title || "Aliqua Enim cumque"}</span>
-          <span>/</span>
-          <span className="text-blue-600 font-medium">Applications</span>
+    <main className=" ml-[260px] min-h-screen bg-gray-50 px-6 py-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+        <Link href="/employer/my-jobs" className="hover:text-blue-600 transition">
+          My Jobs
+        </Link>
+        <span className="text-gray-400">/</span>
+        <span className="text-gray-700 font-medium">{job?.title || "Aliqua Enim cumque"}</span>
+        <span className="text-gray-400">/</span>
+        <span className="text-blue-600 font-medium">Applications</span>
+      </div>
+
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        {/* Left side - Job Title and Status Badge */}
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {job?.title || "Aliqua Enim cumque"}
+          </h1>
+          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+            {job?.status || "Active"}
+          </span>
         </div>
 
-        {/* Header - Redesigned to match screenshot */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold text-gray-900">
-              {job?.title || "Aliqua Enim cumque"}
-            </h1>
-            <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-              Applications
-            </span>
-                <div className="flex items-center gap-3">
-            {/* Status Management Button - MATCHING SCREENSHOT */}
+        {/* Right side - Actions */}
+        <div className="flex items-center gap-3">
+          {/* Status Management Button */}
+          <button
+            onClick={() => setShowStatusManagement(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+          >
+            <FiSettings className="w-4 h-4" />
+            Manage statuses
+          </button>
+
+          {/* Sort Dropdown */}
+          <div className="relative">
             <button
-              onClick={() => setShowStatusManagement(true)}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition shadow-sm"
+              onClick={() => setSortOpen(!sortOpen)}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
             >
-              <FiSettings className="w-4 h-4" />
-              Manage statuses
+              <span>Sort by: <span className="font-medium text-gray-900">
+                {sortBy === "newest" ? "Newest" : sortBy === "oldest" ? "Oldest" : "Name"}
+              </span></span>
+              <FiChevronDown className={`w-4 h-4 transition-transform duration-200 ${sortOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {/* Sort Dropdown - MATCHING SCREENSHOT */}
-            <div className="relative">
-              <button
-                onClick={() => setSortOpen(!sortOpen)}
-                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition shadow-sm"
-              >
-                <span>Sort column</span>
-                <FiChevronDown className="w-4 h-4" />
-              </button>
-
-              {sortOpen && (
-                <div className="absolute right-0 top-11 w-48 rounded-lg border bg-white shadow-lg z-20 py-1">
+            {sortOpen && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setSortOpen(false)} />
+                <div className="absolute right-0 top-10 w-48 rounded-lg border bg-white shadow-lg z-40 py-1">
                   <button
                     onClick={() => {
                       setSortBy("newest");
                       setSortOpen(false);
                     }}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                      sortBy === "newest" ? "text-blue-600 font-medium bg-blue-50" : "text-gray-700"
+                    className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
+                      sortBy === "newest" ? "text-blue-600 bg-blue-50" : "text-gray-700"
                     }`}
                   >
                     Newest First
+                    {sortBy === "newest" && <FiCheck className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => {
                       setSortBy("oldest");
                       setSortOpen(false);
                     }}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                      sortBy === "oldest" ? "text-blue-600 font-medium bg-blue-50" : "text-gray-700"
+                    className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
+                      sortBy === "oldest" ? "text-blue-600 bg-blue-50" : "text-gray-700"
                     }`}
                   >
                     Oldest First
+                    {sortBy === "oldest" && <FiCheck className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => {
                       setSortBy("name");
                       setSortOpen(false);
                     }}
-                    className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 ${
-                      sortBy === "name" ? "text-blue-600 font-medium bg-blue-50" : "text-gray-700"
+                    className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center justify-between ${
+                      sortBy === "name" ? "text-blue-600 bg-blue-50" : "text-gray-700"
                     }`}
                   >
                     Name A-Z
+                    {sortBy === "name" && <FiCheck className="w-4 h-4" />}
                   </button>
                 </div>
-              )}
-            </div>
-          </div>
-          </div>
-          
-      
-        </div>
-
-        {/* Job Info - Matching screenshot */}
-        <div className="flex items-center gap-6 mb-8 text-sm">
-          <div className="flex items-center gap-2 text-gray-600">
-            <FiMapPin className="w-4 h-4" />
-            <span>{job?.location ? formatLocation(job.location) : "Select city, Italy"}</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-600">
-            <FiCalendar className="w-4 h-4" />
-            <span>{job?.type || "Temporary"}</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-900 font-medium">
-            <FiUser className="w-4 h-4" />
-            <span>{applications.length} total applications</span>
+              </>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Columns Container with Drag & Drop and Navigation Arrows */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
+      {/* Job Info Bar */}
+      <div className="flex flex-wrap items-center gap-6 mb-8 text-sm bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+        <div className="flex items-center gap-2 text-gray-600">
+          <div className="p-1.5 bg-blue-50 rounded-lg">
+            <FiMapPin className="w-4 h-4 text-blue-600" />
+          </div>
+          <span>{job?.location ? formatLocation(job.location) : "Select city, Italy"}</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-600">
+          <div className="p-1.5 bg-purple-50 rounded-lg">
+            <FiBriefcase className="w-4 h-4 text-purple-600" />
+          </div>
+          <span>{job?.type || "Temporary"}</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-900 font-medium">
+          <div className="p-1.5 bg-green-50 rounded-lg">
+            <FiUser className="w-4 h-4 text-green-600" />
+          </div>
+          <span>{applications.length} total applications</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-600 ml-auto">
+          <div className="flex -space-x-2">
+            {[1,2,3].map((i) => (
+              <div key={i} className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white" />
+            ))}
+          </div>
+          <span className="text-xs text-gray-500">12 new today</span>
+        </div>
+      </div>
+
+      {/* Columns Container with Drag & Drop and Navigation Arrows */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div 
+          className="relative group/columns mt-4"
+          onMouseEnter={() => setIsHoveringColumns(true)}
+          onMouseLeave={() => setIsHoveringColumns(false)}
         >
-          <div 
-            className="relative group/columns"
-            onMouseEnter={() => setIsHoveringColumns(true)}
-            onMouseLeave={() => setIsHoveringColumns(false)}
-          >
-            {/* Navigation Arrows Container - FIXED POSITIONING */}
-            <div className="relative">
-              {/* Left Navigation Arrow - ALWAYS VISIBLE WHEN SCROLLABLE */}
-              {(isHoveringColumns || showLeftArrow) && showLeftArrow && (
-                <button
-                  onClick={scrollLeft}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:shadow-xl hover:border-gray-300 transition-all -ml-5"
-                  aria-label="Scroll left"
-                >
-                  <FiChevronLeft className="w-5 h-5" />
-                </button>
-              )}
-
-              {/* Right Navigation Arrow - ALWAYS VISIBLE WHEN SCROLLABLE */}
-              {(isHoveringColumns || showRightArrow) && showRightArrow && (
-                <button
-                  onClick={scrollRight}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:shadow-xl hover:border-gray-300 transition-all -mr-5"
-                  aria-label="Scroll right"
-                >
-                  <FiChevronRight className="w-5 h-5" />
-                </button>
-              )}
-
-              {/* Scrollable Columns */}
-              <div 
-                ref={scrollContainerRef}
-                className="overflow-x-auto pb-4 scroll-smooth hide-scrollbar"
-                style={{ 
-                  minHeight: "calc(100vh - 280px)",
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none',
-                }}
-                onScroll={checkScrollPosition}
+          {/* Navigation Arrows */}
+          <div className="relative">
+            {/* Left Navigation Arrow */}
+            {(isHoveringColumns || showLeftArrow) && showLeftArrow && (
+              <button
+                onClick={scrollLeft}
+                className="absolute -left-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:shadow-xl hover:border-gray-300 transition-all hover:scale-110"
+                aria-label="Scroll left"
               >
-                <div className="flex gap-6" style={{ minWidth: "max-content" }}>
-                  {statuses.map((status) => {
-                    const columnApps = sortApplications(getApplicationsByStatus(status.key));
-                    const statusCount = getStatusCount(status.key);
-                    
-                    return (
-                      <DroppableColumn
-                        key={status.key}
-                        id={status.key}
-                        status={status}
-                        statusCount={statusCount}
+                <FiChevronLeft className="w-5 h-5" />
+              </button>
+            )}
+
+            {/* Right Navigation Arrow */}
+            {(isHoveringColumns || showRightArrow) && showRightArrow && (
+              <button
+                onClick={scrollRight}
+                className="absolute -right-3 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-white rounded-full shadow-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 hover:shadow-xl hover:border-gray-300 transition-all hover:scale-110"
+                aria-label="Scroll right"
+              >
+                <FiChevronRight className="w-5 h-5" />
+              </button>
+            )}
+
+            {/* Scrollable Columns */}
+            <div 
+              ref={scrollContainerRef}
+              className="overflow-x-auto pb-4 scroll-smooth hide-scrollbar"
+              style={{ 
+                minHeight: "calc(100vh - 320px)",
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
+              onScroll={checkScrollPosition}
+            >
+              <div className="flex gap-5" style={{ minWidth: "max-content" }}>
+                {statuses.map((status) => {
+                  const columnApps = sortApplications(getApplicationsByStatus(status.key));
+                  const statusCount = getStatusCount(status.key);
+                  
+                  return (
+                    <DroppableColumn
+                      key={status.key}
+                      id={status.key}
+                      status={status}
+                      statusCount={statusCount}
+                    >
+                      <SortableContext
+                        items={columnApps.map(app => app._id)}
+                        strategy={verticalListSortingStrategy}
                       >
-                        <SortableContext
-                          items={columnApps.map(app => app._id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          <div className="flex-1 p-3 space-y-3 overflow-y-auto">
-                            {columnApps.length > 0 ? (
-                              columnApps.map((app) => (
-                                <SortableApplicantCard
-                                  key={app._id}
-                                  id={app._id}
-                                  application={app}
-                                  statuses={statuses}
-                                  onClick={() => setSelectedCandidate(app)}
-                                  onDownloadResume={() => handleDownloadResume(app._id)}
-                                  onUpdateStatus={(newStatus) => handleUpdateStatus(app._id, newStatus)}
-                                  getStatusColor={getStatusColor}
-                                  getStatusName={getStatusName}
-                                  formatDate={formatDate}
-                                  formatLocation={formatLocation}
-                                />
-                              ))
-                            ) : (
-                              <div className="flex flex-col items-center justify-center h-32 text-center">
-                                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                                  <FiUser className="w-6 h-6 text-gray-400" />
-                                </div>
-                                <p className="text-sm text-gray-500">No applications</p>
+                        <div className="flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-380px)]">
+                          {columnApps.length > 0 ? (
+                            columnApps.map((app) => (
+                              <SortableApplicantCard
+                                key={app._id}
+                                id={app._id}
+                                application={app}
+                                statuses={statuses}
+                                onClick={() => setSelectedCandidate(app)}
+                                onDownloadResume={() => handleDownloadResume(app._id)}
+                                onUpdateStatus={(newStatus) => handleUpdateStatus(app._id, newStatus)}
+                                getStatusColor={getStatusColor}
+                                getStatusName={getStatusName}
+                                formatDate={formatDate}
+                                formatLocation={formatLocation}
+                              />
+                            ))
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-40 text-center border-2 border-dashed border-gray-200 rounded-lg bg-gray-50/50">
+                              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                                <FiUser className="w-5 h-5 text-gray-400" />
                               </div>
-                            )}
-                          </div>
-                        </SortableContext>
-                      </DroppableColumn>
-                    );
-                  })}
-                </div>
+                              <p className="text-xs text-gray-500">No applications</p>
+                              <p className="text-[10px] text-gray-400 mt-1">Drag to move</p>
+                            </div>
+                          )}
+                        </div>
+                      </SortableContext>
+                    </DroppableColumn>
+                  );
+                })}
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Drag Overlay */}
-          <DragOverlay>
-            {activeId ? (
+        {/* Drag Overlay */}
+        <DragOverlay>
+          {activeId ? (
+            <div className="w-[320px] transform rotate-2 scale-105 transition-all">
               <ApplicantCardOverlay
                 application={applications.find(app => app._id === activeId)}
                 getStatusColor={getStatusColor}
@@ -609,10 +628,10 @@ export default function JobApplicationsPage() {
                 formatDate={formatDate}
                 formatLocation={formatLocation}
               />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      </main>
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {/* Status Management Modal */}
       <StatusManagementModal
@@ -640,8 +659,23 @@ export default function JobApplicationsPage() {
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
+        
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        .animate-scaleIn {
+          animation: scaleIn 0.2s ease-out;
+        }
       `}</style>
-    </div>
+    </main>
   );
 }
 
@@ -651,30 +685,44 @@ function DroppableColumn({ id, status, statusCount, children }) {
     id: id,
   });
 
+  // Get color class for the column header
+  const getHeaderColor = (statusKey) => {
+    const colors = {
+      pending: 'bg-yellow-50 border-yellow-200',
+      reviewed: 'bg-blue-50 border-blue-200',
+      shortlisted: 'bg-purple-50 border-purple-200',
+      interview: 'bg-indigo-50 border-indigo-200',
+      hired: 'bg-green-50 border-green-200',
+      rejected: 'bg-red-50 border-red-200',
+    };
+    return colors[statusKey] || 'bg-gray-50 border-gray-200';
+  };
+
   return (
     <div
       ref={setNodeRef}
-      className={`w-[340px] rounded-lg bg-white border shadow-sm flex flex-col h-[calc(100vh-280px)] transition-all ${
-        isOver ? 'ring-2 ring-blue-400 ring-opacity-50 bg-blue-50/10' : ''
+      className={`w-[340px] rounded-xl bg-white border shadow-sm flex flex-col transition-all duration-200 ${
+        isOver ? 'ring-2 ring-blue-400 ring-opacity-50 shadow-lg scale-[1.02]' : ''
       }`}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between border-b px-4 py-3 bg-gray-50 rounded-t-lg">
+      <div className={`flex items-center justify-between px-4 py-3 border-b rounded-t-xl ${getHeaderColor(status.key)}`}>
         <div className="flex items-center gap-2">
-          <span className={`px-3 py-1.5 rounded-full text-xs font-medium ${status.color}`}>
+          <div className={`w-2 h-2 rounded-full ${status.color.split(' ')[0]}`} />
+          <span className="text-sm font-semibold text-gray-700">
             {status.name}
           </span>
-          <span className="text-sm font-medium text-gray-700">
+          <span className="px-2 py-0.5 bg-white/80 backdrop-blur-sm rounded-full text-xs font-medium text-gray-600">
             {statusCount}
           </span>
         </div>
-        <button className="text-gray-400 hover:text-gray-600">
+        <button className="p-1 hover:bg-white/50 rounded-lg transition text-gray-500 hover:text-gray-700">
           <FiMoreVertical className="w-4 h-4" />
         </button>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-hidden">
         {children}
       </div>
     </div>
@@ -717,6 +765,7 @@ function SortableApplicantCard({
   };
 
   const [showActions, setShowActions] = useState(false);
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
   const candidate = application.candidate || {};
   const statusBadge = getStatusColor(application.status);
   const statusName = getStatusName(application.status);
@@ -734,99 +783,116 @@ function SortableApplicantCard({
       {...attributes}
       {...listeners}
       onClick={onClick}
-      className={`rounded-lg border p-4 transition-all bg-white relative group ${
+      className={`rounded-xl border p-4 transition-all bg-white relative group ${
         isDragging 
-          ? 'shadow-lg ring-2 ring-blue-400 rotate-1 scale-105 z-50' 
-          : 'hover:shadow-md hover:border-blue-200'
+          ? 'shadow-xl ring-2 ring-blue-400 rotate-1 scale-105 z-50' 
+          : 'hover:shadow-lg hover:border-blue-200 hover:scale-[1.02]'
       }`}
     >
-      <div className="flex items-start justify-between">
+      {/* Drag Handle Indicator */}
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition">
+        <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center">
+          <div className="w-2 h-2 rounded-full bg-gray-400" />
+        </div>
+      </div>
+
+      <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <Avatar name={candidate.name || candidate.username || "Scarlett Peterson"} />
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-gray-900 truncate">
+            <p className="font-semibold text-gray-900 truncate text-sm">
               {candidate.name || candidate.username || "Scarlett Peterson"}
             </p>
-            <p className="text-xs text-gray-500 truncate">
+            <p className="text-xs text-gray-500 truncate flex items-center gap-1">
+              <FiMail className="w-3 h-3 flex-shrink-0" />
               {displayEmail}
             </p>
           </div>
         </div>
-        
-        <span className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${statusBadge}`}>
-          {statusName}
-        </span>
       </div>
 
-      <div className="mt-3 space-y-1 text-xs text-gray-600">
+      <div className="space-y-2 text-xs text-gray-600">
         {candidate.phone && (
-          <p className="flex items-center gap-1">
-            <span>📞</span> {candidate.phone}
+          <p className="flex items-center gap-1.5">
+            <span className="text-gray-400">📞</span> 
+            <span>{candidate.phone}</span>
           </p>
         )}
         {location && (
-          <p className="flex items-center gap-1">
-            <FiMapPin className="w-3 h-3 flex-shrink-0" /> 
+          <p className="flex items-center gap-1.5">
+            <FiMapPin className="w-3.5 h-3.5 text-gray-400" /> 
             <span className="truncate">{location}</span>
           </p>
         )}
-        <p className="flex items-center gap-1">
-          <FiCalendar className="w-3 h-3 flex-shrink-0" /> 
-          <span>Applied: {formatDate(application.appliedAt)}</span>
+        <p className="flex items-center gap-1.5">
+          <FiClock className="w-3.5 h-3.5 text-gray-400" /> 
+          <span>Applied {formatDate(application.appliedAt)}</span>
         </p>
       </div>
 
-      {/* Quick Actions */}
-      <div className="mt-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDownloadResume();
-          }}
-          className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
-        >
-          <FiDownload className="w-3 h-3" />
-          Resume
-        </button>
+      {/* Status Badge */}
+      <div className="mt-3 flex items-center justify-between">
+        <span className={`text-[10px] px-2 py-1 rounded-full font-medium ${statusBadge}`}>
+          {statusName}
+        </span>
         
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowActions(!showActions);
-          }}
-          className="flex items-center gap-1 text-xs text-gray-600 hover:text-gray-800"
-        >
-          <FiMoreVertical className="w-3 h-3" />
-          Status
-        </button>
-      </div>
-
-      {/* Status Update Dropdown */}
-      {showActions && (
-        <div className="absolute right-4 top-16 z-30 w-48 rounded-lg border bg-white shadow-lg py-1 max-h-64 overflow-y-auto">
-          {statuses.map((status) => (
+        {/* Quick Actions */}
+        <div className="flex items-center gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDownloadResume();
+            }}
+            className="p-1.5 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-blue-600"
+            title="Download Resume"
+          >
+            <FiDownload className="w-3.5 h-3.5" />
+          </button>
+          
+          <div className="relative">
             <button
-              key={status._id || status.key}
               onClick={(e) => {
                 e.stopPropagation();
-                onUpdateStatus(status.key);
-                setShowActions(false);
+                setShowStatusMenu(!showStatusMenu);
               }}
-              className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${
-                application.status === status.key ? 'bg-gray-50' : ''
-              }`}
+              className="p-1.5 hover:bg-gray-100 rounded-lg transition text-gray-500 hover:text-gray-700"
+              title="Change Status"
             >
-              <span className={`w-2 h-2 rounded-full ${status.color.split(' ')[0]}`} />
-              <span className={application.status === status.key ? 'font-medium' : ''}>
-                {status.name}
-              </span>
-              {application.status === status.key && (
-                <span className="ml-auto text-xs text-gray-400">Current</span>
-              )}
+              <FiMoreVertical className="w-3.5 h-3.5" />
             </button>
-          ))}
+
+            {/* Status Update Dropdown */}
+            {showStatusMenu && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setShowStatusMenu(false)} />
+                <div className="absolute right-0 top-8 z-40 w-48 rounded-lg border bg-white shadow-lg py-1 max-h-64 overflow-y-auto">
+                  {statuses.map((status) => (
+                    <button
+                      key={status._id || status.key}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdateStatus(status.key);
+                        setShowStatusMenu(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-xs hover:bg-gray-50 flex items-center gap-2 ${
+                        application.status === status.key ? 'bg-gray-50' : ''
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${status.color.split(' ')[0]}`} />
+                      <span className={application.status === status.key ? 'font-medium' : ''}>
+                        {status.name}
+                      </span>
+                      {application.status === status.key && (
+                        <span className="ml-auto text-[9px] text-gray-400">Current</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -839,30 +905,32 @@ function ApplicantCardOverlay({ application, getStatusColor, getStatusName, form
   const statusBadge = getStatusColor(application.status);
   const statusName = getStatusName(application.status);
   const location = candidate.location ? formatLocation(candidate.location) : null;
+  const displayEmail = candidate.email || "roboged218@deposin.com";
   
   return (
-    <div className="w-[320px] rounded-lg border-2 border-blue-400 bg-white p-4 shadow-xl rotate-2 scale-105">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <Avatar name={candidate.name || candidate.username || "Scarlett Peterson"} />
-          <div>
-            <p className="font-medium text-gray-900">
-              {candidate.name || candidate.username || "Scarlett Peterson"}
+    <div className="rounded-xl border-2 border-blue-400 bg-white p-4 shadow-2xl">
+      <div className="flex items-start gap-3">
+        <Avatar name={candidate.name || candidate.username || "Scarlett Peterson"} />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-gray-900">
+            {candidate.name || candidate.username || "Scarlett Peterson"}
+          </p>
+          <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+            <FiMail className="w-3 h-3" />
+            {displayEmail}
+          </p>
+          {location && (
+            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+              <FiMapPin className="w-3 h-3" />
+              {location}
             </p>
-            <p className="text-xs text-gray-500">
-              {candidate.email || "roboged218@deposin.com"}
-            </p>
-            {location && (
-              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                <FiMapPin className="w-3 h-3" />
-                {location}
-              </p>
-            )}
+          )}
+          <div className="mt-2">
+            <span className={`text-[10px] px-2 py-1 rounded-full font-medium ${statusBadge}`}>
+              {statusName}
+            </span>
           </div>
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full ${statusBadge}`}>
-          {statusName}
-        </span>
       </div>
     </div>
   );
@@ -887,6 +955,8 @@ function CandidateDetailModal({
   const statusBadge = getStatusColor(candidate.status);
   const statusName = getStatusName(candidate.status);
   const location = candidateData.location ? formatLocation(candidateData.location) : null;
+  const displayEmail = candidateData.email || "roboged218@deposin.com";
+  const displayName = candidateData.name || candidateData.username || "Scarlett Peterson";
 
   const handleStatusUpdate = async (statusKey) => {
     setIsUpdating(true);
@@ -902,33 +972,35 @@ function CandidateDetailModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-[1100px] max-w-[95%] h-[90vh] bg-white rounded-xl shadow-lg overflow-hidden flex animate-scaleIn">
+      <div className="relative w-[1100px] max-w-[95%] h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex animate-scaleIn">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 h-8 w-8 rounded-full border flex items-center justify-center hover:bg-gray-100 z-10 bg-white"
+          className="absolute right-4 top-4 h-8 w-8 rounded-full border flex items-center justify-center hover:bg-gray-100 z-10 bg-white shadow-md hover:shadow-lg transition-all"
         >
           <FiX className="w-4 h-4" />
         </button>
 
         {/* LEFT - Candidate Details */}
-        <div className="flex-1 p-6 overflow-y-auto">
+        <div className="flex-1 p-8 overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-xl font-semibold text-white">
-              {candidateData.name?.charAt(0) || candidateData.username?.charAt(0) || 'S'}
+          <div className="flex items-start gap-5 mb-8">
+            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
+              {displayName.charAt(0)}
             </div>
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {candidateData.name || candidateData.username || "Scarlett Peterson"}
+              <h2 className="text-2xl font-bold text-gray-900">
+                {displayName}
               </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                {candidateData.email || "roboged218@deposin.com"}
+              <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                <FiMail className="w-4 h-4" />
+                {displayEmail}
               </p>
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-3 mt-3">
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusBadge}`}>
                   {statusName}
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <FiClock className="w-3.5 h-3.5" />
                   Applied {formatDate(candidate.appliedAt)}
                 </span>
               </div>
@@ -937,19 +1009,22 @@ function CandidateDetailModal({
 
           {/* Contact Info */}
           <Section title="Contact Information">
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-5 rounded-xl">
               <InfoItem label="Phone" value={candidateData.phone} />
               <InfoItem label="Location" value={location} />
-              <InfoItem label="Email" value={candidateData.email} />
+              <InfoItem label="Email" value={displayEmail} />
+              {candidateData.portfolio && (
+                <InfoItem label="Portfolio" value={candidateData.portfolio} isLink />
+              )}
             </div>
           </Section>
 
           {/* Cover Letter */}
           <Section title="Cover Letter">
             <div 
-              className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-4 rounded-lg prose prose-sm max-w-none"
+              className="text-sm text-gray-600 leading-relaxed bg-gray-50 p-5 rounded-xl prose prose-sm max-w-none"
               dangerouslySetInnerHTML={{ 
-                __html: candidate.coverLetter || "<p class='text-gray-400'>No cover letter provided.</p>" 
+                __html: candidate.coverLetter || "<p class='text-gray-400 italic'>No cover letter provided.</p>" 
               }}
             />
           </Section>
@@ -959,9 +1034,25 @@ function CandidateDetailModal({
             <Section title="Skills">
               <div className="flex flex-wrap gap-2">
                 {candidateData.skills.map((skill, i) => (
-                  <span key={i} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                  <span key={i} className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-xs font-medium">
                     {skill}
                   </span>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {/* Experience */}
+          {candidateData.experience?.length > 0 && (
+            <Section title="Work Experience">
+              <div className="space-y-4">
+                {candidateData.experience.map((exp, i) => (
+                  <div key={i} className="bg-gray-50 p-4 rounded-xl">
+                    <h4 className="font-medium text-gray-900">{exp.title}</h4>
+                    <p className="text-sm text-gray-600 mt-1">{exp.company}</p>
+                    <p className="text-xs text-gray-500 mt-1">{exp.duration}</p>
+                    <p className="text-sm text-gray-600 mt-2">{exp.description}</p>
+                  </div>
                 ))}
               </div>
             </Section>
@@ -973,24 +1064,26 @@ function CandidateDetailModal({
           {/* Action Buttons */}
           <div className="space-y-3 mb-6">
             <button
-              onClick={() => window.location.href = `mailto:${candidateData.email}`}
-              className="w-full rounded-lg border bg-white px-4 py-2.5 text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition"
+              onClick={() => window.location.href = `mailto:${displayEmail}`}
+              className="w-full rounded-xl border bg-white px-4 py-3 text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-all shadow-sm hover:shadow"
             >
-              <FiMail /> Send Email
+              <FiMail className="w-4 h-4" />
+              Send Email
             </button>
             
             <button
               onClick={() => onDownloadResume(candidate._id)}
-              className="w-full rounded-lg border bg-white px-4 py-2.5 text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition"
+              className="w-full rounded-xl border bg-white px-4 py-3 text-sm flex items-center justify-center gap-2 hover:bg-gray-50 transition-all shadow-sm hover:shadow"
             >
-              <FiDownload /> Download Resume
+              <FiDownload className="w-4 h-4" />
+              Download Resume
             </button>
 
             <div className="relative">
               <button
                 onClick={() => setShowStatusMenu(!showStatusMenu)}
                 disabled={isUpdating}
-                className="w-full rounded-lg bg-blue-600 text-white px-4 py-2.5 text-sm flex items-center justify-center gap-2 hover:bg-blue-700 transition disabled:opacity-50"
+                className="w-full rounded-xl bg-blue-600 text-white px-4 py-3 text-sm flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
               >
                 {isUpdating ? (
                   <>
@@ -999,61 +1092,78 @@ function CandidateDetailModal({
                   </>
                 ) : (
                   <>
-                    <FiMoreVertical /> Update Status
+                    <FiMoreVertical className="w-4 h-4" />
+                    Update Status
                   </>
                 )}
               </button>
 
               {showStatusMenu && (
-                <div className="absolute top-12 left-0 w-full rounded-lg border bg-white shadow-lg z-20 py-1 max-h-64 overflow-y-auto">
-                  {statuses.map((status) => (
-                    <button
-                      key={status._id || status.key}
-                      onClick={() => handleStatusUpdate(status.key)}
-                      className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${
-                        candidate.status === status.key ? 'bg-gray-50' : ''
-                      }`}
-                    >
-                      <span className={`w-2 h-2 rounded-full ${status.color.split(' ')[0]}`} />
-                      <span className={candidate.status === status.key ? 'font-medium' : ''}>
-                        {status.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setShowStatusMenu(false)} />
+                  <div className="absolute bottom-12 left-0 w-full rounded-xl border bg-white shadow-xl z-40 py-1 max-h-64 overflow-y-auto">
+                    {statuses.map((status) => (
+                      <button
+                        key={status._id || status.key}
+                        onClick={() => handleStatusUpdate(status.key)}
+                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${
+                          candidate.status === status.key ? 'bg-blue-50' : ''
+                        }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${status.color.split(' ')[0]}`} />
+                        <span className={candidate.status === status.key ? 'font-medium text-blue-600' : ''}>
+                          {status.name}
+                        </span>
+                        {candidate.status === status.key && (
+                          <span className="ml-auto text-xs text-gray-400">Current</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </div>
 
           {/* Resume Info */}
           {candidate.resume && (
-            <div className="mb-6 p-4 bg-white rounded-lg border">
-              <p className="text-xs text-gray-500 mb-1">Resume</p>
-              <p className="text-sm font-medium text-gray-900">
-                {candidate.resume.originalName || "Resume"}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                {candidate.resume.size ? `${(candidate.resume.size / 1024).toFixed(0)} KB` : "Size not available"}
-              </p>
+            <div className="mb-6 p-5 bg-white rounded-xl border shadow-sm">
+              <p className="text-xs text-gray-500 mb-2">Resume</p>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-50 rounded-lg">
+                  <FiDownload className="w-4 h-4 text-red-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {candidate.resume.originalName || "Resume.pdf"}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {candidate.resume.size ? `${(candidate.resume.size / 1024).toFixed(0)} KB` : "Size not available"}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
           {/* Timeline */}
           <Section title="Application Timeline">
             {candidate.statusHistory?.length > 0 ? (
-              candidate.statusHistory.map((history, index) => (
-                <div key={index} className="flex items-start gap-3 mb-3">
-                  <div className="w-2 h-2 mt-1.5 rounded-full bg-blue-500" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      Status changed to {getStatusName(history.status)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {formatDate(history.updatedAt)}
-                    </p>
+              <div className="space-y-3">
+                {candidate.statusHistory.map((history, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className={`w-2 h-2 mt-1.5 rounded-full ${getStatusColor(history.status).split(' ')[0]}`} />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        Status changed to {getStatusName(history.status)}
+                      </p>
+                      <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                        <FiClock className="w-3 h-3" />
+                        {formatDate(history.updatedAt)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))
+                ))}
+              </div>
             ) : (
               <p className="text-sm text-gray-500 italic">No status history</p>
             )}
@@ -1067,8 +1177,23 @@ function CandidateDetailModal({
 /* ================= Helper Components ================= */
 function Avatar({ name }) {
   const initial = name?.charAt(0) || "S";
+  
+  // Generate consistent color based on name
+  const getColor = (name) => {
+    const colors = [
+      'from-blue-500 to-blue-600',
+      'from-green-500 to-green-600',
+      'from-purple-500 to-purple-600',
+      'from-pink-500 to-pink-600',
+      'from-indigo-500 to-indigo-600',
+      'from-teal-500 to-teal-600',
+    ];
+    const index = name ? name.length % colors.length : 0;
+    return colors[index];
+  };
+
   return (
-    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-sm font-medium text-white flex-shrink-0">
+    <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${getColor(name)} flex items-center justify-center text-sm font-semibold text-white flex-shrink-0 shadow-sm`}>
       {initial}
     </div>
   );
@@ -1076,8 +1201,8 @@ function Avatar({ name }) {
 
 function Section({ title, children }) {
   return (
-    <div className="mb-6">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">
+    <div className="mb-8">
+      <h3 className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wider">
         {title}
       </h3>
       {children}
@@ -1085,13 +1210,21 @@ function Section({ title, children }) {
   );
 }
 
-function InfoItem({ label, value }) {
+function InfoItem({ label, value, isLink }) {
+  if (!value) return null;
+  
   return (
     <div>
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-sm font-medium text-gray-900 mt-1 break-words">
-        {value || "Not provided"}
-      </p>
+      <p className="text-xs text-gray-500 mb-1">{label}</p>
+      {isLink ? (
+        <a href={value} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-600 hover:underline break-words">
+          {value}
+        </a>
+      ) : (
+        <p className="text-sm font-medium text-gray-900 break-words">
+          {value}
+        </p>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, MapPin, SlidersHorizontal, Bookmark, Loader2, BookmarkCheck, TrendingUp, Clock, X } from "lucide-react";
+import { Search, MapPin, SlidersHorizontal, Bookmark, Loader2, BookmarkCheck, TrendingUp, Clock, X, Sparkles, Zap, Award, Heart, Star, Briefcase, DollarSign, Users, ChevronRight } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import FilterSidebar from "@/components/FilterSidebar";
@@ -11,6 +11,7 @@ import Footer from "@/components/Footer";
 import { jobService } from "@/services/jobService";
 import { savedJobService } from "@/services/savedJobService";
 import { searchHistoryService } from "@/services/searchHistoryService";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [openFilter, setOpenFilter] = useState(false);
@@ -23,6 +24,7 @@ export default function Home() {
   const [searchSuggestions, setSearchSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [featuredJobs, setFeaturedJobs] = useState([]);
   
   const [filters, setFilters] = useState({
     search: "",
@@ -53,11 +55,55 @@ export default function Home() {
   const debouncedSearch = useDebounce(searchTerm, 500);
   const debouncedLocation = useDebounce(locationTerm, 500);
 
+  // Animation variants
+  const fadeInUp = {
+    initial: { opacity: 0, y: 30 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.6, ease: "easeOut" }
+  };
+
+  const fadeInScale = {
+    initial: { opacity: 0, scale: 0.9 },
+    animate: { opacity: 1, scale: 1 },
+    transition: { duration: 0.5 }
+  };
+
+  const staggerContainer = {
+    animate: {
+      transition: {
+        staggerChildren: 0.08
+      }
+    }
+  };
+
+  const floatingAnimation = {
+    animate: {
+      y: [0, -8, 0],
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  const pulseAnimation = {
+    animate: {
+      scale: [1, 1.05, 1],
+      transition: {
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    }
+  };
+
   // Load popular, trending, and recent searches on mount
   useEffect(() => {
     loadPopularSearches();
     loadTrendingSearches();
     loadRecentSearches();
+    loadFeaturedJobs();
   }, []);
 
   // Update filters when debounced values change
@@ -103,6 +149,16 @@ export default function Home() {
       setRecentSearches(recent.slice(0, 10));
     } catch (error) {
       console.error("Failed to load recent searches:", error);
+    }
+  };
+
+  const loadFeaturedJobs = async () => {
+    try {
+      // Get featured jobs for the hero section
+      const response = await jobService.getFeaturedJobs(3);
+      setFeaturedJobs(response.jobs || []);
+    } catch (error) {
+      console.error("Failed to load featured jobs:", error);
     }
   };
 
@@ -356,104 +412,249 @@ export default function Home() {
     <>
       <DynamicNavbar />
       <SecondNavbar />
+      
+      {/* Animated background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-indigo-50/30 to-purple-50/30" />
+        
+        {/* Floating particles */}
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full bg-gradient-to-r from-blue-400/10 to-purple-400/10"
+            style={{
+              width: Math.random() * 200 + 100,
+              height: Math.random() * 200 + 100,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -40, 0],
+              x: [0, Math.random() * 40 - 20, 0],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: Math.random() * 8 + 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        ))}
+        
+        {/* Gradient orbs */}
+        <motion.div 
+          className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-200/20 to-purple-200/20 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
+          transition={{ duration: 15, repeat: Infinity }}
+        />
+        <motion.div 
+          className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-indigo-200/20 to-pink-200/20 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.3, 1], rotate: [0, -90, 0] }}
+          transition={{ duration: 18, repeat: Infinity }}
+        />
+      </div>
 
-      <main className="min-h-screen bg-gray-50 px-6 py-8">
+      <main className="min-h-screen bg-transparent px-4 sm:px-6 py-6">
         <div className="max-w-7xl mx-auto">
+          
+          {/* Hero Section with Stats */}
+          <motion.div 
+            variants={fadeInUp}
+            initial="initial"
+            animate="animate"
+            className="mb-8 text-center"
+          >
+            <motion.div 
+              className="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-100 to-indigo-100 px-3 py-1.5 rounded-full mb-3"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+              <span className="text-[10px] font-medium text-blue-700">Find Your Dream Job Today</span>
+            </motion.div>
+            
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">
+              <span className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
+                Discover Thousands of
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Job Opportunities
+              </span>
+            </h1>
+            
+            <p className="text-xs text-gray-500 max-w-2xl mx-auto">
+              Browse through curated jobs from top companies and find the perfect match for your skills
+            </p>
+          </motion.div>
+
           {/* Search Section */}
-          <div className="bg-white rounded-xl shadow-sm p-4 flex flex-wrap items-center gap-4 relative">
-            <div className="flex items-center gap-2 flex-1 border rounded-lg px-4 py-3 relative">
-              <Search className="w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by: Job title, Position, Keyword..."
-                className="w-full text-sm outline-none"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setShowSuggestions(true);
-                }}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+          <motion.div 
+            variants={fadeInScale}
+            initial="initial"
+            animate="animate"
+            className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 border border-gray-200/50 p-4 relative"
+          >
+            {/* Decorative elements */}
+            <div className="absolute -top-2 -right-2 w-20 h-20 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full blur-xl opacity-20" />
+            <div className="absolute -bottom-2 -left-2 w-20 h-20 bg-gradient-to-tr from-purple-400 to-pink-400 rounded-full blur-xl opacity-20" />
+            
+            <div className="relative flex flex-col md:flex-row items-center gap-3">
+              <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5 hover:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-300 relative bg-white/50">
+                <Search className="w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Job title, keyword, or company"
+                  className="w-full text-xs outline-none bg-transparent"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+                
+                {/* Search Suggestions Dropdown */}
+                <AnimatePresence>
+                  {showSuggestions && searchSuggestions.length > 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto"
+                    >
+                      <div className="p-2 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+                        <p className="text-[10px] font-medium text-gray-600 flex items-center gap-1">
+                          <Zap className="w-3 h-3 text-blue-500" />
+                          Suggestions
+                        </p>
+                      </div>
+                      {searchSuggestions.map((suggestion, index) => (
+                        <motion.button
+                          key={index}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.03 }}
+                          onClick={() => handleSuggestionClick(suggestion.suggestion || suggestion)}
+                          className="w-full text-left px-4 py-2 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 text-xs text-gray-700 flex items-center gap-2 transition-all duration-300"
+                        >
+                          <Search className="w-3 h-3 text-gray-400" />
+                          <span className="flex-1">{suggestion.suggestion || suggestion}</span>
+                          {suggestion.count && (
+                            <span className="text-[8px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full">
+                              {suggestion.count} searches
+                            </span>
+                          )}
+                        </motion.button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-xl px-4 py-2.5 hover:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500 transition-all duration-300 bg-white/50">
+                <MapPin className="w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="City, state, or zip code"
+                  className="w-full text-xs outline-none bg-transparent"
+                  value={locationTerm}
+                  onChange={(e) => setLocationTerm(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setOpenFilter(true)}
+                className="relative flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 group"
+              >
+                <SlidersHorizontal className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+                <span className="text-xs">Filters</span>
+                {Object.entries(filters).some(([key, val]) => 
+                  !['search', 'location', 'page', 'limit'].includes(key) && 
+                  val !== '' && 
+                  val !== false && 
+                  val !== 1 && 
+                  val !== 12
+                ) && (
+                  <motion.span 
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-2 h-2 bg-blue-600 rounded-full"
+                  />
+                )}
+              </motion.button>
+
+              <FilterSidebar
+                isOpen={openFilter}
+                onClose={() => setOpenFilter(false)}
+                filters={filters}
+                onFilterChange={handleFilterChange}
               />
               
-              {/* Search Suggestions Dropdown */}
-              {showSuggestions && searchSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
-                  <div className="p-2 border-b">
-                    <p className="text-xs font-medium text-gray-500">Suggestions</p>
-                  </div>
-                  {searchSuggestions.map((suggestion, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleSuggestionClick(suggestion.suggestion || suggestion)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700 flex items-center gap-2"
-                    >
-                      <Search className="w-4 h-4 text-gray-400" />
-                      <span>{suggestion.suggestion || suggestion}</span>
-                      {suggestion.count && (
-                        <span className="ml-auto text-xs text-gray-400">
-                          {suggestion.count} searches
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleSearch}
+                className="relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 text-white px-6 py-2.5 rounded-xl text-xs font-medium shadow-lg hover:shadow-xl overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                <span className="relative z-10 flex items-center gap-1">
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Searching...
+                    </>
+                  ) : (
+                    <>
+                      Find Jobs
+                      <Search className="w-3 h-3" />
+                    </>
+                  )}
+                </span>
+              </motion.button>
             </div>
 
-            <div className="flex items-center gap-2 flex-1 border rounded-lg px-4 py-3">
-              <MapPin className="w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="City, state or zip code"
-                className="w-full text-sm outline-none"
-                value={locationTerm}
-                onChange={(e) => setLocationTerm(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              />
+            {/* Quick Filters */}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="text-[8px] text-gray-500">Quick filters:</span>
+              {['Remote', 'Full-time', 'Entry Level', 'High Salary'].map((filter, index) => (
+                <motion.button
+                  key={filter}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="text-[8px] px-2 py-1 bg-gray-100 text-gray-600 rounded-full hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 hover:text-blue-600 transition-all duration-300"
+                >
+                  {filter}
+                </motion.button>
+              ))}
             </div>
-
-            <button
-              onClick={() => setOpenFilter(true)}
-              className="flex items-center gap-2 border px-5 py-3 rounded-lg hover:bg-gray-50 transition"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              Filters
-              {Object.entries(filters).some(([key, val]) => 
-                !['search', 'location', 'page', 'limit'].includes(key) && 
-                val !== '' && 
-                val !== false && 
-                val !== 1 && 
-                val !== 12
-              ) && (
-                <span className="ml-1 w-2 h-2 bg-blue-600 rounded-full"></span>
-              )}
-            </button>
-
-            <FilterSidebar
-              isOpen={openFilter}
-              onClose={() => setOpenFilter(false)}
-              filters={filters}
-              onFilterChange={handleFilterChange}
-            />
-            
-            <button 
-              onClick={handleSearch}
-              className="bg-blue-600 hover:bg-blue-700 transition text-white px-6 py-3 rounded-lg text-sm font-medium"
-            >
-              {loading ? "Searching..." : "Find Job"}
-            </button>
-          </div>
+          </motion.div>
 
           {/* Filter Status */}
-          <div className="mt-4 flex items-center justify-between">
-            <div className="text-sm text-gray-600">
+          <motion.div 
+            variants={fadeInUp}
+            transition={{ delay: 0.1 }}
+            className="mt-4 flex items-center justify-between"
+          >
+            <div className="text-[10px] text-gray-600 bg-white/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-gray-200">
               {pagination.totalJobs > 0 ? (
-                <>Showing {(filters.page - 1) * filters.limit + 1}-
-                {Math.min(filters.page * filters.limit, pagination.totalJobs)} of {pagination.totalJobs} jobs</>
+                <span className="flex items-center gap-1">
+                  <Briefcase className="w-3 h-3 text-blue-500" />
+                  Showing {((filters.page - 1) * filters.limit) + 1}-
+                  {Math.min(filters.page * filters.limit, pagination.totalJobs)} of {pagination.totalJobs} jobs
+                </span>
               ) : (
-                <>No jobs found</>
+                <span className="flex items-center gap-1">
+                  <Briefcase className="w-3 h-3 text-gray-400" />
+                  No jobs found
+                </span>
               )}
             </div>
             
@@ -465,76 +666,101 @@ export default function Home() {
                 val !== 1 && 
                 val !== 12
               ) && (
-                <button
+                <motion.button
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
                   onClick={handleClearFilters}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-[10px] text-red-600 hover:text-red-800 font-medium flex items-center gap-1 group"
                 >
-                  Clear all filters
-                </button>
+                  <X className="w-3 h-3 group-hover:rotate-90 transition-transform duration-300" />
+                  Clear filters
+                </motion.button>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Search Stats Section */}
-          <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <motion.div 
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+            className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4"
+          >
             {/* Recent Searches */}
-            <div className="bg-white rounded-xl shadow-sm p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-gray-800">Recent Searches</h3>
+            <motion.div 
+              variants={fadeInUp}
+              transition={{ delay: 0.2 }}
+              className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 p-4 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-blue-600" />
+                  <h3 className="text-xs font-semibold text-gray-800">Recent Searches</h3>
                 </div>
                 {recentSearches.length > 0 && (
                   <button
                     onClick={() => searchHistoryService.clearSearchHistory()}
-                    className="text-xs text-red-500 hover:text-red-700"
+                    className="text-[8px] text-red-500 hover:text-red-700"
                   >
                     Clear All
                   </button>
                 )}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {recentSearches.length > 0 ? (
-                  recentSearches.map((search) => (
-                    <div key={search._id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition group">
+                  recentSearches.map((search, index) => (
+                    <motion.div 
+                      key={search._id} 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="flex items-center justify-between p-1.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-lg transition-all duration-300 group"
+                    >
                       <button
                         onClick={() => handleQuickSearch(search.searchQuery)}
-                        className="flex-1 text-left text-sm text-gray-700 hover:text-blue-600"
+                        className="flex-1 text-left text-[10px] text-gray-700 hover:text-blue-600 truncate"
                       >
                         {search.searchQuery || search.location || 'Search'}
                       </button>
                       <button
                         onClick={() => handleClearRecentSearch(search._id)}
-                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 p-1"
-                        title="Remove"
+                        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 p-0.5 transition-all duration-300"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-3 h-3" />
                       </button>
-                    </div>
+                    </motion.div>
                   ))
                 ) : (
-                  <p className="text-sm text-gray-500 text-center py-4">
+                  <p className="text-[10px] text-gray-500 text-center py-3">
                     No recent searches
                   </p>
                 )}
               </div>
-            </div>
+            </motion.div>
 
             {/* Popular Searches */}
-            <div className="bg-white rounded-xl shadow-sm p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-green-600" />
-                <h3 className="font-semibold text-gray-800">Top 10 Popular</h3>
+            <motion.div 
+              variants={fadeInUp}
+              transition={{ delay: 0.25 }}
+              className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 p-4 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <div className="flex items-center gap-1.5 mb-3">
+                <TrendingUp className="w-4 h-4 text-green-600" />
+                <h3 className="text-xs font-semibold text-gray-800">Top 10 Popular</h3>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {popularSearches.slice(0, 10).map((search, index) => (
-                  <button
+                  <motion.button
                     key={index}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    whileHover={{ x: 3 }}
                     onClick={() => handleQuickSearch(search.searchQuery)}
-                    className="w-full flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition"
+                    className="w-full flex items-center justify-between p-1.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-lg transition-all duration-300"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className={`text-sm font-bold ${
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[8px] font-bold w-4 ${
                         index === 0 ? 'text-yellow-500' :
                         index === 1 ? 'text-gray-400' :
                         index === 2 ? 'text-amber-700' :
@@ -542,85 +768,169 @@ export default function Home() {
                       }`}>
                         #{index + 1}
                       </span>
-                      <span className="text-gray-700 truncate">{search.searchQuery}</span>
+                      <span className="text-[10px] text-gray-700 truncate max-w-[120px]">{search.searchQuery}</span>
                     </div>
-                    <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded whitespace-nowrap">
-                      {search.totalSearches} searches
+                    <span className="text-[8px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                      {search.totalSearches}
                     </span>
-                  </button>
+                  </motion.button>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Trending Searches */}
-            <div className="bg-white rounded-xl shadow-sm p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-5 h-5 text-purple-600" />
-                <h3 className="font-semibold text-gray-800">Trending Now</h3>
+            <motion.div 
+              variants={fadeInUp}
+              transition={{ delay: 0.3 }}
+              className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200 p-4 shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <div className="flex items-center gap-1.5 mb-3">
+                <Zap className="w-4 h-4 text-purple-600" />
+                <h3 className="text-xs font-semibold text-gray-800">Trending Now</h3>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {trendingSearches.slice(0, 10).map((search, index) => (
-                  <button
+                  <motion.button
                     key={index}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    whileHover={{ x: 3 }}
                     onClick={() => handleQuickSearch(search.searchQuery)}
-                    className="w-full flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition"
+                    className="w-full flex items-center justify-between p-1.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 rounded-lg transition-all duration-300"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-gray-300">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[8px] font-bold text-gray-300 w-4">
                         #{index + 1}
                       </span>
-                      <span className="text-gray-700 truncate">{search.searchQuery}</span>
+                      <span className="text-[10px] text-gray-700 truncate max-w-[120px]">{search.searchQuery}</span>
                     </div>
-                    <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded whitespace-nowrap">
-                      {search.recentSearches} recent
+                    <span className="text-[8px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                      {search.recentSearches}
                     </span>
-                  </button>
+                  </motion.button>
                 ))}
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Featured Jobs Section (if any) */}
+          {featuredJobs.length > 0 && !filters.search && !filters.location && (
+            <motion.div 
+              variants={fadeInUp}
+              transition={{ delay: 0.35 }}
+              className="mt-8"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                  Featured Jobs
+                </h2>
+                <Link href="/jobs/featured" className="text-[10px] text-blue-600 hover:text-blue-800 flex items-center gap-1 group">
+                  View all
+                  <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" />
+                </Link>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {featuredJobs.map((job, index) => (
+                  <motion.div
+                    key={job._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <FeaturedJobCard job={job} />
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* Loading State */}
           {loading ? (
-            <div className="mt-8 flex justify-center items-center py-20">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-              <span className="ml-3 text-gray-600">Loading jobs...</span>
-            </div>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-8 flex justify-center items-center py-16 bg-white/30 backdrop-blur-sm rounded-xl border border-gray-200"
+            >
+              <div className="relative">
+                <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-4 h-4 bg-blue-100 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+              <span className="ml-3 text-xs text-gray-600 animate-pulse">Loading jobs...</span>
+            </motion.div>
           ) : (
             <>
               {/* Jobs Grid */}
               {jobs.length > 0 ? (
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {jobs.map((job) => (
-                    <JobCard key={job._id} job={job} onSaveToggle={fetchJobs} />
+                <motion.div 
+                  variants={staggerContainer}
+                  initial="initial"
+                  animate="animate"
+                  className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                >
+                  {jobs.map((job, index) => (
+                    <motion.div
+                      key={job._id}
+                      variants={{
+                        initial: { opacity: 0, y: 20 },
+                        animate: { opacity: 1, y: 0 }
+                      }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <JobCard job={job} onSaveToggle={fetchJobs} />
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               ) : (
-                <div className="mt-8 text-center py-20">
-                  <div className="text-gray-400 mb-4">
-                    <Search className="w-16 h-16 mx-auto" />
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mt-8 text-center py-16 bg-white/30 backdrop-blur-sm rounded-xl border border-gray-200"
+                >
+                  <div className="relative inline-block mb-3">
+                    <Search className="w-12 h-12 text-gray-300" />
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-100 rounded-full animate-pulse"></div>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No jobs found</h3>
-                  <p className="text-gray-500 mb-6">Try adjusting your search or filter criteria</p>
-                  <button
+                  <h3 className="text-sm font-semibold text-gray-600 mb-1">No jobs found</h3>
+                  <p className="text-[10px] text-gray-500 mb-4 max-w-sm mx-auto">
+                    Try adjusting your search or filter criteria
+                  </p>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={handleClearFilters}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
+                    className="group relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-xl text-[10px] font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 overflow-hidden"
                   >
-                    Clear all filters
-                  </button>
-                </div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                    <span className="relative z-10 flex items-center gap-1">
+                      Clear all filters
+                      <ChevronRight className="w-3 h-3" />
+                    </span>
+                  </motion.button>
+                </motion.div>
               )}
 
               {/* Pagination */}
               {pagination.totalPages > 1 && (
-                <div className="mt-8 flex justify-center items-center gap-2">
-                  <button
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="mt-8 flex flex-wrap justify-center items-center gap-1.5"
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handlePageChange(pagination.currentPage - 1)}
                     disabled={!pagination.hasPrevPage}
-                    className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    className="px-3 py-1.5 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 text-[10px]"
                   >
                     Previous
-                  </button>
+                  </motion.button>
                   
                   {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
                     let pageNum;
@@ -635,34 +945,49 @@ export default function Home() {
                     }
                     
                     return (
-                      <button
+                      <motion.button
                         key={pageNum}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`w-10 h-10 rounded-lg ${
+                        className={`w-7 h-7 rounded-lg text-[10px] transition-all duration-300 ${
                           pagination.currentPage === pageNum
-                            ? 'bg-blue-600 text-white'
-                            : 'border hover:bg-gray-50'
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                            : 'border border-gray-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50'
                         }`}
                       >
                         {pageNum}
-                      </button>
+                      </motion.button>
                     );
                   })}
                   
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => handlePageChange(pagination.currentPage + 1)}
                     disabled={!pagination.hasNextPage}
-                    className="px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    className="px-3 py-1.5 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 text-[10px]"
                   >
                     Next
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               )}
             </>
           )}
         </div>
       </main>
       <Footer/>
+
+      <style jsx>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.6; }
+        }
+        
+        .animate-pulse {
+          animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+      `}</style>
     </>
   );
 }
@@ -671,25 +996,26 @@ export default function Home() {
 function JobCard({ job, onSaveToggle }) {
   const [saving, setSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(job.isSaved || false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const getJobTypeColor = (type) => {
     switch (type?.toLowerCase()) {
       case 'full-time':
-        return 'bg-blue-100 text-blue-600';
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'part-time':
-        return 'bg-green-100 text-green-600';
+        return 'bg-green-100 text-green-700 border-green-200';
       case 'internship':
-        return 'bg-purple-100 text-purple-600';
+        return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'contract':
-        return 'bg-yellow-100 text-yellow-600';
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
       case 'temporary':
-        return 'bg-orange-100 text-orange-600';
+        return 'bg-orange-100 text-orange-700 border-orange-200';
       case 'remote':
-        return 'bg-indigo-100 text-indigo-600';
+        return 'bg-indigo-100 text-indigo-700 border-indigo-200';
       case 'freelance':
-        return 'bg-pink-100 text-pink-600';
+        return 'bg-pink-100 text-pink-700 border-pink-200';
       default:
-        return 'bg-gray-100 text-gray-600';
+        return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
@@ -730,33 +1056,60 @@ function JobCard({ job, onSaveToggle }) {
   };
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition group relative">
-      <Link href={`/jobs/${job._id}`} className="block">
+    <motion.div 
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      whileHover={{ y: -3, scale: 1.02 }}
+      className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200 hover:border-transparent hover:shadow-xl transition-all duration-300 group relative overflow-hidden"
+    >
+      {/* Shine effect */}
+      <motion.div 
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+        animate={isHovered ? { x: ['-100%', '200%'] } : {}}
+        transition={{ duration: 1 }}
+      />
+      
+      {/* Gradient overlay on hover */}
+      <motion.div 
+        className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5"
+        animate={{ opacity: isHovered ? 1 : 0 }}
+        transition={{ duration: 0.3 }}
+      />
+      
+      <Link href={`/jobs/${job._id}`} className="block relative z-10">
         <div className="flex justify-between items-start">
-          <span
-            className={`text-xs font-semibold px-3 py-1 rounded-full ${getJobTypeColor(job.jobType)}`}
+          <motion.span
+            animate={isHovered ? { scale: [1, 1.05, 1] } : {}}
+            transition={{ duration: 0.3 }}
+            className={`text-[8px] font-semibold px-2 py-0.5 rounded-full border ${getJobTypeColor(job.jobType)}`}
           >
             {job.jobType || 'Full-time'}
-          </span>
+          </motion.span>
         </div>
 
-        <h3 className="mt-4 text-lg font-semibold text-gray-800 group-hover:text-blue-600 line-clamp-2">
+        <h3 className="mt-3 text-sm font-semibold text-gray-800 group-hover:text-blue-600 line-clamp-2 transition-colors duration-300">
           {job.jobTitle}
         </h3>
 
-        <p className="mt-1 text-sm text-gray-500">
-          Salary: {formatSalary(job.salaryRange)}
+        <p className="mt-1 text-[10px] text-gray-500 flex items-center gap-1">
+          <DollarSign className="w-3 h-3" />
+          {formatSalary(job.salaryRange)}
         </p>
 
-        <div className="flex items-center gap-3 mt-5">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
+        <div className="flex items-center gap-2 mt-3">
+          <motion.div 
+            animate={isHovered ? { rotate: [0, 5, -5, 0] } : {}}
+            transition={{ duration: 0.5 }}
+            className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-lg"
+          >
             {job.employer?.companyName?.[0] || job.employer?.name?.[0] || 'C'}
-          </div>
+          </motion.div>
           <div>
-            <p className="text-sm font-medium text-gray-700">
+            <p className="text-[10px] font-medium text-gray-700">
               {job.employer?.companyName || job.employer?.name || 'Company'}
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-[8px] text-gray-500 flex items-center gap-1">
+              <MapPin className="w-2.5 h-2.5" />
               {job.location?.city || 'Not specified'}{job.location?.city && job.location?.country ? ', ' : ''}
               {job.location?.country || ''}
               {job.location?.isRemote && ' • Remote'}
@@ -766,18 +1119,21 @@ function JobCard({ job, onSaveToggle }) {
 
         {/* Job Tags */}
         {job.tags && job.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-1">
             {job.tags.slice(0, 3).map((tag, index) => (
-              <span
+              <motion.span
                 key={index}
-                className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.05 }}
+                className="text-[7px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full group-hover:bg-gradient-to-r group-hover:from-blue-100 group-hover:to-indigo-100 group-hover:text-blue-600 transition-all duration-300"
               >
                 {tag}
-              </span>
+              </motion.span>
             ))}
             {job.tags.length > 3 && (
-              <span className="text-xs text-gray-400 px-2 py-1">
-                +{job.tags.length - 3} more
+              <span className="text-[7px] text-gray-400 px-1 py-0.5">
+                +{job.tags.length - 3}
               </span>
             )}
           </div>
@@ -785,27 +1141,74 @@ function JobCard({ job, onSaveToggle }) {
 
         {/* Days remaining */}
         {job.daysRemaining > 0 && (
-          <div className="mt-4 text-xs text-gray-500">
+          <div className="mt-3 text-[8px] text-gray-500 flex items-center gap-1">
+            <Clock className="w-2.5 h-2.5" />
             Expires in {job.daysRemaining} day{job.daysRemaining !== 1 ? 's' : ''}
           </div>
         )}
       </Link>
       
       {/* Save Button */}
-      <button
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
         onClick={handleSaveJob}
         disabled={saving}
-        className="absolute top-4 right-4 text-gray-400 hover:text-blue-600 transition p-1"
-        title={isSaved ? "Remove from saved" : "Save job"}
+        className="absolute top-3 right-3 text-gray-400 hover:text-blue-600 transition-all duration-300 p-1 z-20"
       >
         {saving ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
+          <Loader2 className="w-4 h-4 animate-spin" />
         ) : isSaved ? (
-          <BookmarkCheck className="w-5 h-5 fill-current text-blue-600" />
+          <BookmarkCheck className="w-4 h-4 fill-current text-blue-600" />
         ) : (
-          <Bookmark className="w-5 h-5" />
+          <Bookmark className="w-4 h-4" />
         )}
-      </button>
-    </div>
+      </motion.button>
+
+      {/* Quick apply indicator */}
+      <motion.div 
+        className="absolute bottom-2 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        animate={isHovered ? { x: [10, 0] } : {}}
+      >
+        <span className="text-[6px] text-blue-600 flex items-center gap-0.5">
+          Quick view
+          <ChevronRight className="w-2.5 h-2.5" />
+        </span>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// Featured Job Card Component
+function FeaturedJobCard({ job }) {
+  return (
+    <motion.div
+      whileHover={{ y: -2, scale: 1.01 }}
+      className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-3 border border-amber-200 hover:shadow-lg transition-all duration-300 relative overflow-hidden"
+    >
+      <div className="absolute top-0 right-0">
+        <Star className="w-6 h-6 text-yellow-400 fill-yellow-400 opacity-20" />
+      </div>
+      
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold text-xs">
+          {job.employer?.companyName?.[0] || 'C'}
+        </div>
+        <div>
+          <h4 className="text-xs font-semibold text-gray-800 truncate max-w-[150px]">{job.jobTitle}</h4>
+          <p className="text-[8px] text-gray-600">{job.employer?.companyName || 'Company'}</p>
+        </div>
+      </div>
+      
+      <div className="mt-2 flex items-center justify-between">
+        <span className="text-[8px] bg-white/80 px-1.5 py-0.5 rounded-full text-amber-700">
+          {job.jobType || 'Full-time'}
+        </span>
+        <span className="text-[8px] text-gray-500 flex items-center gap-1">
+          <MapPin className="w-2.5 h-2.5" />
+          {job.location?.city || 'Remote'}
+        </span>
+      </div>
+    </motion.div>
   );
 }

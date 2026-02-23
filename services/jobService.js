@@ -547,5 +547,79 @@ getUSStates() {
     }
   },
 
+// Add this to your existing jobService object:
+
+// Get all jobs (public)
+async getAllJobs(filters = {}) {
+  try {
+    console.log("📊 [JOB SERVICE] Fetching all jobs");
+    
+    const queryParams = new URLSearchParams();
+    
+    Object.keys(filters).forEach(key => {
+      if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
+        queryParams.append(key, filters[key]);
+      }
+    });
+    
+    const response = await api.get(`/jobs/all?${queryParams.toString()}`);
+    
+    if (response.data.success) {
+      console.log("✅ [JOB SERVICE] All jobs fetched successfully");
+      return response.data;
+    } else {
+      throw new Error(response.data.message || "Failed to fetch all jobs");
+    }
+  } catch (error) {
+    console.error("❌ [JOB SERVICE] Get all jobs error:", error);
+    throw error;
+  }
+},
+
+
+// Add these methods to your jobService object:
+
+// Soft delete job
+async softDeleteJob(jobId) {
+  try {
+    console.log("🗑️ [JOB SERVICE] Soft deleting job:", jobId);
+    
+    const response = await api.delete(`/jobs/${jobId}/soft`);
+    
+    if (response.data.success) {
+      console.log("✅ [JOB SERVICE] Job soft deleted successfully");
+      toast.success(response.data.message || "Job deleted successfully!");
+      return response.data;
+    } else {
+      throw new Error(response.data.message || "Failed to delete job");
+    }
+  } catch (error) {
+    console.error("❌ [JOB SERVICE] Soft delete job error:", error);
+    toast.error(error.response?.data?.message || "Failed to delete job");
+    throw error;
+  }
+},
+
+// Permanent delete job (admin only)
+async permanentDeleteJob(jobId) {
+  try {
+    console.log("🗑️ [JOB SERVICE] Permanently deleting job:", jobId);
+    
+    const response = await api.delete(`/jobs/${jobId}/permanent`);
+    
+    if (response.data.success) {
+      console.log("✅ [JOB SERVICE] Job permanently deleted successfully");
+      toast.success(response.data.message || "Job permanently deleted!");
+      return response.data;
+    } else {
+      throw new Error(response.data.message || "Failed to delete job");
+    }
+  } catch (error) {
+    console.error("❌ [JOB SERVICE] Permanent delete job error:", error);
+    toast.error(error.response?.data?.message || "Failed to delete job");
+    throw error;
+  }
+},
+
 
 };

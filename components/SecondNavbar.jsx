@@ -99,11 +99,11 @@ export default function SecondNavbar() {
   ];
 
   const employerProfileItems = [
-    { label: "Company Profile", href: "/employer/company-profile", icon: <Building className="h-4 w-4" /> },
-    { label: "Post Job", href: "/employer/post-job", icon: <FileText className="h-4 w-4" /> },
-    { label: "My Jobs", href: "/employer/jobs", icon: <Briefcase className="h-4 w-4" /> },
-    { label: "Billing", href: "/employer/billing", icon: <CreditCard className="h-4 w-4" /> },
-    { label: "Settings", href: "/employer/settings", icon: <Settings className="h-4 w-4" /> },
+    { label: "Company Profile", href: "/employer_settings", icon: <Building className="h-4 w-4" /> },
+    { label: "Post Job", href: "/post_job", icon: <FileText className="h-4 w-4" /> },
+    { label: "My Jobs", href: "/my_jobs", icon: <Briefcase className="h-4 w-4" /> },
+    { label: "Billing", href: "/plans_billing", icon: <CreditCard className="h-4 w-4" /> },
+    { label: "Settings", href: "/employer_settings", icon: <Settings className="h-4 w-4" /> },
   ];
 
   const profileItems = role === "employer" ? employerProfileItems : candidateProfileItems;
@@ -111,12 +111,13 @@ export default function SecondNavbar() {
   // Don't render until mounted
   if (!mounted) {
     return (
-      <nav className="w-full border-b border-gray-200 bg-white sticky top-0 z-40">
+      <nav className="w-full border-b border-indigo-100 bg-white/95 backdrop-blur-sm sticky top-0 z-40">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-14 sm:h-16 items-center justify-between">
             <div className="flex items-center gap-4 sm:gap-6">
               {/* Loading placeholder */}
-              <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+              <div className="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-200 to-purple-200 animate-pulse"></div>
+              <div className="h-6 w-24 bg-gradient-to-r from-indigo-200 to-purple-200 rounded animate-pulse"></div>
             </div>
           </div>
         </div>
@@ -125,7 +126,7 @@ export default function SecondNavbar() {
   }
 
   return (
-    <nav className="w-full border-b border-gray-200 bg-white sticky top-0 z-40">
+    <nav className="w-full border-b border-indigo-100 bg-white/95 backdrop-blur-sm sticky top-0 z-40 shadow-sm shadow-indigo-500/5">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* Main Row */}
         <div className="flex h-14 sm:h-16 items-center justify-between">
@@ -135,17 +136,25 @@ export default function SecondNavbar() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 sm:hidden"
+              className="relative rounded-lg p-2 text-gray-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-300 sm:hidden group"
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
-              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              <div className="relative w-5 h-5">
+                <Menu className={`absolute inset-0 transition-all duration-300 ${mobileMenuOpen ? 'opacity-0 rotate-90 scale-0' : 'opacity-100 rotate-0 scale-100'}`} size={20} />
+                <X className={`absolute inset-0 transition-all duration-300 ${mobileMenuOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-0'}`} size={20} />
+              </div>
             </button>
 
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2 group">
               <div className="flex items-center gap-2 text-lg font-bold text-gray-900">
-                <Briefcase className="h-5 w-5 text-blue-600 sm:h-6 sm:w-6" />
-                <span className="text-base sm:text-lg">Jobpilot</span>
+                <div className="relative">
+                  <Briefcase className="h-5 w-5 text-indigo-600 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3" />
+                  <span className="absolute -inset-1 bg-indigo-200 rounded-full blur opacity-0 group-hover:opacity-50 transition-opacity duration-300"></span>
+                </div>
+                <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-base sm:text-lg transition-all duration-300 group-hover:from-indigo-700 group-hover:to-purple-700">
+                  Jobpilot
+                </span>
               </div>
             </Link>
 
@@ -153,7 +162,7 @@ export default function SecondNavbar() {
             <div ref={countryDropdownRef} className="relative hidden sm:block">
               <button
                 onClick={() => setCountryOpen(!countryOpen)}
-                className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 backdrop-blur-sm px-4 py-2 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-300 shadow-sm hover:shadow"
                 aria-label="Select country"
                 aria-expanded={countryOpen}
               >
@@ -164,76 +173,80 @@ export default function SecondNavbar() {
                     width: "1.2em", 
                     height: "1.2em", 
                     borderRadius: "2px",
-                    boxShadow: "0 0 1px rgba(0,0,0,0.2)"
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
                   }}
                 />
-                <span className="hidden lg:inline">{country.name}</span>
+                <span className="hidden lg:inline font-medium">{country.name}</span>
                 <ChevronDown
-                  className={`h-4 w-4 transition-transform duration-200 ${
-                    countryOpen ? "rotate-180" : ""
+                  className={`h-4 w-4 transition-all duration-300 ${
+                    countryOpen ? "rotate-180 text-indigo-600" : ""
                   }`}
                 />
               </button>
 
               {countryOpen && (
-                <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-lg border border-gray-200 bg-white shadow-xl">
-                  <div className="p-2 max-h-80 overflow-y-auto">
-                    <div className="sticky top-0 bg-white px-2 pb-2 mb-2 border-b">
-                      <div className="text-xs font-medium text-gray-500 py-1">
+                <div className="absolute left-0 top-full z-50 mt-2 w-64 rounded-xl border border-indigo-100 bg-white shadow-xl shadow-indigo-500/10 animate-slideDown">
+                  <div className="p-3 max-h-80 overflow-y-auto">
+                    <div className="sticky top-0 bg-white/95 backdrop-blur-sm px-2 pb-3 mb-2 border-b border-indigo-100">
+                      <div className="text-xs font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 py-1">
                         Select Country
                       </div>
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                      <div className="relative mt-2">
+                        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-indigo-400" />
                         <input
                           type="text"
                           placeholder="Search countries..."
-                          className="w-full rounded-md border border-gray-300 bg-gray-50 pl-9 pr-3 py-1.5 text-xs outline-none"
+                          className="w-full rounded-lg border border-indigo-200 bg-indigo-50/50 pl-9 pr-3 py-2 text-xs outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 transition-all"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
                     </div>
-                    {countries.map((c) => (
-                      <button
-                        key={c.code}
-                        onClick={() => {
-                          setCountry(c);
-                          setCountryOpen(false);
-                        }}
-                        className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm hover:bg-gray-50 ${
-                          country.code === c.code ? "bg-blue-50 text-blue-600" : "text-gray-700"
-                        }`}
-                      >
-                        <ReactCountryFlag
-                          svg
-                          countryCode={c.code}
-                          style={{ 
-                            width: "1.2em", 
-                            height: "1.2em", 
-                            borderRadius: "2px" 
+                    <div className="space-y-1">
+                      {countries.map((c) => (
+                        <button
+                          key={c.code}
+                          onClick={() => {
+                            setCountry(c);
+                            setCountryOpen(false);
                           }}
-                        />
-                        <span className="flex-1 text-left">{c.name}</span>
-                        {country.code === c.code && (
-                          <ChevronDown className="h-4 w-4 rotate-180 text-blue-600" />
-                        )}
-                      </button>
-                    ))}
+                          className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-300 hover:pl-4 ${
+                            country.code === c.code 
+                              ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm" 
+                              : "text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50"
+                          }`}
+                        >
+                          <ReactCountryFlag
+                            svg
+                            countryCode={c.code}
+                            style={{ 
+                              width: "1.2em", 
+                              height: "1.2em", 
+                              borderRadius: "2px" 
+                            }}
+                          />
+                          <span className="flex-1 text-left font-medium">{c.name}</span>
+                          {country.code === c.code && (
+                            <ChevronDown className="h-4 w-4 rotate-180 text-indigo-600 animate-bounceIn" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Desktop Search */}
-            <form onSubmit={handleSearch} className="hidden md:flex items-center rounded-lg border border-gray-300 bg-white shadow-sm overflow-visible flex-1 max-w-2xl">
+            <form onSubmit={handleSearch} className="hidden md:flex items-center rounded-full border border-indigo-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-visible flex-1 max-w-2xl focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-200">
               {/* Search Input */}
               <div className="flex flex-1 items-center px-4">
-                <Search className="h-4 w-4 text-gray-400" />
+                <Search className="h-4 w-4 text-indigo-400 transition-transform duration-300 group-hover:scale-110" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Job title, keyword, or company"
-                  className="w-full px-3 py-2.5 text-sm outline-none placeholder:text-gray-500"
+                  className="w-full px-3 py-2.5 text-sm outline-none placeholder:text-gray-400 bg-transparent"
                   aria-label="Search jobs"
                 />
               </div>
@@ -241,7 +254,7 @@ export default function SecondNavbar() {
               {/* Search Button */}
               <button
                 type="submit"
-                className="rounded-r-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-2.5 text-sm font-medium text-white hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-300 transform hover:scale-105 hover:shadow-lg mr-1"
               >
                 Search
               </button>
@@ -254,17 +267,18 @@ export default function SecondNavbar() {
             <div className="sm:hidden">
               <button
                 onClick={() => setCountryOpen(!countryOpen)}
-                className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="rounded-lg p-2 text-gray-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-300 relative group"
                 aria-label="Select country"
               >
-                <Globe size={20} />
+                <Globe size={20} className="group-hover:rotate-12 transition-transform duration-300" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
               </button>
 
               {/* Mobile Country Dropdown */}
               {countryOpen && (
-                <div className="absolute right-4 top-14 z-50 w-48 rounded-lg border border-gray-200 bg-white shadow-xl">
+                <div className="absolute right-4 top-14 z-50 w-56 rounded-xl border border-indigo-100 bg-white shadow-xl shadow-indigo-500/10 animate-slideDown">
                   <div className="p-2 max-h-64 overflow-y-auto">
-                    <div className="mb-2 text-xs font-medium text-gray-500 px-2">
+                    <div className="mb-2 text-xs font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 px-2 py-1">
                       Select Country
                     </div>
                     {countries.map((c) => (
@@ -274,8 +288,10 @@ export default function SecondNavbar() {
                           setCountry(c);
                           setCountryOpen(false);
                         }}
-                        className={`flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm ${
-                          country.code === c.code ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"
+                        className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm transition-all duration-300 ${
+                          country.code === c.code 
+                            ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700" 
+                            : "text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-purple-50/50 hover:pl-4"
                         }`}
                       >
                         <ReactCountryFlag
@@ -283,7 +299,10 @@ export default function SecondNavbar() {
                           countryCode={c.code}
                           style={{ width: "1.2em", height: "1.2em" }}
                         />
-                        {c.name}
+                        <span className="flex-1 text-left font-medium">{c.name}</span>
+                        {country.code === c.code && (
+                          <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full animate-pulse"></div>
+                        )}
                       </button>
                     ))}
                   </div>
@@ -294,10 +313,13 @@ export default function SecondNavbar() {
             {/* Mobile Search Toggle */}
             <button
               onClick={() => setShowMobileSearch(!showMobileSearch)}
-              className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 md:hidden"
+              className="rounded-lg p-2 text-gray-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-300 md:hidden relative group"
               aria-label={showMobileSearch ? "Close search" : "Open search"}
             >
-              <Search size={20} />
+              <Search size={20} className="group-hover:scale-110 transition-transform duration-300" />
+              {!showMobileSearch && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+              )}
             </button>
 
             {/* Desktop Actions */}
@@ -307,10 +329,10 @@ export default function SecondNavbar() {
                 <div ref={profileDropdownRef} className="relative">
                   <button
                     onClick={() => setProfileOpen(!profileOpen)}
-                    className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex items-center gap-2 rounded-full border border-indigo-200 bg-white/80 backdrop-blur-sm px-3 py-1.5 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-300 shadow-sm hover:shadow"
                   >
                     {/* Profile Image/Icon */}
-                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 flex items-center justify-center overflow-hidden ring-2 ring-indigo-200 group-hover:ring-indigo-300 transition-all duration-300">
                       {user?.avatar ? (
                         <img 
                           src={user.avatar} 
@@ -318,29 +340,29 @@ export default function SecondNavbar() {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <User className="h-4 w-4 text-blue-600" />
+                        <User className="h-4 w-4 text-indigo-600" />
                       )}
                     </div>
                     <div className="text-left">
-                      <p className="text-sm font-medium text-gray-900">{user?.name || "User"}</p>
-                      <p className="text-xs text-gray-500 capitalize">{role || "User"}</p>
+                      <p className="text-sm font-semibold text-gray-900">{user?.name || "User"}</p>
+                      <p className="text-xs text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 capitalize">{role || "User"}</p>
                     </div>
                     <ChevronDown
-                      className={`h-4 w-4 transition-transform duration-200 ${
-                        profileOpen ? "rotate-180" : ""
+                      className={`h-4 w-4 transition-all duration-300 ${
+                        profileOpen ? "rotate-180 text-indigo-600" : "text-gray-400"
                       }`}
                     />
                   </button>
 
                   {profileOpen && (
-                    <div className="absolute right-0 top-full z-50 mt-1 w-64 rounded-lg border border-gray-200 bg-white shadow-xl">
+                    <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-indigo-100 bg-white shadow-xl shadow-indigo-500/10 animate-slideDown overflow-hidden">
                       {/* User Info */}
-                      <div className="p-4 border-b">
-                        <p className="font-medium text-gray-900">{user?.name || "User"}</p>
-                        <p className="text-sm text-gray-500">{user?.email || "user@example.com"}</p>
-                        <p className="text-xs text-blue-600 font-medium mt-1 capitalize">
-                          {role === "employer" ? "Employer Account" : "Candidate Account"}
-                        </p>
+                      <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-b border-indigo-100">
+                        <p className="font-semibold text-gray-900">{user?.name || "User"}</p>
+                        <p className="text-sm text-gray-600">{user?.email || "user@example.com"}</p>
+                        <div className="inline-block mt-2 px-3 py-1 bg-white rounded-full text-xs font-medium text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 shadow-sm">
+                          {role === "employer" ? "👔 Employer Account" : "🎯 Candidate Account"}
+                        </div>
                       </div>
                       
                       {/* Profile Links */}
@@ -349,22 +371,22 @@ export default function SecondNavbar() {
                           <Link
                             key={item.label}
                             href={item.href}
-                            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:text-indigo-600 transition-all duration-300 hover:pl-4 group"
                             onClick={() => setProfileOpen(false)}
                           >
-                            {item.icon}
+                            <span className="text-indigo-500 group-hover:scale-110 transition-transform duration-300">{item.icon}</span>
                             {item.label}
                           </Link>
                         ))}
                       </div>
                       
                       {/* Logout */}
-                      <div className="border-t p-2">
+                      <div className="border-t border-indigo-100 p-2">
                         <button
                           onClick={handleLogout}
-                          className="flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                          className="flex items-center gap-3 w-full rounded-lg px-3 py-2.5 text-sm text-rose-600 hover:bg-rose-50 transition-all duration-300 hover:pl-4 group"
                         >
-                          <LogOut className="h-4 w-4" />
+                          <LogOut className="h-4 w-4 group-hover:rotate-12 transition-transform duration-300" />
                           Logout
                         </button>
                       </div>
@@ -377,16 +399,16 @@ export default function SecondNavbar() {
                   {/* Sign In button */}
                   <button
                     onClick={() => router.push("/login")}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100"
+                    className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 group"
                   >
-                    <User className="h-4 w-4" />
-                    Sign In
+                    <User className="h-4 w-4 group-hover:scale-110 group-hover:text-indigo-600 transition-all duration-300" />
+                    <span className="group-hover:text-indigo-600 transition-colors duration-300">Sign In</span>
                   </button>
 
                   {/* Post A Job button */}
                   <button
                     onClick={() => router.push("/register")}
-                    className="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                    className="rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-sm font-medium text-white hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-300 transform hover:scale-105 hover:shadow-lg shadow-indigo-500/25"
                   >
                     Post A Job
                   </button>
@@ -407,13 +429,13 @@ export default function SecondNavbar() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search jobs..."
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-full border border-indigo-200 px-5 py-3 text-sm outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200 transition-all duration-300 bg-white/80 backdrop-blur-sm"
                   aria-label="Search jobs"
                 />
               </div>
               <button
                 type="submit"
-                className="rounded-lg bg-blue-600 px-4 py-3 text-white hover:bg-blue-700"
+                className="rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-3 text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                 aria-label="Search"
               >
                 <Search size={18} />
@@ -423,12 +445,12 @@ export default function SecondNavbar() {
         )}
 
         {/* Desktop Country Label (for smaller screens) */}
-        <div className="hidden sm:flex lg:hidden items-center gap-2 pb-2 px-2 text-sm text-gray-600">
-          <Globe className="h-3.5 w-3.5" />
+        <div className="hidden sm:flex lg:hidden items-center gap-2 pb-2 px-2 text-sm text-gray-600 animate-fadeIn">
+          <Globe className="h-3.5 w-3.5 text-indigo-500" />
           <span>Jobs in: </span>
           <button
             onClick={() => setCountryOpen(true)}
-            className="font-medium text-blue-600 hover:text-blue-700"
+            className="font-medium text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300"
           >
             {country.name}
           </button>
@@ -438,7 +460,7 @@ export default function SecondNavbar() {
       {/* Mobile Menu Overlay */}
       {(mobileMenuOpen || countryOpen) && (
         <div
-          className="fixed inset-0 top-14 z-30 bg-black/20 sm:hidden"
+          className="fixed inset-0 top-14 z-30 bg-gradient-to-b from-black/20 to-black/10 backdrop-blur-sm animate-fadeIn sm:hidden"
           onClick={() => {
             setMobileMenuOpen(false);
             setCountryOpen(false);
@@ -449,20 +471,20 @@ export default function SecondNavbar() {
       {/* Desktop Country Overlay */}
       {countryOpen && (
         <div
-          className="fixed inset-0 top-16 z-30 hidden sm:block"
+          className="fixed inset-0 top-16 z-30 hidden sm:block bg-black/5 backdrop-blur-[2px] animate-fadeIn"
           onClick={() => setCountryOpen(false)}
         />
       )}
 
       {/* Mobile Menu Content */}
       {mobileMenuOpen && (
-        <div className="fixed inset-x-0 top-14 z-40 bg-white shadow-xl sm:hidden animate-slideDown">
-          <div className="border-t border-gray-200 px-4 py-3">
+        <div className="fixed inset-x-0 top-14 z-40 bg-white/95 backdrop-blur-md shadow-2xl shadow-indigo-500/10 sm:hidden animate-slideDown">
+          <div className="border-t border-indigo-100 px-4 py-4 max-h-[calc(100vh-3.5rem)] overflow-y-auto">
             {/* User Info if authenticated */}
             {isAuthenticated && (
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+              <div className="mb-4 p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl animate-slideIn">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                  <div className="h-14 w-14 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 flex items-center justify-center overflow-hidden ring-2 ring-indigo-200">
                     {user?.avatar ? (
                       <img 
                         src={user.avatar} 
@@ -470,13 +492,13 @@ export default function SecondNavbar() {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <User className="h-6 w-6 text-blue-600" />
+                      <User className="h-7 w-7 text-indigo-600" />
                     )}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{user?.name || "User"}</p>
-                    <p className="text-sm text-gray-500">{user?.email || "user@example.com"}</p>
-                    <p className="text-xs text-blue-600 font-medium mt-1 capitalize">
+                    <p className="font-semibold text-gray-900">{user?.name || "User"}</p>
+                    <p className="text-sm text-gray-600">{user?.email || "user@example.com"}</p>
+                    <p className="text-xs text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 font-medium mt-1 capitalize">
                       {role === "employer" ? "Employer Account" : "Candidate Account"}
                     </p>
                   </div>
@@ -487,15 +509,19 @@ export default function SecondNavbar() {
             {/* Mobile Profile Links if authenticated */}
             {isAuthenticated && (
               <div className="mb-4">
-                <p className="px-2 text-sm font-medium text-gray-500 mb-2">My Account</p>
-                {profileItems.map((item) => (
+                <p className="px-2 text-sm font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-2 flex items-center gap-2">
+                  <span className="w-1 h-4 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-full"></span>
+                  My Account
+                </p>
+                {profileItems.map((item, index) => (
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-gray-700 hover:bg-gray-50"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 transform hover:scale-[1.02] hover:pl-5 animate-slideIn"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {item.icon}
+                    <span className="text-indigo-500">{item.icon}</span>
                     {item.label}
                   </Link>
                 ))}
@@ -503,7 +529,7 @@ export default function SecondNavbar() {
             )}
 
             {/* Mobile Actions */}
-            <div className="space-y-3 border-t border-gray-200 pt-4">
+            <div className={`space-y-3 ${isAuthenticated ? 'border-t border-indigo-100 pt-4' : ''}`}>
               {!isAuthenticated ? (
                 <>
                   <button
@@ -511,7 +537,7 @@ export default function SecondNavbar() {
                       router.push("/login");
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-700"
+                    className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-3.5 text-sm font-medium text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg shadow-indigo-500/25"
                   >
                     Sign In
                   </button>
@@ -520,7 +546,7 @@ export default function SecondNavbar() {
                       router.push("/register");
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full rounded-lg border-2 border-blue-600 px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50"
+                    className="w-full rounded-xl border-2 border-indigo-600 px-4 py-3.5 text-sm font-medium text-indigo-600 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 transform hover:scale-[1.02]"
                   >
                     Post A Job
                   </button>
@@ -528,9 +554,9 @@ export default function SecondNavbar() {
               ) : (
                 <button
                   onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 w-full rounded-lg px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
+                  className="flex items-center justify-center gap-2 w-full rounded-xl px-4 py-3.5 text-sm font-medium text-rose-600 hover:bg-rose-50 transition-all duration-300 transform hover:scale-[1.02] group"
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-4 w-4 group-hover:rotate-12 transition-transform duration-300" />
                   Logout
                 </button>
               )}
@@ -538,6 +564,67 @@ export default function SecondNavbar() {
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateX(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
+        @keyframes bounceIn {
+          0% {
+            transform: scale(0);
+          }
+          50% {
+            transform: scale(1.2);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+        
+        .animate-slideDown {
+          animation: slideDown 0.3s ease-out;
+        }
+        
+        .animate-slideIn {
+          animation: slideIn 0.3s ease-out;
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        .animate-bounceIn {
+          animation: bounceIn 0.5s ease-out;
+        }
+      `}</style>
     </nav>
   );
 }

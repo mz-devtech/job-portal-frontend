@@ -25,28 +25,34 @@ import {
   FiFileText,
   FiMail,
   FiMapPin,
-  FiImage
+  FiImage,
+  FiCamera,
+  FiAward,
+  FiTarget,
+  FiHeart,
+  FiStar
 } from "react-icons/fi";
+import { Sparkles, CheckCircle, Shield, ArrowRight, Building, Users, Globe, Share2, Phone, Briefcase } from 'lucide-react';
 import { profileService } from "@/services/profileService";
-import { authService } from "@/services/authService"; // ADD THIS IMPORT
+import { authService } from "@/services/authService";
 import { updateProfileCompletion, refreshUserData } from "@/redux/slices/userSlice";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 const SOCIAL_PLATFORMS = [
-  { label: "Facebook", value: "facebook" },
-  { label: "Twitter", value: "twitter" },
-  { label: "Instagram", value: "instagram" },
-  { label: "Youtube", value: "youtube" },
-  { label: "LinkedIn", value: "linkedin" },
+  { label: "Facebook", value: "facebook", color: "bg-blue-100 text-blue-600", icon: "📘" },
+  { label: "Twitter", value: "twitter", color: "bg-sky-100 text-sky-600", icon: "🐦" },
+  { label: "Instagram", value: "instagram", color: "bg-pink-100 text-pink-600", icon: "📷" },
+  { label: "Youtube", value: "youtube", color: "bg-red-100 text-red-600", icon: "▶️" },
+  { label: "LinkedIn", value: "linkedin", color: "bg-blue-100 text-blue-700", icon: "💼" },
 ];
 
 const STEPS = [
-  { id: "personal", label: "Personal Info", icon: <FiUser /> },
-  { id: "company", label: "Company Info", icon: <FiBriefcase /> },
-  { id: "founding", label: "Founding Info", icon: <FiGlobe /> },
-  { id: "social", label: "Social Media", icon: <FiShare2 /> },
-  { id: "contact", label: "Contact", icon: <FiPhone /> },
+  { id: "personal", label: "Personal Info", icon: <FiUser />, color: "from-blue-500 to-indigo-500" },
+  { id: "company", label: "Company Info", icon: <FiBriefcase />, color: "from-indigo-500 to-purple-500" },
+  { id: "founding", label: "Founding Info", icon: <FiGlobe />, color: "from-purple-500 to-pink-500" },
+  { id: "social", label: "Social Media", icon: <FiShare2 />, color: "from-pink-500 to-red-500" },
+  { id: "contact", label: "Contact", icon: <FiPhone />, color: "from-red-500 to-orange-500" },
 ];
 
 export default function AccountSetup() {
@@ -54,7 +60,9 @@ export default function AccountSetup() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [profileImageUploaded, setProfileImageUploaded] = useState(false); // ADD THIS STATE
+  const [profileImageUploaded, setProfileImageUploaded] = useState(false);
+  const [stepProgress, setStepProgress] = useState([false, false, false, false, false]);
+  
   const [formData, setFormData] = useState({
     personal: {
       profileImage: null,
@@ -91,11 +99,33 @@ export default function AccountSetup() {
   const dispatch = useDispatch();
   const router = useRouter();
 
+  // Update step progress when form data changes
+  useEffect(() => {
+    const newProgress = [...stepProgress];
+    
+    // Check personal step
+    newProgress[0] = !!(formData.personal.phone && formData.personal.address);
+    
+    // Check company step
+    newProgress[1] = !!(formData.company.name && formData.company.about);
+    
+    // Check founding step
+    newProgress[2] = !!(formData.founding.organizationType && formData.founding.industryType && formData.founding.teamSize && formData.founding.year);
+    
+    // Check social step (at least one social link)
+    newProgress[3] = formData.social.some(link => link.platform && link.url);
+    
+    // Check contact step
+    newProgress[4] = !!(formData.contact.location && formData.contact.phone && formData.contact.email);
+    
+    setStepProgress(newProgress);
+  }, [formData]);
+
   const nextStep = () => {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Last step - show success modal
       handleSubmit();
     }
   };
@@ -103,6 +133,7 @@ export default function AccountSetup() {
   const prevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -139,7 +170,6 @@ export default function AccountSetup() {
     }));
   };
 
-  // ADD THIS FUNCTION: Handle profile image upload separately
   const uploadProfileImage = async () => {
     try {
       if (formData.personal.profileImage && formData.personal.profileImage instanceof File) {
@@ -148,7 +178,6 @@ export default function AccountSetup() {
         const personalFormData = new FormData();
         personalFormData.append("profileImage", formData.personal.profileImage);
         
-        // Add phone and address if available
         if (formData.personal.phone) {
           personalFormData.append("phone", formData.personal.phone);
         }
@@ -156,19 +185,12 @@ export default function AccountSetup() {
           personalFormData.append("address", formData.personal.address);
         }
 
-        console.log("📦 Personal data to upload:", {
-          hasProfileImage: true,
-          phone: formData.personal.phone,
-          address: formData.personal.address
-        });
-
         const result = await authService.updateProfile(personalFormData);
         
         if (result.success) {
           console.log("✅ Personal profile image uploaded successfully");
           setProfileImageUploaded(true);
           
-          // Update localStorage with new profile image
           if (typeof window !== "undefined") {
             try {
               const currentUserStr = localStorage.getItem("user");
@@ -181,7 +203,6 @@ export default function AccountSetup() {
                   address: formData.personal.address || currentUser.address,
                 };
                 localStorage.setItem("user", JSON.stringify(updatedUser));
-                console.log("✅ Updated user profile image in localStorage");
               }
             } catch (error) {
               console.error("Error updating localStorage:", error);
@@ -191,71 +212,48 @@ export default function AccountSetup() {
           return true;
         }
       }
-      return false; // No image to upload
+      return false;
     } catch (error) {
       console.error("❌ Error uploading profile image:", error);
-      // Don't throw error here, just log it
       return false;
     }
   };
 
   const handleSubmit = async () => {
-    // Prevent duplicate submissions
     if (isSubmitted || loading) return;
     
     try {
-      console.log("📋 Form submitted:", formData);
       setLoading(true);
       setIsSubmitted(true);
 
-      // STEP 1: First upload the personal profile image (if exists)
+      toast.loading('Setting up your profile...', { id: 'setup' });
+
       if (formData.personal.profileImage && formData.personal.profileImage instanceof File) {
-        console.log("🔄 Step 1: Uploading personal profile image...");
         await uploadProfileImage();
-      } else {
-        console.log("ℹ️ No personal profile image to upload");
       }
 
-      // STEP 2: Format and send company data
-      console.log("🔄 Step 2: Formatting employer data...");
       const formattedData = profileService.formatEmployerData(formData);
-      
-      console.log("📦 Formatted data for API:", formattedData);
-
-      // STEP 3: Call profile service for company profile
-      console.log("🔄 Step 3: Creating/updating employer profile...");
       const result = await profileService.createOrUpdateEmployerProfile(formattedData);
-      
-      console.log("✅ Profile update result:", result);
 
       if (result.success) {
-        // STEP 4: Update Redux store with profile completion
         if (result.profile) {
-          console.log("🔄 Step 4: Updating Redux store...");
-          
           dispatch(updateProfileCompletion({
             isProfileComplete: true,
             profile: result.profile
           }));
           
           await dispatch(refreshUserData()).unwrap();
-          
-          console.log("✅ Profile completion state updated in Redux");
         }
 
-        // STEP 5: Update localStorage with combined data
         if (typeof window !== "undefined") {
           try {
             const currentUserStr = localStorage.getItem("user");
             if (currentUserStr) {
               const currentUser = JSON.parse(currentUserStr);
               
-              // Get profile image from result if available, or keep existing
               let profileImageUrl = currentUser.profileImage;
               
-              // If we uploaded a profile image, try to get it from the response
               if (profileImageUploaded) {
-                // The profile image URL should now be in the user object after authService.updateProfile
                 const updatedUser = authService.getCurrentUser();
                 profileImageUrl = updatedUser?.profileImage || profileImageUrl;
               }
@@ -269,7 +267,6 @@ export default function AccountSetup() {
                 profileImage: profileImageUrl
               };
               localStorage.setItem("user", JSON.stringify(updatedUser));
-              console.log("✅ Updated user in localStorage with all data");
             }
             
             localStorage.setItem("profileComplete", "true");
@@ -278,12 +275,12 @@ export default function AccountSetup() {
           }
         }
 
-        // STEP 6: Show success and redirect
+        toast.success('Profile setup completed successfully!', { id: 'setup' });
+        
         setLoading(false);
         setShowSuccessModal(true);
         
         setTimeout(() => {
-          console.log("🔀 Redirecting to home page...");
           router.push("/home");
         }, 3000);
 
@@ -293,19 +290,16 @@ export default function AccountSetup() {
       }
     } catch (error) {
       console.error("❌ Error submitting profile:", error);
-      toast.error(error.message || "Failed to save profile. Please try again.");
+      toast.error(error.message || "Failed to save profile. Please try again.", { id: 'setup' });
       
-      // Reset states on error
       setLoading(false);
       setIsSubmitted(false);
     }
   };
 
-  // Effect to handle modal close and redirect
   useEffect(() => {
     if (showSuccessModal) {
       const timer = setTimeout(() => {
-        console.log("Auto-redirecting to home page...");
         router.push("/home");
       }, 3000);
       
@@ -339,80 +333,132 @@ export default function AccountSetup() {
 
   return (
     <>
-      <div className="min-h-screen bg-white">
-        {/* Header */}
-        <header className="flex items-center justify-between border-b px-8 py-4">
-          <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-            <FiBriefcaseIcon />
-            Jobpilot
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
+        {/* Animated Background */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+        </div>
 
-          <div className="flex flex-col items-end gap-1">
-            <span className="text-xs text-gray-500">Setup Progress</span>
-            <div className="h-1 w-40 rounded bg-gray-200">
-              <div 
-                className="h-1 rounded bg-blue-600 transition-all duration-300"
-                style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
-              />
+        {/* Header */}
+        <header className="relative bg-white/80 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-10">
+          <div className="flex items-center justify-between px-8 py-4">
+            <div className="flex items-center gap-2 group">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg blur opacity-40 group-hover:opacity-60 transition-opacity duration-300"></div>
+                <div className="relative flex items-center gap-2 text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  <Briefcase className="w-5 h-5 text-blue-600" />
+                  Jobpilot
+                </div>
+              </div>
+              <span className="px-2 py-0.5 text-xs font-medium bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 rounded-full animate-pulse">
+                Setup
+              </span>
             </div>
-            <p className="text-xs text-blue-600 mt-1">
-              {Math.round(((currentStep + 1) / STEPS.length) * 100)}% Completed
-            </p>
+
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-xs text-gray-500 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-blue-500" />
+                Setup Progress
+              </span>
+              <div className="h-2 w-48 rounded-full bg-gray-200 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-700 ease-out relative"
+                  style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                </div>
+              </div>
+              <p className="text-xs font-medium text-blue-600 mt-1 flex items-center gap-1">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                </span>
+                {Math.round(((currentStep + 1) / STEPS.length) * 100)}% Completed
+              </p>
+            </div>
           </div>
         </header>
 
         {/* Steps Navigation */}
-        <div className="flex items-center gap-8 border-b px-8 py-4 text-sm">
-          {STEPS.map((step, index) => (
-            <Step
-              key={step.id}
-              icon={step.icon}
-              label={step.label}
-              active={index === currentStep}
-              completed={index < currentStep}
-              onClick={() => {
-                if (index <= currentStep) setCurrentStep(index);
-              }}
-              isLast={index === STEPS.length - 1}
-            />
-          ))}
+        <div className="relative bg-white/50 backdrop-blur-sm border-b border-gray-200/50 px-8 py-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center justify-between">
+              {STEPS.map((step, index) => (
+                <Step
+                  key={step.id}
+                  icon={step.icon}
+                  label={step.label}
+                  active={index === currentStep}
+                  completed={stepProgress[index]}
+                  color={step.color}
+                  onClick={() => {
+                    if (stepProgress[index] || index <= currentStep) {
+                      setCurrentStep(index);
+                    }
+                  }}
+                  isLast={index === STEPS.length - 1}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Content Area */}
-        <main className="mx-auto max-w-4xl px-6 py-10">
-          {renderStepContent()}
+        <main className="relative max-w-4xl mx-auto px-6 py-12">
+          <div className="animate-fadeInUp">
+            {renderStepContent()}
+          </div>
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8 pt-6 border-t">
+          <div className="flex justify-between mt-12 pt-6 border-t border-gray-200/50">
             <button
               onClick={prevStep}
               disabled={currentStep === 0 || loading}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-md border text-sm ${
+              className={`group flex items-center gap-2 px-6 py-3 rounded-xl border text-sm font-medium transition-all duration-300 ${
                 currentStep === 0 || loading
-                  ? "text-gray-400 border-gray-200 cursor-not-allowed"
-                  : "text-gray-700 border-gray-300 hover:bg-gray-50"
+                  ? "text-gray-400 border-gray-200 cursor-not-allowed bg-gray-50"
+                  : "text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 hover:shadow-lg transform hover:-translate-x-1"
               }`}
             >
-              <FiArrowLeft />
+              <FiArrowLeft className="w-4 h-4 group-hover:animate-bounceX" />
               Previous
             </button>
 
             <button
               onClick={nextStep}
-              disabled={loading}
-              className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !stepProgress[currentStep]}
+              className={`group relative flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-medium overflow-hidden transition-all duration-300 ${
+                loading || !stepProgress[currentStep]
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-xl transform hover:scale-105"
+              }`}
             >
+              {/* Shine effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  {currentStep === STEPS.length - 1 ? "Saving..." : "Loading..."}
+                  <span>{currentStep === STEPS.length - 1 ? "Saving..." : "Loading..."}</span>
                 </>
               ) : (
                 <>
-                  {currentStep === STEPS.length - 1 ? "Complete Setup" : "Save & Next →"}
+                  <span>{currentStep === STEPS.length - 1 ? "Complete Setup" : "Save & Next"}</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                 </>
               )}
             </button>
+          </div>
+
+          {/* Progress Tips */}
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500 flex items-center justify-center gap-2">
+              <Shield className="w-3 h-3 text-blue-500" />
+              Your information is secure and encrypted
+              <Shield className="w-3 h-3 text-blue-500" />
+            </p>
           </div>
         </main>
       </div>
@@ -421,6 +467,60 @@ export default function AccountSetup() {
       {showSuccessModal && (
         <SuccessModal onRedirect={() => router.push("/home")} />
       )}
+
+      <style jsx>{`
+        @keyframes blob {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        
+        @keyframes bounceX {
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(-3px); }
+        }
+        
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
+        }
+        
+        .animate-bounceX {
+          animation: bounceX 1s infinite;
+        }
+        
+        .animate-fadeInUp {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </>
   );
 }
@@ -429,11 +529,11 @@ export default function AccountSetup() {
 
 function PersonalInfoStep({ data, updateData }) {
   const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [isHovering, setIsHovering] = useState(false);
 
   const handleFileChange = (field, file) => {
     updateData("personal", field, file);
     
-    // Create preview for profile image
     if (field === "profileImage") {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -444,66 +544,111 @@ function PersonalInfoStep({ data, updateData }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
-        <p className="text-sm text-gray-600">Add your personal details to complete your profile</p>
+    <div className="space-y-8">
+      <div className="text-center mb-8 animate-fadeInDown">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 mb-4 group hover:scale-110 transition-transform duration-300">
+          <FiUser className="w-8 h-8 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
+        </div>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+          Personal Information
+        </h2>
+        <p className="text-gray-600">Add your personal details to complete your profile</p>
       </div>
 
       {/* Profile Image */}
-      <div>
-        <h3 className="mb-4 text-sm font-medium text-gray-800">
+      <div className="group">
+        <h3 className="mb-4 text-sm font-medium text-gray-700 flex items-center gap-2">
+          <FiCamera className="text-blue-500" />
           Profile Image
         </h3>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          <UploadBox
-            title="Upload Profile Photo"
-            note="A photo larger than 400 pixels work best. Max photo size 5 MB."
-            value={data.profileImage}
-            preview={profileImagePreview}
-            onChange={(file) => handleFileChange("profileImage", file)}
-            type="profile"
-          />
+        <div className="flex justify-center">
+          <div 
+            className="relative"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+          >
+            <div className={`w-32 h-32 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 p-1 transition-transform duration-300 ${isHovering ? 'scale-110' : ''}`}>
+              <div className="w-full h-full rounded-full bg-white overflow-hidden">
+                {profileImagePreview || data.profileImage ? (
+                  <img 
+                    src={profileImagePreview || (data.profileImage instanceof File ? URL.createObjectURL(data.profileImage) : data.profileImage)} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+                    <FiUser className="w-12 h-12 text-gray-400" />
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Upload button overlay */}
+            <label 
+              htmlFor="profile-upload"
+              className={`absolute -bottom-2 -right-2 w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center cursor-pointer shadow-lg transition-all duration-300 hover:scale-110 ${isHovering ? 'opacity-100' : 'opacity-0'}`}
+            >
+              <FiUploadCloud className="w-5 h-5 text-white" />
+              <input
+                id="profile-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files[0]) {
+                    handleFileChange("profileImage", e.target.files[0]);
+                  }
+                }}
+              />
+            </label>
+          </div>
         </div>
+        <p className="text-xs text-gray-400 text-center mt-2">Click the camera icon to upload (Max 5MB)</p>
       </div>
 
       {/* Phone Number */}
-      <div>
+      <div className="animate-slideUp" style={{ animationDelay: '100ms' }}>
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          Phone Number *
+          <span className="flex items-center gap-1">
+            <FiPhone className="w-4 h-4 text-blue-500" />
+            Phone Number <span className="text-red-500">*</span>
+          </span>
         </label>
-        <div className="flex">
-          <div className="flex items-center gap-2 border rounded-l-md px-3 bg-gray-50 text-sm min-w-[100px]">
-            <span>🇺🇸</span>
-            <span>+1</span>
+        <div className="flex group">
+          <div className="flex items-center gap-2 border rounded-l-xl px-4 bg-gradient-to-r from-gray-50 to-white text-sm min-w-[100px] group-focus-within:border-blue-400 transition-all duration-300">
+            <span className="text-lg">🇺🇸</span>
+            <span className="text-gray-600">+1</span>
           </div>
           <input
             type="tel"
-            placeholder="Phone number..."
+            placeholder="Enter your phone number..."
             value={data.phone}
             onChange={(e) => updateData("personal", "phone", e.target.value)}
-            className="w-full border border-l-0 rounded-r-md px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full border border-l-0 rounded-r-xl px-4 py-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-300 hover:border-blue-400"
             required
           />
         </div>
       </div>
 
       {/* Address */}
-      <div>
+      <div className="animate-slideUp" style={{ animationDelay: '200ms' }}>
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          Address *
+          <span className="flex items-center gap-1">
+            <FiMapPin className="w-4 h-4 text-blue-500" />
+            Address <span className="text-red-500">*</span>
+          </span>
         </label>
-        <div className="relative">
+        <div className="relative group">
           <textarea
             rows={3}
             placeholder="Enter your full address"
             value={data.address}
             onChange={(e) => updateData("personal", "address", e.target.value)}
-            className="w-full rounded-md border px-4 py-2.5 pl-10 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border px-4 py-3 pl-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all duration-300 hover:border-blue-400 resize-none"
             required
           />
-          <FiMapPin className="absolute left-3 top-3 text-gray-400" />
+          <FiMapPin className="absolute left-3 top-3 text-gray-400 group-focus-within:text-blue-500 transition-colors duration-300" />
         </div>
       </div>
     </div>
@@ -515,11 +660,11 @@ function PersonalInfoStep({ data, updateData }) {
 function CompanyInfoStep({ data, updateData }) {
   const [logoPreview, setLogoPreview] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
+  const [activeTab, setActiveTab] = useState('logo');
 
   const handleFileChange = (field, file) => {
     updateData("company", field, file);
     
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       if (field === "logo") {
@@ -532,15 +677,44 @@ function CompanyInfoStep({ data, updateData }) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Logo & Banner */}
-      <div>
-        <h3 className="mb-4 text-sm font-medium text-gray-800">
-          Logo & Banner Image
-        </h3>
+    <div className="space-y-8">
+      <div className="text-center mb-8 animate-fadeInDown">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 mb-4 group hover:scale-110 transition-transform duration-300">
+          <Building className="w-8 h-8 text-indigo-600 group-hover:rotate-12 transition-transform duration-300" />
+        </div>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+          Company Information
+        </h2>
+        <p className="text-gray-600">Tell us about your company</p>
+      </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* Logo */}
+      {/* Logo & Banner Tabs */}
+      <div className="bg-gray-50 rounded-xl p-1 inline-flex mb-4">
+        <button
+          onClick={() => setActiveTab('logo')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+            activeTab === 'logo' 
+              ? 'bg-white text-indigo-600 shadow-sm' 
+              : 'text-gray-600 hover:text-indigo-600'
+          }`}
+        >
+          Logo
+        </button>
+        <button
+          onClick={() => setActiveTab('banner')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+            activeTab === 'banner' 
+              ? 'bg-white text-indigo-600 shadow-sm' 
+              : 'text-gray-600 hover:text-indigo-600'
+          }`}
+        >
+          Banner
+        </button>
+      </div>
+
+      {/* Upload Area */}
+      <div className="animate-fadeIn">
+        {activeTab === 'logo' ? (
           <UploadBox
             title="Upload Logo"
             note="A photo larger than 400 pixels work best. Max photo size 5 MB."
@@ -548,51 +722,58 @@ function CompanyInfoStep({ data, updateData }) {
             preview={logoPreview}
             onChange={(file) => handleFileChange("logo", file)}
             type="logo"
+            icon="🏢"
           />
-
-          {/* Banner */}
+        ) : (
           <UploadBox
             title="Banner Image"
             note="Banner images optimal dimension 1520x400. Supported format JPEG, PNG. Max photo size 5 MB."
-            wide
             value={data.banner}
             preview={bannerPreview}
             onChange={(file) => handleFileChange("banner", file)}
             type="banner"
+            icon="🖼️"
+            wide
           />
-        </div>
+        )}
       </div>
 
       {/* Company Name */}
-      <div>
+      <div className="animate-slideUp" style={{ animationDelay: '100ms' }}>
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          Company name *
+          <span className="flex items-center gap-1">
+            <Building className="w-4 h-4 text-indigo-500" />
+            Company name <span className="text-red-500">*</span>
+          </span>
         </label>
         <input
           type="text"
           placeholder="Enter company name"
           value={data.name}
           onChange={(e) => updateData("company", "name", e.target.value)}
-          className="w-full rounded-md border px-4 py-2.5 text-sm focus:border-blue-500 focus:outline-none"
+          className="w-full rounded-xl border px-4 py-3 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 transition-all duration-300 hover:border-indigo-400"
           required
         />
       </div>
 
       {/* About Us */}
-      <div>
+      <div className="animate-slideUp" style={{ animationDelay: '200ms' }}>
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          About Us *
+          <span className="flex items-center gap-1">
+            <FiFileText className="w-4 h-4 text-indigo-500" />
+            About Us <span className="text-red-500">*</span>
+          </span>
         </label>
 
-        <div className="rounded-md border">
+        <div className="rounded-xl border group focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-200 transition-all duration-300">
           {/* Toolbar */}
-          <div className="flex items-center gap-3 border-b px-3 py-2 text-gray-500">
-            <FiBold />
-            <FiItalic />
-            <FiUnderline />
-            <FiLink />
-            <FiList />
-            <FiAlignLeft />
+          <div className="flex items-center gap-3 border-b px-4 py-2.5 text-gray-500 bg-gray-50/50">
+            <FiBold className="hover:text-indigo-600 cursor-pointer transition-colors duration-300" />
+            <FiItalic className="hover:text-indigo-600 cursor-pointer transition-colors duration-300" />
+            <FiUnderline className="hover:text-indigo-600 cursor-pointer transition-colors duration-300" />
+            <FiLink className="hover:text-indigo-600 cursor-pointer transition-colors duration-300" />
+            <FiList className="hover:text-indigo-600 cursor-pointer transition-colors duration-300" />
+            <FiAlignLeft className="hover:text-indigo-600 cursor-pointer transition-colors duration-300" />
           </div>
 
           {/* Editor */}
@@ -601,7 +782,7 @@ function CompanyInfoStep({ data, updateData }) {
             placeholder="Write down about your company here. Let the candidate know who we are..."
             value={data.about}
             onChange={(e) => updateData("company", "about", e.target.value)}
-            className="w-full resize-none px-4 py-3 text-sm focus:outline-none"
+            className="w-full resize-none px-4 py-3 text-sm focus:outline-none rounded-b-xl"
             required
           />
         </div>
@@ -613,22 +794,36 @@ function CompanyInfoStep({ data, updateData }) {
 /* ================= FOUNDING INFO STEP ================= */
 
 function FoundingInfoStep({ data, updateData }) {
+  const [activeField, setActiveField] = useState(null);
+
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="space-y-8">
+      <div className="text-center mb-8 animate-fadeInDown">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-purple-100 to-pink-100 mb-4 group hover:scale-110 transition-transform duration-300">
+          <Globe className="w-8 h-8 text-purple-600 group-hover:rotate-12 transition-transform duration-300" />
+        </div>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+          Founding Information
+        </h2>
+        <p className="text-gray-600">Tell us about your company's background</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Organization Type */}
-        <div>
+        <div className="group">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Organization Type *
+            Organization Type <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <select
               value={data.organizationType}
               onChange={(e) => updateData("founding", "organizationType", e.target.value)}
-              className="w-full border rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none"
+              onFocus={() => setActiveField('org')}
+              onBlur={() => setActiveField(null)}
+              className="w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none appearance-none transition-all duration-300 hover:border-purple-400"
               required
             >
-              <option value="">Select...</option>
+              <option value="">Select organization type...</option>
               <option value="Private Limited">Private Limited</option>
               <option value="Public Limited">Public Limited</option>
               <option value="LLC">LLC</option>
@@ -637,114 +832,134 @@ function FoundingInfoStep({ data, updateData }) {
               <option value="Government">Government</option>
               <option value="Educational">Educational</option>
             </select>
-            <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <FiChevronDown className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
+              activeField === 'org' ? 'text-purple-500 rotate-180' : 'text-gray-400'
+            }`} />
           </div>
         </div>
 
         {/* Industry Types */}
-        <div>
+        <div className="group">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Industry Types *
+            Industry Types <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <select
               value={data.industryType}
               onChange={(e) => updateData("founding", "industryType", e.target.value)}
-              className="w-full border rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none"
+              onFocus={() => setActiveField('industry')}
+              onBlur={() => setActiveField(null)}
+              className="w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none appearance-none transition-all duration-300 hover:border-purple-400"
               required
             >
-              <option value="">Select...</option>
-              <option value="Technology">Technology</option>
-              <option value="Finance">Finance</option>
-              <option value="Healthcare">Healthcare</option>
-              <option value="Education">Education</option>
-              <option value="Retail">Retail</option>
-              <option value="Manufacturing">Manufacturing</option>
-              <option value="Real Estate">Real Estate</option>
-              <option value="Hospitality">Hospitality</option>
-              <option value="Transportation">Transportation</option>
-              <option value="Media">Media</option>
-              <option value="Construction">Construction</option>
-              <option value="Energy">Energy</option>
-              <option value="Agriculture">Agriculture</option>
-              <option value="Telecommunications">Telecommunications</option>
-              <option value="Automotive">Automotive</option>
+              <option value="">Select industry...</option>
+              <option value="Technology">💻 Technology</option>
+              <option value="Finance">💰 Finance</option>
+              <option value="Healthcare">🏥 Healthcare</option>
+              <option value="Education">📚 Education</option>
+              <option value="Retail">🛍️ Retail</option>
+              <option value="Manufacturing">🏭 Manufacturing</option>
+              <option value="Real Estate">🏢 Real Estate</option>
+              <option value="Hospitality">🍽️ Hospitality</option>
+              <option value="Transportation">🚚 Transportation</option>
+              <option value="Media">📺 Media</option>
             </select>
-            <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <FiChevronDown className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
+              activeField === 'industry' ? 'text-purple-500 rotate-180' : 'text-gray-400'
+            }`} />
           </div>
         </div>
 
         {/* Team Size */}
-        <div>
+        <div className="group">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Team Size *
+            Team Size <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <select
               value={data.teamSize}
               onChange={(e) => updateData("founding", "teamSize", e.target.value)}
-              className="w-full border rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none"
+              onFocus={() => setActiveField('team')}
+              onBlur={() => setActiveField(null)}
+              className="w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none appearance-none transition-all duration-300 hover:border-purple-400"
               required
             >
-              <option value="">Select...</option>
-              <option value="1-10">1-10 employees</option>
-              <option value="11-50">11-50 employees</option>
-              <option value="51-200">51-200 employees</option>
-              <option value="201-500">201-500 employees</option>
-              <option value="501-1000">501-1000 employees</option>
-              <option value="1000+">1000+ employees</option>
+              <option value="">Select team size...</option>
+              <option value="1-10">👥 1-10 employees</option>
+              <option value="11-50">👥 11-50 employees</option>
+              <option value="51-200">👥 51-200 employees</option>
+              <option value="201-500">👥 201-500 employees</option>
+              <option value="501-1000">👥 501-1000 employees</option>
+              <option value="1000+">👥 1000+ employees</option>
             </select>
-            <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <FiChevronDown className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
+              activeField === 'team' ? 'text-purple-500 rotate-180' : 'text-gray-400'
+            }`} />
           </div>
         </div>
 
         {/* Year of Establishment */}
-        <div>
+        <div className="group">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Year of Establishment *
+            Year of Establishment <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <input
               type="date"
               value={data.year}
               onChange={(e) => updateData("founding", "year", e.target.value)}
-              className="w-full border rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              onFocus={() => setActiveField('year')}
+              onBlur={() => setActiveField(null)}
+              className="w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all duration-300 hover:border-purple-400"
               required
             />
-            <FiCalendar className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <FiCalendar className={`absolute right-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
+              activeField === 'year' ? 'text-purple-500' : 'text-gray-400'
+            }`} />
           </div>
         </div>
 
         {/* Company Website */}
-        <div>
+        <div className="md:col-span-2 group">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Company Website
           </label>
           <div className="relative">
             <input
               type="url"
-              placeholder="Website url..."
+              placeholder="https://www.yourcompany.com"
               value={data.website}
               onChange={(e) => updateData("founding", "website", e.target.value)}
-              className="w-full border rounded-md px-3 py-2.5 pl-10 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              onFocus={() => setActiveField('website')}
+              onBlur={() => setActiveField(null)}
+              className="w-full border rounded-xl px-4 py-3 pl-10 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all duration-300 hover:border-purple-400"
             />
-            <FiLink className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <FiLink className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
+              activeField === 'website' ? 'text-purple-500' : 'text-gray-400'
+            }`} />
           </div>
         </div>
       </div>
 
       {/* Company Vision */}
-      <div>
+      <div className="animate-slideUp" style={{ animationDelay: '300ms' }}>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Company Vision
+          <span className="flex items-center gap-1">
+            <FiTarget className="w-4 h-4 text-purple-500" />
+            Company Vision
+          </span>
         </label>
         <textarea
-          rows={5}
-          placeholder="Tell us about your company vision..."
+          rows={4}
+          placeholder="Tell us about your company vision and future goals..."
           value={data.vision}
           onChange={(e) => updateData("founding", "vision", e.target.value)}
-          className="w-full border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all duration-300 hover:border-purple-400 resize-none"
         />
+        <p className="mt-1 text-xs text-gray-400 flex items-center gap-1">
+          <Sparkles className="w-3 h-3" />
+          Share your dreams and aspirations for the company
+        </p>
       </div>
     </div>
   );
@@ -753,48 +968,81 @@ function FoundingInfoStep({ data, updateData }) {
 /* ================= SOCIAL MEDIA STEP ================= */
 
 function SocialMediaStep({ links, updateLink, addLink, removeLink }) {
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      <div className="text-center mb-8 animate-fadeInDown">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-pink-100 to-red-100 mb-4 group hover:scale-110 transition-transform duration-300">
+          <Share2 className="w-8 h-8 text-pink-600 group-hover:rotate-12 transition-transform duration-300" />
+        </div>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+          Social Media
+        </h2>
+        <p className="text-gray-600">Connect your social media profiles</p>
+      </div>
+
       <div className="space-y-4">
         {links.map((link, index) => (
-          <div key={index}>
+          <div 
+            key={index}
+            className="group animate-slideUp"
+            style={{ animationDelay: `${index * 100}ms` }}
+            onMouseEnter={() => setHoveredIndex(index)}
+            onMouseLeave={() => setHoveredIndex(null)}
+          >
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Social Link {index + 1}
             </label>
 
             <div className="flex gap-3 items-center">
               {/* Platform */}
-              <select
-                className="w-40 border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                value={link.platform}
-                onChange={(e) => updateLink(index, "platform", e.target.value)}
-              >
-                <option value="">Select Platform</option>
-                {SOCIAL_PLATFORMS.map((p) => (
-                  <option key={p.value} value={p.value}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  className="w-40 border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none appearance-none transition-all duration-300 hover:border-pink-400"
+                  value={link.platform}
+                  onChange={(e) => updateLink(index, "platform", e.target.value)}
+                >
+                  <option value="">Select Platform</option>
+                  {SOCIAL_PLATFORMS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.icon} {p.label}
+                    </option>
+                  ))}
+                </select>
+                <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
 
               {/* URL */}
-              <input
-                type="url"
-                placeholder="Profile link/url..."
-                className="flex-1 border rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                value={link.url}
-                onChange={(e) => updateLink(index, "url", e.target.value)}
-              />
+              <div className="relative flex-1">
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  className="w-full border rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-pink-500 focus:outline-none transition-all duration-300 hover:border-pink-400"
+                  value={link.url}
+                  onChange={(e) => updateLink(index, "url", e.target.value)}
+                />
+              </div>
 
               {/* Remove */}
               <button
                 type="button"
                 onClick={() => removeLink(index)}
-                className="w-9 h-9 flex items-center justify-center border rounded-md text-gray-500 hover:bg-gray-100 hover:text-red-500 transition"
+                className={`w-12 h-12 flex items-center justify-center border rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-all duration-300 transform ${
+                  hoveredIndex === index ? 'scale-110' : ''
+                }`}
               >
-                <FiX />
+                <FiX className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Platform hint */}
+            {link.platform && !link.url && (
+              <p className="mt-1 text-xs text-pink-600 flex items-center gap-1 animate-pulse">
+                <Sparkles className="w-3 h-3" />
+                Add your {link.platform} profile URL
+              </p>
+            )}
           </div>
         ))}
       </div>
@@ -803,11 +1051,19 @@ function SocialMediaStep({ links, updateLink, addLink, removeLink }) {
       <button
         type="button"
         onClick={addLink}
-        className="w-full border border-dashed rounded-md py-3 text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition flex items-center justify-center gap-2"
+        className="w-full border-2 border-dashed rounded-xl py-4 text-sm text-gray-600 hover:bg-gradient-to-r hover:from-pink-50 hover:to-red-50 hover:border-pink-400 hover:text-pink-600 transition-all duration-300 transform hover:scale-[1.02] flex items-center justify-center gap-2 group"
       >
-        <FiPlus />
+        <FiPlus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
         Add New Social Link
       </button>
+
+      {/* Social Tips */}
+      <div className="mt-6 p-4 bg-gradient-to-r from-pink-50 to-red-50 rounded-xl">
+        <p className="text-xs text-gray-600 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-pink-500" />
+          Adding social media profiles helps build trust with potential candidates
+        </p>
+      </div>
     </div>
   );
 }
@@ -815,64 +1071,113 @@ function SocialMediaStep({ links, updateLink, addLink, removeLink }) {
 /* ================= CONTACT STEP ================= */
 
 function ContactStep({ data, updateData }) {
+  const [activeField, setActiveField] = useState(null);
+
   return (
-    <div className="space-y-6 max-w-3xl">
-      {/* Map Location */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Map Location *
-        </label>
-        <input
-          type="text"
-          placeholder="Enter your location"
-          value={data.location}
-          onChange={(e) => updateData("contact", "location", e.target.value)}
-          className="w-full border rounded-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          required
-        />
+    <div className="space-y-8">
+      <div className="text-center mb-8 animate-fadeInDown">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-red-100 to-orange-100 mb-4 group hover:scale-110 transition-transform duration-300">
+          <Phone className="w-8 h-8 text-red-600 group-hover:rotate-12 transition-transform duration-300" />
+        </div>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+          Contact Information
+        </h2>
+        <p className="text-gray-600">How can candidates reach you?</p>
       </div>
 
-      {/* Phone */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Phone *
-        </label>
-
-        <div className="flex">
-          {/* Country Code */}
-          <div className="flex items-center gap-2 border rounded-l-md px-3 bg-gray-50 text-sm min-w-[100px]">
-            <span>🇧🇩</span>
-            <span>+880</span>
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Map Location */}
+        <div className="group">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            <span className="flex items-center gap-1">
+              <FiMapPin className="w-4 h-4 text-red-500" />
+              Map Location <span className="text-red-500">*</span>
+            </span>
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Enter your office location"
+              value={data.location}
+              onChange={(e) => updateData("contact", "location", e.target.value)}
+              onFocus={() => setActiveField('location')}
+              onBlur={() => setActiveField(null)}
+              className="w-full border rounded-xl px-4 py-3 pl-10 text-sm focus:ring-2 focus:ring-red-500 focus:outline-none transition-all duration-300 hover:border-red-400"
+              required
+            />
+            <FiMapPin className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-all duration-300 ${
+              activeField === 'location' ? 'text-red-500 scale-110' : 'text-gray-400'
+            }`} />
           </div>
+        </div>
 
-          {/* Number */}
-          <input
-            type="tel"
-            placeholder="Phone number..."
-            value={data.phone}
-            onChange={(e) => updateData("contact", "phone", e.target.value)}
-            className="w-full border border-l-0 rounded-r-md px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            required
-          />
+        {/* Phone */}
+        <div className="group">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            <span className="flex items-center gap-1">
+              <FiPhone className="w-4 h-4 text-red-500" />
+              Phone <span className="text-red-500">*</span>
+            </span>
+          </label>
+
+          <div className="flex">
+            <div className="flex items-center gap-2 border rounded-l-xl px-4 bg-gradient-to-r from-gray-50 to-white text-sm min-w-[100px] group-focus-within:border-red-400 transition-all duration-300">
+              <span className="text-lg">🇧🇩</span>
+              <span className="text-gray-600">+880</span>
+            </div>
+            <input
+              type="tel"
+              placeholder="Enter phone number"
+              value={data.phone}
+              onChange={(e) => updateData("contact", "phone", e.target.value)}
+              onFocus={() => setActiveField('phone')}
+              onBlur={() => setActiveField(null)}
+              className="w-full border border-l-0 rounded-r-xl px-4 py-3 text-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200 transition-all duration-300 hover:border-red-400"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Email */}
+        <div className="group">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            <span className="flex items-center gap-1">
+              <FiMail className="w-4 h-4 text-red-500" />
+              Email <span className="text-red-500">*</span>
+            </span>
+          </label>
+
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+              <span className="text-lg">✉️</span>
+            </div>
+            <input
+              type="email"
+              placeholder="contact@yourcompany.com"
+              value={data.email}
+              onChange={(e) => updateData("contact", "email", e.target.value)}
+              onFocus={() => setActiveField('email')}
+              onBlur={() => setActiveField(null)}
+              className="w-full border rounded-xl px-4 py-3 pl-10 text-sm focus:ring-2 focus:ring-red-500 focus:outline-none transition-all duration-300 hover:border-red-400"
+              required
+            />
+          </div>
         </div>
       </div>
 
-      {/* Email */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Email *
-        </label>
-
-        <div className="flex items-center border rounded-md px-3 py-2">
-          <span className="text-gray-400 mr-2">✉️</span>
-          <input
-            type="email"
-            placeholder="Email address"
-            value={data.email}
-            onChange={(e) => updateData("contact", "email", e.target.value)}
-            className="w-full text-sm focus:outline-none"
-            required
-          />
+      {/* Contact Tips */}
+      <div className="mt-8 p-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+            <FiHeart className="w-4 h-4 text-red-500" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">Why accurate contact info matters</p>
+            <p className="text-xs text-gray-600">
+              Candidates will use this information to reach out for opportunities and interviews. 
+              Make sure it's always up to date!
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -883,6 +1188,7 @@ function ContactStep({ data, updateData }) {
 
 function SuccessModal({ onRedirect }) {
   const [countdown, setCountdown] = useState(3);
+  const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -890,129 +1196,311 @@ function SuccessModal({ onRedirect }) {
         setCountdown(countdown - 1);
       }, 1000);
       return () => clearTimeout(timer);
-    } else {
-      onRedirect();
     }
-  }, [countdown, onRedirect]);
+  }, [countdown]);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onRedirect();
+    }, 300);
+  };
+
+  if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="relative w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-scaleIn">
+        {/* Animated Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white to-blue-50 opacity-50"></div>
+        
+        {/* Confetti Effect */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-green-500 rounded-full animate-confetti"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: '-10%',
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${3 + Math.random() * 2}s`,
+              }}
+            />
+          ))}
+        </div>
+
         {/* Modal Content */}
-        <div className="p-8 text-center">
-          {/* Success Icon */}
-          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-green-50 mb-6">
-            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
-              <FiCheck className="w-8 h-8 text-green-600" />
+        <div className="relative p-8 text-center">
+          {/* Success Icon with Animation */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-32 h-32 bg-green-500 rounded-full opacity-20 animate-ping"></div>
+            </div>
+            <div className="relative inline-flex items-center justify-center w-28 h-28 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 animate-bounceIn">
+              <CheckCircle className="w-14 h-14 text-white" />
             </div>
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3 flex items-center justify-center gap-2">
             🎉 Congratulations!
+            <Sparkles className="w-6 h-6 text-yellow-500 animate-spin-slow" />
           </h2>
 
           {/* Subtitle */}
-          <p className="text-gray-600 mb-2">
+          <p className="text-gray-600 mb-2 text-lg">
             Your company profile setup is 100% complete
           </p>
 
           {/* Description */}
           <p className="text-gray-500 text-sm max-w-md mx-auto mb-8 leading-relaxed">
             Your company profile has been successfully created and is now active.
-            You can now post jobs and start finding candidates.
+            You can now post jobs and start finding amazing candidates.
           </p>
 
-          {/* Stats Cards */}
+          {/* Stats Cards with Animation */}
           <div className="grid grid-cols-3 gap-4 mb-8">
-            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
-              <div className="text-2xl mb-2">🏢</div>
-              <p className="text-sm font-medium text-gray-700">Company Profile</p>
-              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs mt-1 bg-green-50 text-green-700">
-                <div className="w-2 h-2 rounded-full bg-current"></div>
-                Active
+            {[
+              { icon: "🏢", title: "Company Profile", status: "Active", color: "green" },
+              { icon: "👤", title: "Personal Info", status: "Complete", color: "blue" },
+              { icon: "🌐", title: "Social Links", status: "Connected", color: "purple" }
+            ].map((item, index) => (
+              <div 
+                key={index}
+                className="p-4 rounded-xl border border-gray-200 bg-white/50 backdrop-blur-sm hover:shadow-lg transition-all duration-300 transform hover:scale-105 animate-slideUp"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="text-3xl mb-2 animate-bounce" style={{ animationDelay: `${index * 200}ms` }}>
+                  {item.icon}
+                </div>
+                <p className="text-xs font-medium text-gray-700 mb-1">{item.title}</p>
+                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-${item.color}-50 text-${item.color}-700`}>
+                  <div className={`w-1.5 h-1.5 rounded-full bg-${item.color}-500 animate-pulse`}></div>
+                  {item.status}
+                </div>
               </div>
-            </div>
-            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
-              <div className="text-2xl mb-2">👤</div>
-              <p className="text-sm font-medium text-gray-700">Personal Info</p>
-              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs mt-1 bg-green-50 text-green-700">
-                <div className="w-2 h-2 rounded-full bg-current"></div>
-                Complete
-              </div>
-            </div>
-            <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
-              <div className="text-2xl mb-2">🌐</div>
-              <p className="text-sm font-medium text-gray-700">Social Links</p>
-              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs mt-1 bg-green-50 text-green-700">
-                <div className="w-2 h-2 rounded-full bg-current"></div>
-                Connected
-              </div>
-            </div>
+            ))}
           </div>
 
           {/* Countdown Message */}
           <div className="mb-6">
-            <p className="text-sm text-gray-600">
-              Redirecting to dashboard in <span className="font-bold text-blue-600">{countdown}</span> seconds...
+            <p className="text-sm text-gray-600 flex items-center justify-center gap-2">
+              <span>Redirecting to dashboard in</span>
+              <span className="relative">
+                <span className="absolute inset-0 animate-ping bg-blue-400 rounded-full opacity-25"></span>
+                <span className="relative w-8 h-8 flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-full">
+                  {countdown}
+                </span>
+              </span>
+              <span>seconds...</span>
             </p>
-            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <div className="w-full bg-gray-200 rounded-full h-2 mt-2 overflow-hidden">
               <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-1000" 
+                className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 transition-all duration-1000 relative"
                 style={{ width: `${(3 - countdown) * 33.33}%` }}
-              ></div>
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+              </div>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={onRedirect}
-              className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+              onClick={handleClose}
+              className="group relative flex items-center justify-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium overflow-hidden transition-all duration-300 hover:shadow-xl transform hover:scale-105"
             >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
               <FiHome className="w-4 h-4" />
               Go to Dashboard Now
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
             </button>
           </div>
 
           {/* Additional Info */}
-          <div className="mt-8 pt-6 border-t">
-            <p className="text-xs text-gray-500">
-              Need help? <a href="#" className="text-blue-600 hover:underline">Contact Support</a> or 
-              <a href="#" className="text-blue-600 hover:underline ml-2">View Setup Guide</a>
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <p className="text-xs text-gray-500 flex items-center justify-center gap-2">
+              <FiHeart className="w-3 h-3 text-red-400" />
+              Need help? 
+              <a href="#" className="text-blue-600 hover:text-blue-700 hover:underline transition-all duration-300">
+                Contact Support
+              </a>
+              <span className="text-gray-300">|</span>
+              <a href="#" className="text-blue-600 hover:text-blue-700 hover:underline transition-all duration-300">
+                View Setup Guide
+              </a>
+              <FiHeart className="w-3 h-3 text-red-400" />
             </p>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes bounceIn {
+          0% {
+            opacity: 0;
+            transform: scale(0.3);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.1);
+          }
+          70% {
+            transform: scale(0.9);
+          }
+          100% {
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes confetti {
+          0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(100vh) rotate(720deg);
+            opacity: 0;
+          }
+        }
+        
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out forwards;
+        }
+        
+        .animate-scaleIn {
+          animation: scaleIn 0.4s ease-out forwards;
+        }
+        
+        .animate-bounceIn {
+          animation: bounceIn 0.6s ease-out;
+        }
+        
+        .animate-slideUp {
+          opacity: 0;
+          animation: slideUp 0.5s ease-out forwards;
+        }
+        
+        .animate-confetti {
+          animation: confetti 3s linear infinite;
+        }
+        
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
+        }
+        
+        .animate-spin-slow {
+          animation: spin 3s linear infinite;
+        }
+        
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
 
 /* ================= COMPONENTS ================= */
 
-function Step({ icon, label, active, completed, onClick, isLast }) {
+function Step({ icon, label, active, completed, color, onClick, isLast }) {
   return (
     <button
       onClick={onClick}
       disabled={!completed && !active}
-      className={`flex items-center gap-2 pb-3 transition ${
+      className={`relative flex items-center gap-2 transition-all duration-300 group ${
         active
-          ? "border-b-2 border-blue-600 text-blue-600 font-medium"
+          ? "text-blue-600 font-medium scale-105"
           : completed
           ? "text-green-600 cursor-pointer hover:text-green-700"
           : "text-gray-400 cursor-not-allowed"
       }`}
     >
-      {completed ? <FiCheck className="text-green-600" /> : icon}
-      {label}
+      <div className={`relative flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 ${
+        active
+          ? "bg-gradient-to-r " + color + " text-white shadow-lg"
+          : completed
+          ? "bg-green-100 text-green-600"
+          : "bg-gray-100 text-gray-400"
+      }`}>
+        {completed ? <FiCheck className="w-4 h-4" /> : icon}
+        
+        {/* Pulse effect for active step */}
+        {active && (
+          <div className="absolute inset-0 rounded-full animate-ping bg-blue-400 opacity-20"></div>
+        )}
+      </div>
+      <span className={`text-sm hidden md:inline transition-all duration-300 ${
+        active ? 'text-blue-600' : completed ? 'text-green-600' : 'text-gray-400'
+      }`}>
+        {label}
+      </span>
+      
+      {/* Connector line */}
       {!isLast && (
-        <div className={`ml-6 h-0.5 w-8 ${completed ? 'bg-green-600' : 'bg-gray-300'}`} />
+        <div className={`hidden md:block absolute -right-8 top-1/2 w-8 h-0.5 transition-all duration-300 ${
+          completed ? 'bg-green-600' : 'bg-gray-300'
+        }`} />
       )}
     </button>
   );
 }
 
-function UploadBox({ title, note, wide, value, preview, onChange, type }) {
+function UploadBox({ title, note, wide, value, preview, onChange, type, icon }) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      onChange(file);
+    }
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -1022,9 +1510,14 @@ function UploadBox({ title, note, wide, value, preview, onChange, type }) {
 
   return (
     <div
-      className={`flex flex-col items-center justify-center rounded-md border-2 border-dashed px-4 py-6 text-center cursor-pointer hover:border-blue-400 transition ${
-        wide ? "md:col-span-2" : ""
-      }`}
+      className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center cursor-pointer transition-all duration-300 ${
+        isDragging 
+          ? 'border-blue-500 bg-blue-50 scale-105' 
+          : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+      } ${wide ? "md:col-span-2" : ""}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       onClick={() => document.getElementById(`file-input-${title}`)?.click()}
     >
       <input
@@ -1036,60 +1529,70 @@ function UploadBox({ title, note, wide, value, preview, onChange, type }) {
       />
       
       {preview || value ? (
-        <div className="text-green-600">
+        <div className="text-green-600 animate-scaleIn">
           {type === "logo" && preview ? (
-            <img 
-              src={preview} 
-              alt="Logo preview" 
-              className="w-20 h-20 object-cover rounded-full mx-auto mb-2"
-            />
+            <div className="relative group">
+              <img 
+                src={preview} 
+                alt="Logo preview" 
+                className="w-24 h-24 object-cover rounded-full mx-auto mb-3 border-4 border-white shadow-lg group-hover:scale-110 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="bg-black/50 rounded-full p-2">
+                  <FiCamera className="w-5 h-5 text-white" />
+                </div>
+              </div>
+            </div>
           ) : type === "banner" && preview ? (
-            <img 
-              src={preview} 
-              alt="Banner preview" 
-              className="w-full h-32 object-cover rounded-md mx-auto mb-2"
-            />
+            <div className="relative group">
+              <img 
+                src={preview} 
+                alt="Banner preview" 
+                className="w-full h-40 object-cover rounded-lg mx-auto mb-3 border-4 border-white shadow-lg group-hover:scale-105 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="bg-black/50 rounded-full p-2">
+                  <FiCamera className="w-5 h-5 text-white" />
+                </div>
+              </div>
+            </div>
           ) : type === "profile" && preview ? (
-            <img 
-              src={preview} 
-              alt="Profile preview" 
-              className="w-20 h-20 object-cover rounded-full mx-auto mb-2"
-            />
+            <div className="relative group">
+              <img 
+                src={preview} 
+                alt="Profile preview" 
+                className="w-24 h-24 object-cover rounded-full mx-auto mb-3 border-4 border-white shadow-lg group-hover:scale-110 transition-transform duration-300"
+              />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="bg-black/50 rounded-full p-2">
+                  <FiCamera className="w-5 h-5 text-white" />
+                </div>
+              </div>
+            </div>
           ) : (
-            <FiCheck className="text-2xl mx-auto" />
+            <FiCheck className="text-4xl text-green-500 mx-auto mb-2 animate-bounceIn" />
           )}
-          <p className="mt-2 text-sm">File uploaded</p>
-          <p className="text-xs text-gray-400">Click to change</p>
+          <p className="mt-2 text-sm font-medium text-gray-700">File uploaded successfully!</p>
+          <p className="text-xs text-gray-400">Click or drag to change</p>
         </div>
       ) : (
         <>
-          <FiUploadCloud className="text-2xl text-gray-400" />
+          <div className="text-4xl mb-3 transform group-hover:scale-110 transition-transform duration-300">
+            {icon || <FiUploadCloud className="mx-auto text-gray-400" />}
+          </div>
           <p className="mt-2 text-sm text-gray-600">
-            <span className="font-medium">Browse photo</span> or drop here
+            <span className="font-medium text-blue-600 hover:text-blue-700">Browse photo</span> or drop here
           </p>
+          <p className="mt-1 text-xs text-gray-400">{note}</p>
         </>
       )}
-      <p className="mt-1 text-xs text-gray-400">{note}</p>
+      
+      {/* Upload progress indicator (simulated) */}
+      {isDragging && (
+        <div className="absolute inset-0 flex items-center justify-center bg-blue-500/10 rounded-xl backdrop-blur-sm">
+          <p className="text-sm font-medium text-blue-600 animate-pulse">Drop to upload</p>
+        </div>
+      )}
     </div>
-  );
-}
-
-function FiBriefcaseIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      className="text-blue-600"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2m-9 4h12a2 2 0 012 2v7a2 2 0 01-2 2H6a2 2 0 01-2-2v-7a2 2 0 012-2z"
-      />
-    </svg>
   );
 }

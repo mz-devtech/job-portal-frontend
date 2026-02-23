@@ -6,7 +6,7 @@ export const candidateService = {
   // PUBLIC CANDIDATE SEARCH
   // ============================================
 
-  // Get all candidates with filters
+  // Get all candidates with filters (only candidates, no admins or employers)
   async getAllCandidates(filters = {}) {
     try {
       console.log("👥 [CANDIDATE SERVICE] Fetching candidates with filters:", filters);
@@ -18,6 +18,9 @@ export const candidateService = {
           queryParams.append(key, filters[key]);
         }
       });
+
+      // Add role filter to only get candidates
+      queryParams.append('role', 'candidate');
 
       const response = await api.get(`/candidate-profile/all?${queryParams.toString()}`);
 

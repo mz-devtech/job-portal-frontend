@@ -6,6 +6,7 @@ import Navbar from "./Navbar";
 import CandidateNavbar from "./CandidateNavbar";
 import EmployerNavbar from "./EmployerNavbar";
 import { selectIsAuthenticated, selectRole, selectIsLoading, loadUserFromStorage } from "@/redux/slices/userSlice";
+import AdminNavbar from "./AdminNavbar";
 
 const DynamicNavbar = () => {
   const [mounted, setMounted] = useState(false);
@@ -33,7 +34,7 @@ const DynamicNavbar = () => {
       return <EmployerNavbar />;
     } else if (userRole === "admin") {
       // You can create an AdminNavbar component if needed
-      return <Navbar />;
+      return <AdminNavbar/>;
     }
   }
 

@@ -24,46 +24,85 @@ const SocialButtons = ({ type = 'signup', userType = 'candidate' }) => {
   };
 
   return (
-    <div className="mt-6 pt-5 border-t border-gray-200">
-      {/* OR */}
-      <div className="flex items-center justify-center mb-4">
-        <span className="text-xs text-gray-500 font-medium uppercase">
-          OR
-        </span>
+    <div className="w-full animate-fadeIn">
+      {/* OR Divider */}
+      <div className="relative flex items-center justify-center mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200"></div>
+        </div>
+        <div className="relative bg-white px-4">
+          <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+            OR
+          </span>
+        </div>
       </div>
 
-      {/* Buttons */}
+      {/* Buttons Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {/* Facebook */}
+        {/* Facebook Button */}
         <button
           type="button"
           onClick={handleFacebookAuth}
-          className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors hover:border-blue-500"
+          className="group relative flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-xl bg-white hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:border-blue-300 overflow-hidden"
         >
-          <FaFacebookF className="text-blue-600 text-lg" />
-          <span>
+          {/* Shine effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+          
+          <FaFacebookF className="text-blue-600 text-lg group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300" />
+          <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-300">
             {isSignup ? 'Sign up with Facebook' : 'Sign in with Facebook'}
           </span>
         </button>
 
-        {/* Google */}
+        {/* Google Button */}
         <button
           type="button"
           onClick={handleGoogleAuth}
-          className="flex items-center justify-center gap-2 py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors hover:border-red-500"
+          className="group relative flex items-center justify-center gap-3 py-3 px-4 border border-gray-200 rounded-xl bg-white hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:border-red-300 overflow-hidden"
         >
-          <FaGoogle className="text-red-500 text-lg" />
-          <span>
+          {/* Shine effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+          
+          <FaGoogle className="text-red-500 text-lg group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300" />
+          <span className="text-sm font-medium text-gray-700 group-hover:text-red-500 transition-colors duration-300">
             {isSignup ? 'Sign up with Google' : 'Sign in with Google'}
           </span>
         </button>
       </div>
       
-      <p className="mt-3 text-center text-xs text-gray-500">
-        By continuing, you agree to our Terms and Privacy Policy
+      {/* Terms and Privacy */}
+      <p className="mt-4 text-center text-xs text-gray-400">
+        By continuing, you agree to our{' '}
+        <Link href="/terms" className="text-blue-600 hover:text-blue-700 transition-colors duration-300 underline decoration-2 decoration-transparent hover:decoration-blue-600">
+          Terms
+        </Link>{' '}
+        and{' '}
+        <Link href="/privacy" className="text-blue-600 hover:text-blue-700 transition-colors duration-300 underline decoration-2 decoration-transparent hover:decoration-blue-600">
+          Privacy Policy
+        </Link>
       </p>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.6s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };
+
+// Add Link import
+import Link from 'next/link';
 
 export default SocialButtons;
