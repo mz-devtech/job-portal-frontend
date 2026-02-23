@@ -4,8 +4,9 @@ import EmployerNavbar from "@/components/EmployerNavbar";
 import SecondNavbar from "@/components/SecondNavbar";
 import EmployerSidebar from "@/components/dashboard/employer/EmployerSideBar";
 import PostJobForm from "@/components/dashboard/employer/PostJobForm";
+import RequireSubscription from "@/components/RequireSubscription";
 
-export default function Page() {
+export default function CreateJobPage() {
   return (
     <>
       {/* Fixed Header */}
@@ -17,7 +18,9 @@ export default function Page() {
       {/* Body */}
       <div className="flex pt-28">
         <EmployerSidebar />
-        <PostJobForm />
+        <RequireSubscription>
+          <PostJobForm />
+        </RequireSubscription>
       </div>
     </>
   );

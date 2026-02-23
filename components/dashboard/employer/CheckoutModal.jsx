@@ -4,6 +4,7 @@ import { X, CreditCard, Wallet, Shield, Check, Sparkles, Zap, Award, Gift, Star,
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
+import { subscriptionService } from "@/services/subscriptionService";
 import {
   Elements,
   CardNumberElement,
@@ -259,22 +260,30 @@ function CheckoutForm({ plan, onClose }) {
     }
   };
 
-  const handlePaymentSuccess = async (paymentIntent) => {
-    try {
-      // Confirm payment and create subscription
-      const subscription = await paymentService.confirmPayment({
-        paymentIntentId: paymentIntent.id,
-      });
+const handlePaymentSuccess = async (paymentIntent) => {
+  try {
+    // Import subscription service
+    const { subscriptionService } = await import("@/services/subscriptionService");
+    
+    // Create subscription after successful payment
+    const subscription = await subscriptionService.createSubscription({
+      planId: plan._id,
+      paymentIntentId: paymentIntent.id,
+      amount: totalAmount,
+      billingCycle: billingCycle,
+    });
 
-      toast.success(`Successfully subscribed to ${plan.name} plan!`);
-      
-      onClose();
-      router.push("/post_job/create");
-    } catch (error) {
-      console.error("Subscription creation error:", error);
-      toast.error("Failed to create subscription");
-    }
-  };
+    toast.success(`Successfully subscribed to ${plan.name} plan!`);
+    
+    onClose();
+    
+    // Redirect to job creation page
+    router.push("/post_job/create");
+  } catch (error) {
+    console.error("Subscription creation error:", error);
+    toast.error("Payment succeeded but failed to create subscription");
+  }
+};
 
   // Calculate pricing
   const monthlyPrice = plan.price || 0;
