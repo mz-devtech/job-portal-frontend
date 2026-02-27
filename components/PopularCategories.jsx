@@ -367,7 +367,7 @@ export default function PopularCategories() {
       {categories.length > 8 && (
         <div className="text-center mt-12 animate-fadeIn animation-delay-800">
           <Link
-            href="/categories"
+            href="/jobs"
             className="group relative inline-flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full text-sm font-medium text-blue-600 hover:from-blue-100 hover:to-indigo-100 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
           >
             <span>View all {categories.length} categories</span>

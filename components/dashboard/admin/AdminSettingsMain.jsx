@@ -50,8 +50,23 @@ export default function AdminSettingsMain() {
   const [refreshing, setRefreshing] = useState(false);
   const [hoveredSection, setHoveredSection] = useState(null);
   const [showToast, setShowToast] = useState({ show: false, message: '', type: '' });
+  const [screenSize, setScreenSize] = useState('desktop');
 
-  // Animation variants (same as UsersMain)
+  // Handle responsive behavior
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) setScreenSize('mobile');
+      else if (width >= 640 && width < 1024) setScreenSize('tablet');
+      else setScreenSize('desktop');
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
+
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -161,7 +176,7 @@ export default function AdminSettingsMain() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -172,7 +187,7 @@ export default function AdminSettingsMain() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full"
+              className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 border-3 sm:border-4 border-blue-200 border-t-blue-600 rounded-full"
             />
             <motion.div
               initial={{ opacity: 0 }}
@@ -180,16 +195,16 @@ export default function AdminSettingsMain() {
               transition={{ delay: 0.5 }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <FiSettings className="w-8 h-8 text-blue-600" />
+              <FiSettings className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600" />
             </motion.div>
           </div>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="mt-4 text-gray-600 font-medium"
+            className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600 font-medium"
           >
-            Loading admin settings...
+            {screenSize === 'mobile' ? 'Loading...' : 'Loading admin settings...'}
           </motion.p>
         </motion.div>
       </div>
@@ -201,7 +216,7 @@ export default function AdminSettingsMain() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="p-6 space-y-6"
+      className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-5 md:space-y-6"
     >
       {/* Toast Notification */}
       <AnimatePresence>
@@ -210,41 +225,41 @@ export default function AdminSettingsMain() {
             initial={{ opacity: 0, y: -50, x: "-50%" }}
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: -50, x: "-50%" }}
-            className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 ${
+            className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg shadow-lg flex items-center gap-2 sm:gap-3 ${
               showToast.type === 'success' ? 'bg-green-500' :
               showToast.type === 'error' ? 'bg-red-500' :
               'bg-blue-500'
-            } text-white`}
+            } text-white text-xs sm:text-sm`}
           >
-            {showToast.type === 'success' && <FiCheckCircle className="w-5 h-5" />}
-            {showToast.type === 'error' && <FiXCircle className="w-5 h-5" />}
-            {showToast.type === 'info' && <FiAlertCircle className="w-5 h-5" />}
+            {showToast.type === 'success' && <FiCheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />}
+            {showToast.type === 'error' && <FiXCircle className="w-4 h-4 sm:w-5 sm:h-5" />}
+            {showToast.type === 'info' && <FiAlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />}
             <span className="font-medium">{showToast.message}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Admin Settings
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5 sm:mt-1">
             {profile ? "Manage your admin profile and preferences" : "Set up your admin profile"}
           </p>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Refresh button */}
           <motion.button
-            whileHover={{ scale: 1.05, rotate: 180 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleRefresh}
             disabled={refreshing}
-            className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="p-1.5 sm:p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            <FiRefreshCw className={`w-5 h-5 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
           </motion.button>
         </div>
       </motion.div>
@@ -253,22 +268,22 @@ export default function AdminSettingsMain() {
       {profile && (
         <motion.div
           variants={itemVariants}
-          className="bg-white rounded-xl shadow-lg border border-gray-200 p-6"
+          className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6"
         >
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br ${
                 profile.isProfileComplete 
                   ? 'from-green-500 to-emerald-500' 
                   : 'from-yellow-500 to-orange-500'
-              } flex items-center justify-center text-white text-2xl font-bold`}>
+              } flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl font-bold flex-shrink-0`}>
                 {profile.isProfileComplete ? '✓' : `${profile.completionPercentage || 0}%`}
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
                   {profile.isProfileComplete ? 'Profile Complete! 🎉' : 'Complete Your Profile'}
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs sm:text-sm text-gray-500">
                   {profile.isProfileComplete 
                     ? 'Your profile is 100% complete and visible to everyone'
                     : `Your profile is ${profile.completionPercentage || 0}% complete. Complete all sections to enhance your admin presence.`
@@ -278,12 +293,12 @@ export default function AdminSettingsMain() {
             </div>
             
             {!profile.isProfileComplete && (
-              <div className="w-full md:w-64">
-                <div className="flex items-center justify-between text-sm mb-1">
+              <div className="w-full sm:w-48 md:w-64">
+                <div className="flex items-center justify-between text-xs sm:text-sm mb-1">
                   <span className="text-gray-600">Progress</span>
                   <span className="font-semibold text-blue-600">{profile.completionPercentage || 0}%</span>
                 </div>
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${profile.completionPercentage || 0}%` }}
@@ -301,91 +316,93 @@ export default function AdminSettingsMain() {
         </motion.div>
       )}
 
-      {/* Tabs */}
-      <motion.div variants={itemVariants} className="bg-white rounded-xl shadow-lg border border-gray-200 p-4">
-        <div className="flex flex-wrap gap-2">
+      {/* Tabs - Horizontal Scroll on Mobile */}
+      <motion.div variants={itemVariants} className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 p-2 sm:p-3 md:p-4 overflow-x-auto">
+        <div className="flex flex-nowrap sm:flex-wrap gap-1 sm:gap-2 min-w-max sm:min-w-0">
           <motion.button
             variants={tabVariants}
             whileHover="hover"
             onClick={() => handleTabChange("personal")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg transition-all whitespace-nowrap ${
               activeTab === "personal"
                 ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <FiUser className="w-4 h-4" />
-            <span className="text-sm font-medium">Personal</span>
+            <FiUser className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-[10px] sm:text-xs md:text-sm font-medium">Personal</span>
           </motion.button>
 
           <motion.button
             variants={tabVariants}
             whileHover="hover"
             onClick={() => handleTabChange("profile")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg transition-all whitespace-nowrap ${
               activeTab === "profile"
                 ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <FiBriefcase className="w-4 h-4" />
-            <span className="text-sm font-medium">Profile</span>
+            <FiBriefcase className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-[10px] sm:text-xs md:text-sm font-medium">Profile</span>
           </motion.button>
 
           <motion.button
             variants={tabVariants}
             whileHover="hover"
             onClick={() => handleTabChange("social")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg transition-all whitespace-nowrap ${
               activeTab === "social"
                 ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <FiGlobe className="w-4 h-4" />
-            <span className="text-sm font-medium">Social Links</span>
+            <FiGlobe className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-[10px] sm:text-xs md:text-sm font-medium">Social</span>
           </motion.button>
 
           <motion.button
             variants={tabVariants}
             whileHover="hover"
             onClick={() => handleTabChange("notifications")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg transition-all whitespace-nowrap ${
               activeTab === "notifications"
                 ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <FiBell className="w-4 h-4" />
-            <span className="text-sm font-medium">Notifications</span>
+            <FiBell className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-[10px] sm:text-xs md:text-sm font-medium">
+              {screenSize === 'mobile' ? 'Notifs' : 'Notifications'}
+            </span>
           </motion.button>
 
           <motion.button
             variants={tabVariants}
             whileHover="hover"
             onClick={() => handleTabChange("security")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg transition-all whitespace-nowrap ${
               activeTab === "security"
                 ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <FiShield className="w-4 h-4" />
-            <span className="text-sm font-medium">Security</span>
+            <FiShield className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-[10px] sm:text-xs md:text-sm font-medium">Security</span>
           </motion.button>
 
           <motion.button
             variants={tabVariants}
             whileHover="hover"
             onClick={() => handleTabChange("account")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg transition-all whitespace-nowrap ${
               activeTab === "account"
                 ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <FiLock className="w-4 h-4" />
-            <span className="text-sm font-medium">Account</span>
+            <FiLock className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="text-[10px] sm:text-xs md:text-sm font-medium">Account</span>
           </motion.button>
         </div>
       </motion.div>
@@ -393,7 +410,7 @@ export default function AdminSettingsMain() {
       {/* Content */}
       <motion.div
         variants={itemVariants}
-        className="bg-white rounded-xl shadow-lg border border-gray-200 p-6"
+        className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 p-4 sm:p-5 md:p-6"
       >
         {activeTab === "personal" && (
           <PersonalTab
@@ -402,6 +419,7 @@ export default function AdminSettingsMain() {
             onSave={handleSave}
             saving={saving}
             showNotification={showNotification}
+            screenSize={screenSize}
           />
         )}
         {activeTab === "profile" && (
@@ -410,6 +428,7 @@ export default function AdminSettingsMain() {
             onSave={handleSave}
             saving={saving}
             showNotification={showNotification}
+            screenSize={screenSize}
           />
         )}
         {activeTab === "social" && (
@@ -418,6 +437,7 @@ export default function AdminSettingsMain() {
             onSave={handleSave}
             saving={saving}
             showNotification={showNotification}
+            screenSize={screenSize}
           />
         )}
         {activeTab === "notifications" && (
@@ -426,6 +446,7 @@ export default function AdminSettingsMain() {
             onSave={handleSave}
             saving={saving}
             showNotification={showNotification}
+            screenSize={screenSize}
           />
         )}
         {activeTab === "security" && (
@@ -434,6 +455,7 @@ export default function AdminSettingsMain() {
             onSave={handleSave}
             saving={saving}
             showNotification={showNotification}
+            screenSize={screenSize}
           />
         )}
         {activeTab === "account" && (
@@ -442,6 +464,7 @@ export default function AdminSettingsMain() {
             onSave={handleSave}
             saving={saving}
             showNotification={showNotification}
+            screenSize={screenSize}
           />
         )}
       </motion.div>
@@ -451,7 +474,7 @@ export default function AdminSettingsMain() {
 
 /* ================= PERSONAL TAB ================= */
 
-function PersonalTab({ profile, user, onSave, saving, showNotification }) {
+function PersonalTab({ profile, user, onSave, saving, showNotification, screenSize }) {
   const [formData, setFormData] = useState({
     fullName: profile?.personalInfo?.fullName || user?.name || "",
     title: profile?.personalInfo?.title || "Administrator",
@@ -508,18 +531,18 @@ function PersonalTab({ profile, user, onSave, saving, showNotification }) {
   };
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-        <FiUser className="w-5 h-5 text-blue-500" />
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
+      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <FiUser className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
         Personal Information
       </h3>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 md:gap-6 lg:gap-8">
         {/* Profile Picture */}
         <div className="lg:col-span-4">
-          <div className="bg-gray-50 rounded-xl p-6 text-center">
+          <div className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-5 md:p-6 text-center">
             <div className="relative inline-block">
-              <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-white shadow-lg">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 mx-auto rounded-full overflow-hidden border-3 sm:border-4 border-white shadow-lg">
                 <img
                   src={profileImagePreview}
                   alt="Profile"
@@ -529,9 +552,9 @@ function PersonalTab({ profile, user, onSave, saving, showNotification }) {
               <motion.label
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                className="absolute bottom-0 right-0 p-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-shadow"
+                className="absolute bottom-0 right-0 p-1.5 sm:p-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full cursor-pointer shadow-lg hover:shadow-xl transition-shadow"
               >
-                <FiCamera className="w-4 h-4" />
+                <FiCamera className="w-3 h-3 sm:w-4 sm:h-4" />
                 <input
                   type="file"
                   accept="image/*"
@@ -544,24 +567,25 @@ function PersonalTab({ profile, user, onSave, saving, showNotification }) {
                 />
               </motion.label>
             </div>
-            <p className="mt-4 text-sm text-gray-500">
+            <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-500">
               Upload a profile photo
             </p>
-            <p className="text-xs text-gray-400">
-              JPG, PNG or GIF. Max 5MB.
+            <p className="text-[10px] sm:text-xs text-gray-400">
+              JPG, PNG. Max 5MB.
             </p>
           </div>
         </div>
 
         {/* Form */}
-        <div className="lg:col-span-8 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="lg:col-span-8 space-y-4 sm:space-y-5 md:space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
             <FormInput
               label="Full Name *"
               placeholder="Enter your full name"
               value={formData.fullName}
               onChange={(value) => handleInputChange("fullName", value)}
               required
+              screenSize={screenSize}
             />
 
             <FormInput
@@ -569,6 +593,7 @@ function PersonalTab({ profile, user, onSave, saving, showNotification }) {
               placeholder="e.g., System Administrator"
               value={formData.title}
               onChange={(value) => handleInputChange("title", value)}
+              screenSize={screenSize}
             />
 
             <FormInput
@@ -576,6 +601,7 @@ function PersonalTab({ profile, user, onSave, saving, showNotification }) {
               placeholder="e.g., IT Department"
               value={formData.department}
               onChange={(value) => handleInputChange("department", value)}
+              screenSize={screenSize}
             />
 
             <FormInput
@@ -583,6 +609,7 @@ function PersonalTab({ profile, user, onSave, saving, showNotification }) {
               placeholder="EMP-12345"
               value={formData.employeeId}
               onChange={(value) => handleInputChange("employeeId", value)}
+              screenSize={screenSize}
             />
 
             <FormInput
@@ -590,6 +617,7 @@ function PersonalTab({ profile, user, onSave, saving, showNotification }) {
               type="date"
               value={formData.joiningDate}
               onChange={(value) => handleInputChange("joiningDate", value)}
+              screenSize={screenSize}
             />
 
             <FormInput
@@ -597,15 +625,17 @@ function PersonalTab({ profile, user, onSave, saving, showNotification }) {
               placeholder="City, building, floor"
               value={formData.officeLocation}
               onChange={(value) => handleInputChange("officeLocation", value)}
+              screenSize={screenSize}
             />
 
-            <div className="md:col-span-2">
+            <div className="sm:col-span-2">
               <FormInput
                 label="Personal Website"
                 placeholder="https://yourwebsite.com"
                 value={formData.website}
                 onChange={(value) => handleInputChange("website", value)}
                 type="url"
+                screenSize={screenSize}
               />
             </div>
           </div>
@@ -615,17 +645,17 @@ function PersonalTab({ profile, user, onSave, saving, showNotification }) {
             whileTap={{ scale: 0.98 }}
             onClick={handleSubmit}
             disabled={saving || !formData.fullName}
-            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg text-xs sm:text-sm font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? (
               <>
-                <FiRefreshCw className="w-4 h-4 animate-spin" />
-                Saving...
+                <FiRefreshCw className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                <span>{screenSize === 'mobile' ? 'Saving...' : 'Saving...'}</span>
               </>
             ) : (
               <>
-                <FiSave className="w-4 h-4" />
-                Save Changes
+                <FiSave className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span>{screenSize === 'mobile' ? 'Save' : 'Save Changes'}</span>
               </>
             )}
           </motion.button>
@@ -637,7 +667,7 @@ function PersonalTab({ profile, user, onSave, saving, showNotification }) {
 
 /* ================= PROFILE TAB ================= */
 
-function ProfileTab({ profile, onSave, saving, showNotification }) {
+function ProfileTab({ profile, onSave, saving, showNotification, screenSize }) {
   const [formData, setFormData] = useState({
     nationality: profile?.profileDetails?.nationality || "",
     dateOfBirth: profile?.profileDetails?.dateOfBirth
@@ -673,13 +703,13 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
   };
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-        <FiBriefcase className="w-5 h-5 text-blue-500" />
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
+      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <FiBriefcase className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
         Professional Profile
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
         <FormSelect
           label="Nationality"
           value={formData.nationality}
@@ -694,6 +724,7 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
             { value: "Australian", label: "Australian" },
             { value: "Other", label: "Other" },
           ]}
+          screenSize={screenSize}
         />
 
         <FormInput
@@ -701,6 +732,7 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
           type="date"
           value={formData.dateOfBirth}
           onChange={(value) => handleInputChange("dateOfBirth", value)}
+          screenSize={screenSize}
         />
 
         <FormSelect
@@ -714,6 +746,7 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
             { value: "Other", label: "Other" },
             { value: "Prefer not to say", label: "Prefer not to say" },
           ]}
+          screenSize={screenSize}
         />
 
         <FormSelect
@@ -729,6 +762,7 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
             { value: "5-10 years", label: "5-10 years" },
             { value: "10+ years", label: "10+ years" },
           ]}
+          screenSize={screenSize}
         />
 
         <FormSelect
@@ -744,6 +778,7 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
             { value: "PhD", label: "PhD" },
             { value: "Other", label: "Other" },
           ]}
+          screenSize={screenSize}
         />
 
         <FormInput
@@ -751,6 +786,7 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
           placeholder="e.g., AWS Certified, PMP, etc."
           value={formData.certifications}
           onChange={(value) => handleInputChange("certifications", value)}
+          screenSize={screenSize}
         />
 
         <FormInput
@@ -758,6 +794,7 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
           placeholder="e.g., Management, Communication, etc."
           value={formData.skills}
           onChange={(value) => handleInputChange("skills", value)}
+          screenSize={screenSize}
         />
 
         <FormInput
@@ -765,18 +802,19 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
           placeholder="e.g., English, Bengali, etc."
           value={formData.languages}
           onChange={(value) => handleInputChange("languages", value)}
+          screenSize={screenSize}
         />
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="sm:col-span-2">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
             Biography
           </label>
           <textarea
-            rows={6}
+            rows={screenSize === 'mobile' ? 4 : 5}
             value={formData.biography}
             onChange={(e) => handleInputChange("biography", e.target.value)}
             placeholder="Write about your background, experience, expertise, and achievements..."
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         </div>
       </div>
@@ -786,17 +824,17 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
         whileTap={{ scale: 0.98 }}
         onClick={handleSubmit}
         disabled={saving}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg text-xs sm:text-sm font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {saving ? (
           <>
-            <FiRefreshCw className="w-4 h-4 animate-spin" />
-            Saving...
+            <FiRefreshCw className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+            <span>{screenSize === 'mobile' ? 'Saving...' : 'Saving...'}</span>
           </>
         ) : (
           <>
-            <FiSave className="w-4 h-4" />
-            Save Changes
+            <FiSave className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span>{screenSize === 'mobile' ? 'Save' : 'Save Changes'}</span>
           </>
         )}
       </motion.button>
@@ -806,7 +844,7 @@ function ProfileTab({ profile, onSave, saving, showNotification }) {
 
 /* ================= SOCIAL LINKS TAB ================= */
 
-function SocialLinksTab({ profile, onSave, saving, showNotification }) {
+function SocialLinksTab({ profile, onSave, saving, showNotification, screenSize }) {
   const [socialLinks, setSocialLinks] = useState(() => {
     if (profile?.socialLinks && profile.socialLinks.length > 0) {
       return profile.socialLinks.map(link => ({
@@ -865,27 +903,27 @@ function SocialLinksTab({ profile, onSave, saving, showNotification }) {
   };
 
   return (
-    <div className="space-y-6">
-      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-        <FiGlobe className="w-5 h-5 text-blue-500" />
+    <div className="space-y-4 sm:space-y-5 md:space-y-6">
+      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <FiGlobe className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
         Social Media Profiles
       </h3>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {socialLinks.map((link, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="flex gap-3 items-start"
+            className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-start"
           >
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-5 gap-3">
-              <div className="md:col-span-2">
+            <div className="flex-1 grid grid-cols-1 sm:grid-cols-5 gap-2 sm:gap-3 w-full">
+              <div className="sm:col-span-2">
                 <select
                   value={link.platform}
                   onChange={(e) => updateLink(index, "platform", e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select Platform</option>
                   {socialPlatforms.map((platform) => (
@@ -896,13 +934,13 @@ function SocialLinksTab({ profile, onSave, saving, showNotification }) {
                 </select>
               </div>
 
-              <div className="md:col-span-3">
+              <div className="sm:col-span-3">
                 <input
                   type="url"
                   placeholder="Profile link/url..."
                   value={link.url}
                   onChange={(e) => updateLink(index, "url", e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -911,9 +949,9 @@ function SocialLinksTab({ profile, onSave, saving, showNotification }) {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => removeLink(index)}
-              className="p-2.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+              className="p-2 sm:p-2.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors self-end sm:self-center"
             >
-              <FiTrash2 className="w-4 h-4" />
+              <FiTrash2 className="w-3 h-3 sm:w-4 sm:h-4" />
             </motion.button>
           </motion.div>
         ))}
@@ -923,9 +961,9 @@ function SocialLinksTab({ profile, onSave, saving, showNotification }) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={addLink}
-        className="w-full border-2 border-dashed border-gray-300 rounded-lg py-3 text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+        className="w-full border-2 border-dashed border-gray-300 rounded-lg py-2 sm:py-3 text-xs sm:text-sm text-gray-600 hover:border-gray-400 hover:text-gray-800 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
       >
-        <FiPlus className="w-4 h-4" />
+        <FiPlus className="w-3 h-3 sm:w-4 sm:h-4" />
         Add New Social Link
       </motion.button>
 
@@ -934,17 +972,17 @@ function SocialLinksTab({ profile, onSave, saving, showNotification }) {
         whileTap={{ scale: 0.98 }}
         onClick={handleSubmit}
         disabled={saving}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg text-xs sm:text-sm font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {saving ? (
           <>
-            <FiRefreshCw className="w-4 h-4 animate-spin" />
-            Saving...
+            <FiRefreshCw className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+            <span>{screenSize === 'mobile' ? 'Saving...' : 'Saving...'}</span>
           </>
         ) : (
           <>
-            <FiSave className="w-4 h-4" />
-            Save Social Links
+            <FiSave className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span>{screenSize === 'mobile' ? 'Save' : 'Save Social Links'}</span>
           </>
         )}
       </motion.button>
@@ -954,7 +992,7 @@ function SocialLinksTab({ profile, onSave, saving, showNotification }) {
 
 /* ================= NOTIFICATIONS TAB ================= */
 
-function NotificationsTab({ profile, onSave, saving, showNotification }) {
+function NotificationsTab({ profile, onSave, saving, showNotification, screenSize }) {
   const [formData, setFormData] = useState({
     system: {
       userRegistrations: profile?.notificationSettings?.system?.userRegistrations ?? true,
@@ -1010,27 +1048,28 @@ function NotificationsTab({ profile, onSave, saving, showNotification }) {
   };
 
   return (
-    <div className="space-y-8">
-      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-        <FiBell className="w-5 h-5 text-blue-500" />
+    <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8">
+      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <FiBell className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
         Notification Preferences
       </h3>
 
       {/* System Notifications */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-700">System Notifications</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-3 sm:space-y-4">
+        <h4 className="text-xs sm:text-sm font-medium text-gray-700">System Notifications</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
           {[
             { id: "userRegistrations", label: "New user registrations" },
             { id: "jobPostings", label: "New job postings" },
             { id: "applications", label: "New job applications" },
             { id: "reports", label: "Report generation completed" },
           ].map((item) => (
-            <label key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-              <span className="text-sm text-gray-700">{item.label}</span>
+            <label key={item.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+              <span className="text-[10px] sm:text-xs text-gray-700">{item.label}</span>
               <Toggle
                 enabled={formData.system[item.id]}
                 onToggle={() => handleSystemChange(item.id, !formData.system[item.id])}
+                screenSize={screenSize}
               />
             </label>
           ))}
@@ -1038,20 +1077,21 @@ function NotificationsTab({ profile, onSave, saving, showNotification }) {
       </div>
 
       {/* Email Notifications */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-700">Email Notifications</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-3 sm:space-y-4">
+        <h4 className="text-xs sm:text-sm font-medium text-gray-700">Email Notifications</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
           {[
             { id: "dailyDigest", label: "Daily digest email" },
             { id: "weeklyReport", label: "Weekly activity report" },
             { id: "alerts", label: "Important alerts" },
             { id: "marketing", label: "Marketing and updates" },
           ].map((item) => (
-            <label key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-              <span className="text-sm text-gray-700">{item.label}</span>
+            <label key={item.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+              <span className="text-[10px] sm:text-xs text-gray-700">{item.label}</span>
               <Toggle
                 enabled={formData.email[item.id]}
                 onToggle={() => handleEmailChange(item.id, !formData.email[item.id])}
+                screenSize={screenSize}
               />
             </label>
           ))}
@@ -1059,19 +1099,20 @@ function NotificationsTab({ profile, onSave, saving, showNotification }) {
       </div>
 
       {/* Push Notifications */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-700">Push Notifications</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-3 sm:space-y-4">
+        <h4 className="text-xs sm:text-sm font-medium text-gray-700">Push Notifications</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
           {[
             { id: "desktop", label: "Desktop notifications" },
             { id: "mobile", label: "Mobile push notifications" },
             { id: "critical", label: "Critical alerts only" },
           ].map((item) => (
-            <label key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-              <span className="text-sm text-gray-700">{item.label}</span>
+            <label key={item.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+              <span className="text-[10px] sm:text-xs text-gray-700">{item.label}</span>
               <Toggle
                 enabled={formData.push[item.id]}
                 onToggle={() => handlePushChange(item.id, !formData.push[item.id])}
+                screenSize={screenSize}
               />
             </label>
           ))}
@@ -1083,17 +1124,17 @@ function NotificationsTab({ profile, onSave, saving, showNotification }) {
         whileTap={{ scale: 0.98 }}
         onClick={handleSubmit}
         disabled={saving}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg text-xs sm:text-sm font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {saving ? (
           <>
-            <FiRefreshCw className="w-4 h-4 animate-spin" />
-            Saving...
+            <FiRefreshCw className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+            <span>{screenSize === 'mobile' ? 'Saving...' : 'Saving...'}</span>
           </>
         ) : (
           <>
-            <FiSave className="w-4 h-4" />
-            Save Notification Settings
+            <FiSave className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span>{screenSize === 'mobile' ? 'Save' : 'Save Notification Settings'}</span>
           </>
         )}
       </motion.button>
@@ -1103,7 +1144,7 @@ function NotificationsTab({ profile, onSave, saving, showNotification }) {
 
 /* ================= SECURITY TAB ================= */
 
-function SecurityTab({ profile, onSave, saving, showNotification }) {
+function SecurityTab({ profile, onSave, saving, showNotification, screenSize }) {
   const [formData, setFormData] = useState({
     twoFactorEnabled: profile?.securitySettings?.twoFactorEnabled ?? false,
     sessionTimeout: profile?.securitySettings?.sessionTimeout || "30",
@@ -1158,29 +1199,30 @@ function SecurityTab({ profile, onSave, saving, showNotification }) {
   };
 
   return (
-    <div className="space-y-8">
-      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-        <FiShield className="w-5 h-5 text-blue-500" />
+    <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8">
+      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <FiShield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
         Security Settings
       </h3>
 
       {/* Two Factor Authentication */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+      <div className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
           <div>
-            <h4 className="text-sm font-medium text-gray-800">Two-Factor Authentication</h4>
-            <p className="text-xs text-gray-500 mt-1">Add an extra layer of security to your account</p>
+            <h4 className="text-xs sm:text-sm font-medium text-gray-800">Two-Factor Authentication</h4>
+            <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Add an extra layer of security to your account</p>
           </div>
           <Toggle
             enabled={formData.twoFactorEnabled}
             onToggle={() => handleChange("twoFactorEnabled", !formData.twoFactorEnabled)}
+            screenSize={screenSize}
           />
         </div>
       </div>
 
       {/* Session Management */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-700">Session Management</h4>
+      <div className="space-y-3 sm:space-y-4">
+        <h4 className="text-xs sm:text-sm font-medium text-gray-700">Session Management</h4>
         <FormSelect
           label="Session Timeout"
           value={formData.sessionTimeout}
@@ -1193,44 +1235,48 @@ function SecurityTab({ profile, onSave, saving, showNotification }) {
             { value: "240", label: "4 hours" },
             { value: "480", label: "8 hours" },
           ]}
+          screenSize={screenSize}
         />
       </div>
 
       {/* Login Alerts */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+      <div className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
           <div>
-            <h4 className="text-sm font-medium text-gray-800">Login Alerts</h4>
-            <p className="text-xs text-gray-500 mt-1">Receive email alerts on new login</p>
+            <h4 className="text-xs sm:text-sm font-medium text-gray-800">Login Alerts</h4>
+            <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Receive email alerts on new login</p>
           </div>
           <Toggle
             enabled={formData.loginAlerts}
             onToggle={() => handleChange("loginAlerts", !formData.loginAlerts)}
+            screenSize={screenSize}
           />
         </div>
       </div>
 
       {/* IP Whitelist */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-700">IP Whitelist</h4>
+      <div className="space-y-3 sm:space-y-4">
+        <h4 className="text-xs sm:text-sm font-medium text-gray-700">IP Whitelist</h4>
         <FormInput
           label="Allowed IP Addresses"
           placeholder="Enter IP addresses separated by commas"
           value={formData.ipWhitelist}
           onChange={(value) => handleChange("ipWhitelist", value)}
+          screenSize={screenSize}
         />
-        <p className="text-xs text-gray-500">Leave empty to allow all IPs. Separate multiple IPs with commas.</p>
+        <p className="text-[10px] sm:text-xs text-gray-500">Leave empty to allow all IPs. Separate multiple IPs with commas.</p>
       </div>
 
       {/* Change Password */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-700">Change Password</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="space-y-3 sm:space-y-4">
+        <h4 className="text-xs sm:text-sm font-medium text-gray-700">Change Password</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <PasswordInput
             label="Current Password"
             placeholder="Enter current password"
             value={formData.password.current}
             onChange={(value) => handlePasswordChange("current", value)}
+            screenSize={screenSize}
           />
 
           <PasswordInput
@@ -1238,6 +1284,7 @@ function SecurityTab({ profile, onSave, saving, showNotification }) {
             placeholder="Enter new password"
             value={formData.password.new}
             onChange={(value) => handlePasswordChange("new", value)}
+            screenSize={screenSize}
           />
 
           <PasswordInput
@@ -1245,6 +1292,7 @@ function SecurityTab({ profile, onSave, saving, showNotification }) {
             placeholder="Confirm new password"
             value={formData.password.confirm}
             onChange={(value) => handlePasswordChange("confirm", value)}
+            screenSize={screenSize}
           />
         </div>
       </div>
@@ -1254,17 +1302,17 @@ function SecurityTab({ profile, onSave, saving, showNotification }) {
         whileTap={{ scale: 0.98 }}
         onClick={handleSubmit}
         disabled={saving}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg text-xs sm:text-sm font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {saving ? (
           <>
-            <FiRefreshCw className="w-4 h-4 animate-spin" />
-            Saving...
+            <FiRefreshCw className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+            <span>{screenSize === 'mobile' ? 'Saving...' : 'Saving...'}</span>
           </>
         ) : (
           <>
-            <FiSave className="w-4 h-4" />
-            Save Security Settings
+            <FiSave className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span>{screenSize === 'mobile' ? 'Save' : 'Save Security Settings'}</span>
           </>
         )}
       </motion.button>
@@ -1274,7 +1322,7 @@ function SecurityTab({ profile, onSave, saving, showNotification }) {
 
 /* ================= ACCOUNT SETTINGS TAB ================= */
 
-function AccountSettingsTab({ profile, onSave, saving, showNotification }) {
+function AccountSettingsTab({ profile, onSave, saving, showNotification, screenSize }) {
   const [formData, setFormData] = useState({
     contact: {
       email: profile?.accountSettings?.contact?.email || "",
@@ -1328,22 +1376,23 @@ function AccountSettingsTab({ profile, onSave, saving, showNotification }) {
   };
 
   return (
-    <div className="space-y-8">
-      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-        <FiLock className="w-5 h-5 text-blue-500" />
+    <div className="space-y-4 sm:space-y-5 md:space-y-6 lg:space-y-8">
+      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <FiLock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
         Account Settings
       </h3>
 
       {/* Contact Info */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-700">Contact Information</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-3 sm:space-y-4">
+        <h4 className="text-xs sm:text-sm font-medium text-gray-700">Contact Information</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <FormInput
             label="Email Address"
             placeholder="admin@example.com"
             value={formData.contact.email}
             onChange={(value) => handleContactChange("email", value)}
             type="email"
+            screenSize={screenSize}
           />
 
           <FormInput
@@ -1352,23 +1401,25 @@ function AccountSettingsTab({ profile, onSave, saving, showNotification }) {
             value={formData.contact.phone}
             onChange={(value) => handleContactChange("phone", value)}
             type="tel"
+            screenSize={screenSize}
           />
 
-          <div className="md:col-span-2">
+          <div className="sm:col-span-2">
             <FormInput
               label="Location"
               placeholder="City, country"
               value={formData.contact.location}
               onChange={(value) => handleContactChange("location", value)}
+              screenSize={screenSize}
             />
           </div>
         </div>
       </div>
 
       {/* Account Preferences */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-700">Account Preferences</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="space-y-3 sm:space-y-4">
+        <h4 className="text-xs sm:text-sm font-medium text-gray-700">Account Preferences</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <FormSelect
             label="Language"
             value={formData.preferences.language}
@@ -1380,6 +1431,7 @@ function AccountSettingsTab({ profile, onSave, saving, showNotification }) {
               { value: "es", label: "Spanish" },
               { value: "fr", label: "French" },
             ]}
+            screenSize={screenSize}
           />
 
           <FormSelect
@@ -1393,6 +1445,7 @@ function AccountSettingsTab({ profile, onSave, saving, showNotification }) {
               { value: "America/New_York", label: "America/New York (EST)" },
               { value: "Europe/London", label: "Europe/London (GMT)" },
             ]}
+            screenSize={screenSize}
           />
 
           <FormSelect
@@ -1404,67 +1457,71 @@ function AccountSettingsTab({ profile, onSave, saving, showNotification }) {
               { value: "DD/MM/YYYY", label: "DD/MM/YYYY" },
               { value: "YYYY-MM-DD", label: "YYYY-MM-DD" },
             ]}
+            screenSize={screenSize}
           />
         </div>
       </div>
 
       {/* Privacy Settings */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-gray-700">Privacy Settings</h4>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+      <div className="space-y-3 sm:space-y-4">
+        <h4 className="text-xs sm:text-sm font-medium text-gray-700">Privacy Settings</h4>
+        <div className="space-y-2 sm:space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-800">Profile Visibility</h5>
-              <p className="text-xs text-gray-500">Make your profile visible to everyone</p>
+              <h5 className="text-xs sm:text-sm font-medium text-gray-800">Profile Visibility</h5>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Make your profile visible to everyone</p>
             </div>
             <Toggle
               enabled={formData.privacy.profilePublic}
               onToggle={() => handlePrivacyChange("profilePublic", !formData.privacy.profilePublic)}
+              screenSize={screenSize}
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-800">Activity Visibility</h5>
-              <p className="text-xs text-gray-500">Show your activity to other users</p>
+              <h5 className="text-xs sm:text-sm font-medium text-gray-800">Activity Visibility</h5>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Show your activity to other users</p>
             </div>
             <Toggle
               enabled={formData.privacy.activityVisible}
               onToggle={() => handlePrivacyChange("activityVisible", !formData.privacy.activityVisible)}
+              screenSize={screenSize}
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-800">Show Email</h5>
-              <p className="text-xs text-gray-500">Display your email address on profile</p>
+              <h5 className="text-xs sm:text-sm font-medium text-gray-800">Show Email</h5>
+              <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Display your email address on profile</p>
             </div>
             <Toggle
               enabled={formData.privacy.showEmail}
               onToggle={() => handlePrivacyChange("showEmail", !formData.privacy.showEmail)}
+              screenSize={screenSize}
             />
           </div>
         </div>
       </div>
 
       {/* Delete Account */}
-      <div className="space-y-4">
-        <h4 className="text-sm font-medium text-red-600">Danger Zone</h4>
-        <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="space-y-3 sm:space-y-4">
+        <h4 className="text-xs sm:text-sm font-medium text-red-600">Danger Zone</h4>
+        <div className="p-3 sm:p-4 bg-red-50 rounded-lg border border-red-200">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
             <div>
-              <h5 className="text-sm font-medium text-red-800">Delete Your Account</h5>
-              <p className="text-xs text-red-600 mt-1">
+              <h5 className="text-xs sm:text-sm font-medium text-red-800">Delete Your Account</h5>
+              <p className="text-[10px] sm:text-xs text-red-600 mt-0.5">
                 Once you delete your account, there is no going back. Please be certain.
               </p>
             </div>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 text-xs sm:text-sm"
             >
-              <FiTrash2 className="w-4 h-4" />
-              Delete Account
+              <FiTrash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+              {screenSize === 'mobile' ? 'Delete' : 'Delete Account'}
             </motion.button>
           </div>
         </div>
@@ -1475,17 +1532,17 @@ function AccountSettingsTab({ profile, onSave, saving, showNotification }) {
         whileTap={{ scale: 0.98 }}
         onClick={handleSubmit}
         disabled={saving}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg text-xs sm:text-sm font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {saving ? (
           <>
-            <FiRefreshCw className="w-4 h-4 animate-spin" />
-            Saving...
+            <FiRefreshCw className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+            <span>{screenSize === 'mobile' ? 'Saving...' : 'Saving...'}</span>
           </>
         ) : (
           <>
-            <FiSave className="w-4 h-4" />
-            Save All Settings
+            <FiSave className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span>{screenSize === 'mobile' ? 'Save' : 'Save All Settings'}</span>
           </>
         )}
       </motion.button>
@@ -1495,10 +1552,10 @@ function AccountSettingsTab({ profile, onSave, saving, showNotification }) {
 
 /* ================= REUSABLE COMPONENTS ================= */
 
-function FormInput({ label, placeholder, value, onChange, type = "text", required = false }) {
+function FormInput({ label, placeholder, value, onChange, type = "text", required = false, screenSize }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1 sm:mb-2">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
@@ -1507,24 +1564,24 @@ function FormInput({ label, placeholder, value, onChange, type = "text", require
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        className="w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
         required={required}
       />
     </div>
   );
 }
 
-function FormSelect({ label, value, onChange, options, required = false }) {
+function FormSelect({ label, value, onChange, options, required = false, screenSize }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1 sm:mb-2">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        className="w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
         required={required}
       >
         {options.map((option) => (
@@ -1537,12 +1594,12 @@ function FormSelect({ label, value, onChange, options, required = false }) {
   );
 }
 
-function PasswordInput({ label, placeholder, value, onChange }) {
+function PasswordInput({ label, placeholder, value, onChange, screenSize }) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-[10px] sm:text-xs font-medium text-gray-700 mb-1 sm:mb-2">
         {label}
       </label>
       <div className="relative">
@@ -1551,32 +1608,32 @@ function PasswordInput({ label, placeholder, value, onChange }) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-10"
+          className="w-full rounded-lg border border-gray-300 px-3 sm:px-4 py-2 sm:py-2.5 text-[10px] sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all pr-8 sm:pr-10"
         />
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
         >
-          {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+          {showPassword ? <FiEyeOff className="w-3 h-3 sm:w-4 sm:h-4" /> : <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />}
         </button>
       </div>
     </div>
   );
 }
 
-function Toggle({ enabled, onToggle }) {
+function Toggle({ enabled, onToggle, screenSize }) {
   return (
     <button
       type="button"
       onClick={onToggle}
-      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+      className={`relative inline-flex h-5 w-9 sm:h-6 sm:w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
         enabled ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-300'
       }`}
     >
       <span
-        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
-          enabled ? 'translate-x-5' : 'translate-x-0'
+        className={`pointer-events-none inline-block h-4 w-4 sm:h-5 sm:w-5 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+          enabled ? 'translate-x-4 sm:translate-x-5' : 'translate-x-0'
         }`}
       />
     </button>

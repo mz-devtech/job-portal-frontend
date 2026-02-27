@@ -19,6 +19,21 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [verifiedMessage, setVerifiedMessage] = useState('');
+  const [screenSize, setScreenSize] = useState('desktop');
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) setScreenSize('mobile');
+      else if (width >= 640 && width < 1024) setScreenSize('tablet');
+      else setScreenSize('desktop');
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   const {
     register,
@@ -95,57 +110,58 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-md mx-auto px-3 sm:px-4 md:px-0">
       {/* Header with animation */}
-      <div className="mb-8 text-center animate-fadeInDown">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 mb-4 group hover:scale-110 transition-transform duration-300">
-          <LogIn className="w-8 h-8 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
+      <div className="mb-5 sm:mb-6 md:mb-7 lg:mb-8 text-center animate-fadeInDown">
+        <div className="inline-flex items-center justify-center w-12 h-12 sm:w-13 sm:h-13 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 mb-2 sm:mb-3 md:mb-4 group hover:scale-110 transition-transform duration-300">
+          <LogIn className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
         </div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2 flex items-center justify-center gap-2">
+        <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1 sm:mb-2 flex items-center justify-center gap-1 sm:gap-2">
           Welcome Back
-          <Sparkles className="w-5 h-5 text-blue-500 animate-pulse" />
+          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 animate-pulse" />
         </h1>
-        <p className="text-gray-600">
-          Don't have an account?{' '}
+        <p className="text-[10px] sm:text-xs md:text-sm text-gray-600">
+          {screenSize === 'mobile' ? "New here?" : "Don't have an account?"}{' '}
           <Link 
             href="/register" 
             className="text-blue-600 font-medium hover:text-blue-700 transition-colors duration-300 underline decoration-2 decoration-transparent hover:decoration-blue-600 inline-flex items-center gap-1 group"
           >
-            Create Account
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+            <span className="hidden sm:inline">Create Account</span>
+            <span className="sm:hidden">Sign up</span>
+            <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-300" />
           </Link>
         </p>
       </div>
 
       {/* Verified Message */}
       {verifiedMessage && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl animate-slideDown">
-          <div className="flex items-center gap-3">
+        <div className="mb-3 sm:mb-4 p-2 sm:p-3 md:p-4 bg-green-50 border border-green-200 rounded-lg sm:rounded-xl animate-slideDown">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative">
-              <CheckCircle className="w-5 h-5 text-green-600 animate-bounceIn" />
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 animate-bounceIn" />
               <div className="absolute -inset-1 bg-green-400 rounded-full opacity-20 animate-ping"></div>
             </div>
-            <p className="text-sm text-green-700">{verifiedMessage}</p>
+            <p className="text-[10px] sm:text-xs text-green-700">{verifiedMessage}</p>
           </div>
         </div>
       )}
 
       {/* Display Redux error */}
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl animate-shake">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
-            <p className="text-sm text-red-600">{error}</p>
+        <div className="mb-3 sm:mb-4 p-2 sm:p-3 md:p-4 bg-red-50 border border-red-200 rounded-lg sm:rounded-xl animate-shake">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-red-600 rounded-full animate-pulse"></div>
+            <p className="text-[10px] sm:text-xs text-red-600">{error}</p>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 animate-fadeInUp" style={{ animationDelay: '100ms' }}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5 animate-fadeInUp" style={{ animationDelay: '100ms' }}>
         {/* Email Field */}
         <div className="group">
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-            <Mail className="w-4 h-4 text-blue-500" />
-            Email address <span className="text-red-500">*</span>
+          <label htmlFor="email" className="block text-[10px] sm:text-xs md:text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+            <Mail className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+            {screenSize === 'mobile' ? 'Email' : 'Email address'} <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <input
@@ -158,17 +174,17 @@ export default function LoginPage() {
                   message: 'Invalid email address',
                 },
               })}
-              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-400 ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm border rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-400 ${
                 errors.email ? 'border-red-300 bg-red-50/50' : 'border-gray-200'
               }`}
-              placeholder="john@example.com"
+              placeholder={screenSize === 'mobile' ? "Email" : "john@example.com"}
             />
             {!errors.email && isDirty && (
-              <CheckCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500 animate-scaleIn" />
+              <CheckCircle className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-green-500 animate-scaleIn" />
             )}
           </div>
           {errors.email && (
-            <p className="mt-1 text-xs text-red-600 flex items-center gap-1 animate-shake">
+            <p className="mt-1 text-[8px] sm:text-[10px] text-red-600 flex items-center gap-1 animate-shake">
               <span className="w-1 h-1 bg-red-600 rounded-full"></span>
               {errors.email.message}
             </p>
@@ -177,8 +193,8 @@ export default function LoginPage() {
 
         {/* Password Field */}
         <div className="group">
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-            <Lock className="w-4 h-4 text-blue-500" />
+          <label htmlFor="password" className="block text-[10px] sm:text-xs md:text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+            <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
             Password <span className="text-red-500">*</span>
           </label>
           <div className="relative">
@@ -192,7 +208,7 @@ export default function LoginPage() {
                   message: 'Password must be at least 6 characters',
                 },
               })}
-              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-400 pr-10 ${
+              className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 md:py-3 text-xs sm:text-sm border rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-400 pr-8 sm:pr-10 ${
                 errors.password ? 'border-red-300 bg-red-50/50' : 'border-gray-200'
               }`}
               placeholder="••••••••"
@@ -200,13 +216,13 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors duration-300"
+              className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors duration-300"
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showPassword ? <EyeOff size={screenSize === 'mobile' ? 16 : 18} /> : <Eye size={screenSize === 'mobile' ? 16 : 18} />}
             </button>
           </div>
           {errors.password && (
-            <p className="mt-1 text-xs text-red-600 flex items-center gap-1 animate-shake">
+            <p className="mt-1 text-[8px] sm:text-[10px] text-red-600 flex items-center gap-1 animate-shake">
               <span className="w-1 h-1 bg-red-600 rounded-full"></span>
               {errors.password.message}
             </p>
@@ -215,23 +231,23 @@ export default function LoginPage() {
 
         {/* Remember Me & Forgot Password */}
         <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 cursor-pointer group">
+          <label className="flex items-center gap-1 sm:gap-2 cursor-pointer group">
             <input
               id="rememberMe"
               type="checkbox"
               {...register('rememberMe')}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer transition-transform duration-300 group-hover:scale-110"
+              className="w-3 h-3 sm:w-4 sm:h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer transition-transform duration-300 group-hover:scale-110"
             />
-            <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors duration-300">
+            <span className="text-[10px] sm:text-xs text-gray-700 group-hover:text-gray-900 transition-colors duration-300">
               Remember me
             </span>
           </label>
 
           <Link 
             href="/forgot-password" 
-            className="text-sm text-blue-600 hover:text-blue-700 transition-colors duration-300 underline decoration-2 decoration-transparent hover:decoration-blue-600"
+            className="text-[10px] sm:text-xs text-blue-600 hover:text-blue-700 transition-colors duration-300 underline decoration-2 decoration-transparent hover:decoration-blue-600"
           >
-            Forgot password?
+            {screenSize === 'mobile' ? 'Forgot?' : 'Forgot password?'}
           </Link>
         </div>
 
@@ -239,59 +255,63 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isLoading}
-          className="relative w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3.5 px-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] hover:shadow-xl overflow-hidden group"
+          className="relative w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-2.5 sm:py-3 md:py-3.5 px-4 rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] hover:shadow-xl overflow-hidden group mt-4 sm:mt-5 md:mt-6 text-xs sm:text-sm"
         >
           {/* Shine effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           
           {isLoading ? (
             <span className="flex items-center justify-center">
-              <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Signing in...
+              <span className="hidden sm:inline">Signing in...</span>
+              <span className="sm:hidden">Signing in</span>
             </span>
           ) : loginSuccess ? (
-            <span className="flex items-center justify-center gap-2">
-              <CheckCircle className="w-5 h-5 animate-bounceIn" />
-              Login Successful!
+            <span className="flex items-center justify-center gap-1 sm:gap-2">
+              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 animate-bounceIn" />
+              <span className="hidden sm:inline">Login Successful!</span>
+              <span className="sm:hidden">Success!</span>
             </span>
           ) : (
-            <span className="flex items-center justify-center gap-2">
-              Sign in
-              <LogIn className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+            <span className="flex items-center justify-center gap-1 sm:gap-2">
+              <span className="hidden sm:inline">Sign in</span>
+              <span className="sm:hidden">Login</span>
+              <LogIn className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-300" />
             </span>
           )}
         </button>
       </form>
 
       {/* Social Login */}
-      <div className="mt-8 pt-6 border-t border-gray-200 animate-fadeInUp" style={{ animationDelay: '200ms' }}>
+      <div className="mt-5 sm:mt-6 md:mt-7 lg:mt-8 pt-4 sm:pt-5 md:pt-6 border-t border-gray-200 animate-fadeInUp" style={{ animationDelay: '200ms' }}>
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300"></div>
           </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-4 bg-white text-gray-500 flex items-center gap-2">
+          <div className="relative flex justify-center text-[8px] sm:text-[10px] md:text-xs">
+            <span className="px-2 sm:px-4 bg-white text-gray-500 flex items-center gap-1 sm:gap-2">
               <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
-              Or continue with
+              {screenSize === 'mobile' ? 'Or continue with' : 'Or continue with'}
               <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
             </span>
           </div>
         </div>
         
-        <div className="mt-4 transform transition-all duration-500 hover:scale-105">
+        <div className="mt-3 sm:mt-4 transform transition-all duration-500 hover:scale-105">
           <SocialButtons type="signin" />
         </div>
       </div>
 
       {/* Security Note */}
-      <div className="mt-6 text-center">
-        <p className="text-xs text-gray-500 flex items-center justify-center gap-2">
-          <Shield className="w-3 h-3 text-blue-500" />
-          Protected by industry-leading security
-          <Shield className="w-3 h-3 text-blue-500" />
+      <div className="mt-4 sm:mt-5 md:mt-6 text-center">
+        <p className="text-[8px] sm:text-[10px] text-gray-500 flex items-center justify-center gap-1 sm:gap-2">
+          <Shield className="w-2 h-2 sm:w-3 sm:h-3 text-blue-500" />
+          <span className="hidden sm:inline">Protected by industry-leading security</span>
+          <span className="sm:hidden">Secure login</span>
+          <Shield className="w-2 h-2 sm:w-3 sm:h-3 text-blue-500" />
         </p>
       </div>
 

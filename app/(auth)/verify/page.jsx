@@ -14,7 +14,22 @@ export default function VerifyPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isVerified, setIsVerified] = useState(false);
+  const [screenSize, setScreenSize] = useState('desktop');
   const inputsRef = useRef([]);
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) setScreenSize('mobile');
+      else if (width >= 640 && width < 1024) setScreenSize('tablet');
+      else setScreenSize('desktop');
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   useEffect(() => {
     // Get stored email on component mount
@@ -109,8 +124,8 @@ export default function VerifyPage() {
 
       // Verify email - send BOTH code and email
       const result = await authService.verifyEmail({
-        code: verificationCode,  // Send as 'code' not 'token'
-        email: email              // Send email explicitly
+        code: verificationCode,
+        email: email
       });
 
       console.log('✅ [VerifyPage] Verification successful:', result);
@@ -178,28 +193,30 @@ export default function VerifyPage() {
   // If no email found, show loading/redirect
   if (!email) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center p-3 sm:p-4">
         <div className="relative w-full max-w-md">
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-          </div>
+          {screenSize !== 'mobile' && (
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+            </div>
+          )}
           
-          <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-200/50 text-center">
-            <div className="flex justify-center mb-6">
+          <div className="relative bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl md:rounded-2xl shadow-2xl p-5 sm:p-6 md:p-8 border border-gray-200/50 text-center">
+            <div className="flex justify-center mb-4 sm:mb-5 md:mb-6">
               <div className="relative">
-                <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 border-3 sm:border-4 border-blue-200 border-t-blue-600"></div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Mail className="w-6 h-6 text-blue-500 animate-pulse" />
+                  <Mail className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 animate-pulse" />
                 </div>
               </div>
             </div>
             
-            <h2 className="text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+            <h2 className="text-base sm:text-lg md:text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1 sm:mb-2">
               Loading Verification
             </h2>
             
-            <p className="text-gray-500 text-sm animate-pulse">
+            <p className="text-xs sm:text-sm text-gray-500 animate-pulse">
               Please wait while we load your verification session...
             </p>
           </div>
@@ -209,40 +226,42 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white flex items-center justify-center py-6 sm:py-8 md:py-10 lg:py-12 px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8">
       <div className="relative w-full max-w-md">
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        </div>
+        {/* Decorative background elements - hidden on mobile */}
+        {screenSize !== 'mobile' && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+          </div>
+        )}
 
         {/* Main Card */}
-        <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-200/50 animate-scaleIn">
+        <div className="relative bg-white/80 backdrop-blur-sm rounded-lg sm:rounded-xl md:rounded-2xl shadow-2xl p-5 sm:p-6 md:p-7 lg:p-8 border border-gray-200/50 animate-scaleIn">
           
           {/* Header */}
-          <div className="text-center mb-8 animate-fadeInDown">
+          <div className="text-center mb-5 sm:mb-6 md:mb-7 lg:mb-8 animate-fadeInDown">
             <div className="relative inline-block">
-              <div className="flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 mx-auto mb-4 group hover:scale-110 transition-transform duration-300">
-                <Mail className="h-8 w-8 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
+              <div className="flex items-center justify-center h-12 w-12 sm:h-13 sm:w-13 md:h-14 md:w-14 lg:h-16 lg:w-16 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 mx-auto mb-3 sm:mb-4 group hover:scale-110 transition-transform duration-300">
+                <Mail className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
               </div>
-              <Sparkles className="absolute -top-2 -right-2 w-5 h-5 text-yellow-400 animate-pulse" />
+              <Sparkles className="absolute -top-2 -right-2 w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 text-yellow-400 animate-pulse" />
             </div>
             
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1 sm:mb-2">
               {isVerified ? 'Email Verified!' : 'Verify Your Email'}
             </h2>
             
             {!isVerified && (
               <>
-                <p className="text-sm text-gray-600 mb-1">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 mb-1">
                   Enter the 6-digit verification code sent to
                 </p>
-                <p className="font-medium text-gray-900 break-words bg-blue-50 inline-block px-4 py-1.5 rounded-full text-sm">
+                <p className="font-medium text-gray-900 break-words bg-blue-50 inline-block px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs md:text-sm">
                   {email}
                 </p>
-                <div className="mt-3 flex items-center justify-center gap-2 text-xs text-gray-500">
-                  <Clock className="w-3 h-3 text-blue-500" />
+                <div className="mt-2 sm:mt-3 flex items-center justify-center gap-1 sm:gap-2 text-[8px] sm:text-[10px] md:text-xs text-gray-500">
+                  <Clock className="w-2 h-2 sm:w-3 sm:h-3 text-blue-500" />
                   <span>Code expires in 10 minutes</span>
                 </div>
               </>
@@ -252,32 +271,32 @@ export default function VerifyPage() {
           {/* Success State */}
           {isVerified ? (
             <div className="text-center animate-scaleIn">
-              <div className="relative mb-6">
+              <div className="relative mb-4 sm:mb-5 md:mb-6">
                 <div className="absolute inset-0 bg-green-200 rounded-full animate-ping opacity-30"></div>
-                <div className="relative flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 mx-auto animate-bounceIn">
-                  <CheckCircle className="h-10 w-10 text-green-600" />
+                <div className="relative flex items-center justify-center h-16 w-16 sm:h-17 sm:w-17 md:h-18 md:w-18 lg:h-20 lg:w-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 mx-auto animate-bounceIn">
+                  <CheckCircle className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 text-green-600" />
                 </div>
-                <Sparkles className="absolute -top-2 -right-2 w-6 h-6 text-yellow-400 animate-pulse" />
+                <Sparkles className="absolute -top-2 -right-2 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-yellow-400 animate-pulse" />
               </div>
               
-              <p className="text-gray-600 mb-4">
+              <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 mb-3 sm:mb-4">
                 Your email has been verified successfully!
               </p>
               
-              <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center justify-center gap-1 sm:gap-2 text-[8px] sm:text-[10px] md:text-xs text-gray-500">
                 <span>Redirecting to login</span>
-                <ArrowRight className="w-4 h-4 animate-pulse" />
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 animate-pulse" />
               </div>
             </div>
           ) : (
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-4 sm:space-y-5 md:space-y-6" onSubmit={handleSubmit}>
               {/* 6-digit code input */}
               <div className="animate-fadeInUp" style={{ animationDelay: '100ms' }}>
-                <label className="block text-sm font-medium text-gray-700 mb-3 text-center">
+                <label className="block text-[10px] sm:text-xs md:text-sm font-medium text-gray-700 mb-2 sm:mb-3 text-center">
                   Verification Code
                 </label>
                 <div 
-                  className="flex justify-center gap-2 sm:gap-3" 
+                  className="flex justify-center gap-1 sm:gap-2 md:gap-3" 
                   onPaste={handlePaste}
                 >
                   {code.map((digit, index) => (
@@ -291,56 +310,60 @@ export default function VerifyPage() {
                       onChange={(e) => handleChange(index, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(index, e)}
                       disabled={isLoading}
-                      className={`w-12 h-12 sm:w-14 sm:h-14 text-center text-xl sm:text-2xl font-bold border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-400 ${
+                      className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 text-center text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold border-2 rounded-lg sm:rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 hover:border-blue-400 ${
                         digit ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                       } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                       style={{ animationDelay: `${150 + index * 50}ms` }}
                     />
                   ))}
                 </div>
-                <p className="mt-3 text-xs text-gray-500 text-center flex items-center justify-center gap-1">
-                  <Mail className="w-3 h-3 text-blue-500" />
+                <p className="mt-2 sm:mt-3 text-[8px] sm:text-[10px] md:text-xs text-gray-500 text-center flex items-center justify-center gap-1">
+                  <Mail className="w-2 h-2 sm:w-3 sm:h-3 text-blue-500" />
                   Enter the 6-digit code from your email
                 </p>
               </div>
 
-              <div className="space-y-4 animate-fadeInUp" style={{ animationDelay: '200ms' }}>
+              <div className="space-y-3 sm:space-y-4 animate-fadeInUp" style={{ animationDelay: '200ms' }}>
                 <button
                   type="submit"
                   disabled={isLoading || code.some(digit => digit === '')}
-                  className="relative w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-3.5 px-4 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] hover:shadow-xl overflow-hidden group"
+                  className="relative w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold py-2.5 sm:py-3 md:py-3.5 px-4 rounded-lg sm:rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] hover:shadow-xl overflow-hidden group text-xs sm:text-sm"
                 >
                   {/* Shine effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                   
                   {isLoading ? (
                     <span className="flex items-center justify-center">
-                      <RotateCw className="animate-spin h-5 w-5 mr-2" />
-                      Verifying...
+                      <RotateCw className="animate-spin h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      <span className="hidden sm:inline">Verifying...</span>
+                      <span className="sm:hidden">Verifying</span>
                     </span>
                   ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      Verify Email
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                    <span className="flex items-center justify-center gap-1 sm:gap-2">
+                      <span className="hidden sm:inline">Verify Email</span>
+                      <span className="sm:hidden">Verify</span>
+                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform duration-300" />
                     </span>
                   )}
                 </button>
 
-                <div className="text-center space-y-4">
+                <div className="text-center space-y-3 sm:space-y-4">
                   <button
                     type="button"
                     onClick={handleResendCode}
                     disabled={countdown > 0 || isLoading}
-                    className="group text-sm text-blue-600 hover:text-blue-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-all duration-300"
+                    className="group text-[10px] sm:text-xs md:text-sm text-blue-600 hover:text-blue-700 disabled:text-gray-400 disabled:cursor-not-allowed transition-all duration-300"
                   >
                     {countdown > 0 ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <Clock className="w-4 h-4 animate-pulse" />
-                        Resend code in {countdown}s
+                      <span className="flex items-center justify-center gap-1 sm:gap-2">
+                        <Clock className="w-3 h-3 sm:w-4 sm:h-4 animate-pulse" />
+                        <span className="hidden sm:inline">Resend code in {countdown}s</span>
+                        <span className="sm:hidden">{countdown}s</span>
                       </span>
                     ) : (
-                      <span className="flex items-center justify-center gap-1">
-                        Didn't receive a code? 
+                      <span className="flex items-center justify-center gap-0.5 sm:gap-1">
+                        <span className="hidden sm:inline">Didn't receive a code?</span>
+                        <span className="sm:hidden">No code?</span>
                         <span className="font-medium underline decoration-2 decoration-transparent hover:decoration-blue-600 transition-all duration-300">
                           Resend
                         </span>
@@ -348,34 +371,36 @@ export default function VerifyPage() {
                     )}
                   </button>
                   
-                  <div className="pt-4 border-t border-gray-200 space-y-3">
+                  <div className="pt-3 sm:pt-4 border-t border-gray-200 space-y-2 sm:space-y-3">
                     <Link 
                       href="/register" 
-                      className="block text-sm text-gray-600 hover:text-gray-900 transition-colors duration-300 group"
+                      className="block text-[8px] sm:text-[10px] md:text-xs text-gray-600 hover:text-gray-900 transition-colors duration-300 group"
                       onClick={() => {
                         localStorage.removeItem('userEmail');
                         localStorage.removeItem('userRole');
                       }}
                     >
-                      <span className="flex items-center justify-center gap-1">
-                        Wrong email? 
+                      <span className="flex items-center justify-center gap-0.5 sm:gap-1">
+                        <span className="hidden sm:inline">Wrong email?</span>
+                        <span className="sm:hidden">Wrong email?</span>
                         <span className="text-blue-600 group-hover:text-blue-700 font-medium">
                           Register again
                         </span>
-                        <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" />
+                        <ArrowRight className="w-2 h-2 sm:w-3 sm:h-3 group-hover:translate-x-1 transition-transform duration-300" />
                       </span>
                     </Link>
                     
                     <Link 
                       href="/login" 
-                      className="block text-sm text-gray-600 hover:text-gray-900 transition-colors duration-300 group"
+                      className="block text-[8px] sm:text-[10px] md:text-xs text-gray-600 hover:text-gray-900 transition-colors duration-300 group"
                     >
-                      <span className="flex items-center justify-center gap-1">
-                        Already verified? 
+                      <span className="flex items-center justify-center gap-0.5 sm:gap-1">
+                        <span className="hidden sm:inline">Already verified?</span>
+                        <span className="sm:hidden">Verified?</span>
                         <span className="text-blue-600 group-hover:text-blue-700 font-medium">
                           Log in here
                         </span>
-                        <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform duration-300" />
+                        <ArrowRight className="w-2 h-2 sm:w-3 sm:h-3 group-hover:translate-x-1 transition-transform duration-300" />
                       </span>
                     </Link>
                   </div>
@@ -385,11 +410,12 @@ export default function VerifyPage() {
           )}
 
           {/* Security Note */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-xs text-gray-500 flex items-center justify-center gap-2">
-              <Shield className="w-3 h-3 text-blue-500" />
-              Your verification code is encrypted and secure
-              <Shield className="w-3 h-3 text-blue-500" />
+          <div className="mt-5 sm:mt-6 md:mt-7 lg:mt-8 pt-4 sm:pt-5 md:pt-6 border-t border-gray-200">
+            <p className="text-[8px] sm:text-[10px] md:text-xs text-gray-500 flex items-center justify-center gap-1 sm:gap-2">
+              <Shield className="w-2 h-2 sm:w-3 sm:h-3 text-blue-500" />
+              <span className="hidden sm:inline">Your verification code is encrypted and secure</span>
+              <span className="sm:hidden">Encrypted & secure</span>
+              <Shield className="w-2 h-2 sm:w-3 sm:h-3 text-blue-500" />
             </p>
           </div>
         </div>

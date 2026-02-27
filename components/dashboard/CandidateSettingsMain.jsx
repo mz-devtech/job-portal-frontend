@@ -7,7 +7,7 @@ import {
   FiBook, FiGlobe, FiMapPin, FiPhone, FiMail, FiEye,
   FiEyeOff, FiLock, FiUser, FiCheck, FiLink, FiFile,
   FiRefreshCw, FiHome, FiCamera, FiLoader, FiAlertCircle,
-  FiImage
+  FiImage, FiBell
 } from "react-icons/fi";
 import { Sparkles, Shield, ArrowRight, Building, Users, Share2, Phone, CheckCircle } from 'lucide-react';
 import { profileService } from "@/services/candidateprofileService";
@@ -21,6 +21,21 @@ export default function CandidateSettingsMain() {
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState(null);
   const [hoveredTab, setHoveredTab] = useState(null);
+  const [screenSize, setScreenSize] = useState('desktop');
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) setScreenSize('mobile');
+      else if (width >= 640 && width < 1024) setScreenSize('tablet');
+      else setScreenSize('desktop');
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   useEffect(() => {
     fetchUserData();
@@ -100,22 +115,22 @@ export default function CandidateSettingsMain() {
 
   if (loading) {
     return (
-      <main className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-white px-3 py-4 sm:px-4 md:ml-[270px] md:w-[calc(100%-270px)] md:h-[calc(100vh-7rem)] md:overflow-y-auto flex items-center justify-center relative">
-        {/* Animated Background */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      <main className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-white px-3 sm:px-4 py-4 sm:py-6 md:ml-[270px] md:w-[calc(100%-270px)] md:h-[calc(100vh-7rem)] md:overflow-y-auto flex items-center justify-center relative pb-20 md:pb-6">
+        {/* Animated Background - Hidden on mobile */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none hidden sm:block">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
         </div>
         
         <div className="relative text-center animate-fadeIn">
           <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 border-3 sm:border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 bg-blue-100 rounded-full animate-pulse"></div>
+              <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-blue-100 rounded-full animate-pulse"></div>
             </div>
           </div>
-          <p className="mt-4 text-sm text-gray-600 flex items-center gap-2">
-            <FiLoader className="w-4 h-4 animate-spin" />
+          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600 flex items-center gap-2 justify-center">
+            <FiLoader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
             Loading profile data...
           </p>
         </div>
@@ -124,49 +139,53 @@ export default function CandidateSettingsMain() {
   }
 
   return (
-    <main className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-white px-3 py-4 sm:px-4 md:ml-[270px] md:w-[calc(100%-270px)] md:h-[calc(100vh-7rem)] md:overflow-y-auto relative">
+    <main className="w-full min-h-screen bg-gradient-to-br from-gray-50 to-white px-3 sm:px-4 py-4 sm:py-6 md:ml-[270px] md:w-[calc(100%-270px)] md:h-[calc(100vh-7rem)] md:overflow-y-auto relative pb-20 md:pb-6">
       
-      {/* Animated Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
-      </div>
+      {/* Animated Background - Hidden on mobile */}
+      {screenSize !== 'mobile' && (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+        </div>
+      )}
 
       <div className="relative z-10 max-w-6xl mx-auto">
         {/* Page Title */}
-        <div className="flex justify-between items-center animate-fadeIn ml-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 animate-fadeIn">
           <div className="flex items-center gap-2">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg blur opacity-30"></div>
-              <div className="relative w-8 h-8 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
-                <FiUser className="w-4 h-4 text-white" />
+              <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center">
+                <FiUser className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
               </div>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
               Profile Settings
-              <Sparkles className="w-4 h-4 text-yellow-500 animate-pulse" />
+              <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500 animate-pulse" />
             </h2>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <button
               onClick={handleRefresh}
-              className="group flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-800 transition-all px-3 py-1.5 rounded-md border border-gray-200 hover:border-blue-400 hover:bg-blue-50"
+              className="group flex items-center gap-1 text-[10px] sm:text-xs text-gray-600 hover:text-gray-800 transition-all px-2 sm:px-3 py-1 sm:py-1.5 rounded-md border border-gray-200 hover:border-blue-400 hover:bg-blue-50"
             >
-              <FiRefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
-              Refresh
+              <FiRefreshCw size={screenSize === 'mobile' ? 12 : 14} className="group-hover:rotate-180 transition-transform duration-500" />
+              {screenSize !== 'mobile' && 'Refresh'}
             </button>
 
             {profile?.completionPercentage !== undefined && (
-              <div className="flex items-center gap-2 bg-green-50 px-3 py-1.5 rounded-full">
-                <div className="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-300"
-                    style={{ width: `${profile.completionPercentage}%` }}
-                  />
-                </div>
-                <span className="text-xs text-green-600 font-medium">
-                  {profile.completionPercentage}% complete
+              <div className="flex items-center gap-1 sm:gap-2 bg-green-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">
+                {screenSize !== 'mobile' && (
+                  <div className="w-16 sm:w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-300"
+                      style={{ width: `${profile.completionPercentage}%` }}
+                    />
+                  </div>
+                )}
+                <span className="text-[8px] sm:text-xs text-green-600 font-medium">
+                  {profile.completionPercentage}% {screenSize !== 'mobile' && 'complete'}
                 </span>
               </div>
             )}
@@ -175,24 +194,24 @@ export default function CandidateSettingsMain() {
 
         {/* Profile Status Alert - Only show if profile exists and is incomplete */}
         {profile && !profile.isProfileComplete && (
-          <div className="mt-4 animate-slideIn">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-center">
+          <div className="mt-3 sm:mt-4 animate-slideIn">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start sm:items-center">
                 <div className="flex-shrink-0">
-                  <FiAlertCircle className="h-5 w-5 text-yellow-400" />
+                  <FiAlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400" />
                 </div>
-                <div className="ml-3 flex-1">
-                  <h3 className="text-sm font-medium text-yellow-800">
+                <div className="ml-2 sm:ml-3 flex-1">
+                  <h3 className="text-xs sm:text-sm font-medium text-yellow-800">
                     Complete your profile
                   </h3>
-                  <div className="mt-2 text-sm text-yellow-700">
+                  <div className="mt-1 sm:mt-2 text-[10px] sm:text-sm text-yellow-700">
                     <p>
                       Your profile is {profile.completionPercentage}% complete.
-                      Complete all sections to increase your visibility to employers.
+                      {screenSize !== 'mobile' && ' Complete all sections to increase your visibility to employers.'}
                     </p>
-                    <div className="mt-2 w-full bg-yellow-200 rounded-full h-2">
+                    <div className="mt-2 w-full bg-yellow-200 rounded-full h-1.5 sm:h-2">
                       <div
-                        className="bg-yellow-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-yellow-600 h-1.5 sm:h-2 rounded-full transition-all duration-300"
                         style={{ width: `${profile.completionPercentage}%` }}
                       />
                     </div>
@@ -205,24 +224,24 @@ export default function CandidateSettingsMain() {
 
         {/* Success Alert - Show when profile is complete */}
         {profile && profile.isProfileComplete && (
-          <div className="mt-4 animate-slideIn">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center">
+          <div className="mt-3 sm:mt-4 animate-slideIn">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
+              <div className="flex items-start sm:items-center">
                 <div className="flex-shrink-0">
-                  <CheckCircle className="h-5 w-5 text-green-400" />
+                  <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
                 </div>
-                <div className="ml-3 flex-1">
-                  <h3 className="text-sm font-medium text-green-800">
+                <div className="ml-2 sm:ml-3 flex-1">
+                  <h3 className="text-xs sm:text-sm font-medium text-green-800">
                     Profile Complete! 🎉
                   </h3>
-                  <div className="mt-2 text-sm text-green-700">
+                  <div className="mt-1 sm:mt-2 text-[10px] sm:text-sm text-green-700">
                     <p>
                       Your profile is 100% complete and visible to employers.
-                      Keep it updated for better job opportunities.
+                      {screenSize !== 'mobile' && ' Keep it updated for better job opportunities.'}
                     </p>
-                    <div className="mt-2 w-full bg-green-200 rounded-full h-2">
+                    <div className="mt-2 w-full bg-green-200 rounded-full h-1.5 sm:h-2">
                       <div
-                        className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-green-600 h-1.5 sm:h-2 rounded-full transition-all duration-300"
                         style={{ width: `${profile.completionPercentage}%` }}
                       />
                     </div>
@@ -233,54 +252,59 @@ export default function CandidateSettingsMain() {
           </div>
         )}
 
-        {/* Tabs */}
-        <div className="mt-6 flex gap-4 border-b text-xs overflow-x-auto pb-1 animate-fadeIn">
+        {/* Tabs - Horizontal Scroll on Mobile */}
+        <div className="mt-4 sm:mt-5 md:mt-6 flex gap-2 sm:gap-4 border-b text-[10px] sm:text-xs overflow-x-auto pb-1 animate-fadeIn scrollbar-hide">
           <Tab 
-            label="Personal Info"
-            icon={<FiUser className="w-3.5 h-3.5" />}
+            label={screenSize === 'mobile' ? "Personal" : "Personal Info"}
+            icon={<FiUser className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             active={activeTab === "personal"} 
             hovered={hoveredTab === "personal"}
             onHover={() => setHoveredTab("personal")}
             onLeave={() => setHoveredTab(null)}
             onClick={() => handleTabChange("personal")}
+            screenSize={screenSize}
           />
           <Tab 
-            label="Profile Details"
-            icon={<FiBriefcase className="w-3.5 h-3.5" />}
+            label={screenSize === 'mobile' ? "Profile" : "Profile Details"}
+            icon={<FiBriefcase className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             active={activeTab === "profile"} 
             hovered={hoveredTab === "profile"}
             onHover={() => setHoveredTab("profile")}
             onLeave={() => setHoveredTab(null)}
             onClick={() => handleTabChange("profile")}
+            screenSize={screenSize}
           />
           <Tab 
-            label="Social Links"
-            icon={<Share2 className="w-3.5 h-3.5" />}
+            label={screenSize === 'mobile' ? "Social" : "Social Links"}
+            icon={<Share2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             active={activeTab === "social"} 
             hovered={hoveredTab === "social"}
             onHover={() => setHoveredTab("social")}
             onLeave={() => setHoveredTab(null)}
             onClick={() => handleTabChange("social")}
+            screenSize={screenSize}
           />
           <Tab 
-            label="Account Settings"
-            icon={<FiLock className="w-3.5 h-3.5" />}
+            label={screenSize === 'mobile' ? "Account" : "Account Settings"}
+            icon={<FiLock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             active={activeTab === "account"} 
             hovered={hoveredTab === "account"}
             onHover={() => setHoveredTab("account")}
             onLeave={() => setHoveredTab(null)}
             onClick={() => handleTabChange("account")}
+            screenSize={screenSize}
           />
         </div>
 
         {/* Content */}
-        <div className="mt-4 animate-fadeIn">
+        <div className="mt-3 sm:mt-4 animate-fadeIn">
           {activeTab === "personal" && (
             <PersonalTab
               profile={profile}
               user={user}
               onSave={handleSave}
               saving={saving}
+              screenSize={screenSize}
             />
           )}
           {activeTab === "profile" && (
@@ -288,6 +312,7 @@ export default function CandidateSettingsMain() {
               profile={profile}
               onSave={handleSave}
               saving={saving}
+              screenSize={screenSize}
             />
           )}
           {activeTab === "social" && (
@@ -295,6 +320,7 @@ export default function CandidateSettingsMain() {
               profile={profile}
               onSave={handleSave}
               saving={saving}
+              screenSize={screenSize}
             />
           )}
           {activeTab === "account" && (
@@ -302,6 +328,7 @@ export default function CandidateSettingsMain() {
               profile={profile}
               onSave={handleSave}
               saving={saving}
+              screenSize={screenSize}
             />
           )}
         </div>
@@ -346,6 +373,14 @@ export default function CandidateSettingsMain() {
         .animation-delay-2000 {
           animation-delay: 2s;
         }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       `}</style>
     </main>
   );
@@ -353,13 +388,13 @@ export default function CandidateSettingsMain() {
 
 /* ================= COMPONENTS ================= */
 
-function Tab({ label, icon, active, hovered, onHover, onLeave, onClick }) {
+function Tab({ label, icon, active, hovered, onHover, onLeave, onClick, screenSize }) {
   return (
     <button
       onClick={onClick}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
-      className={`flex items-center gap-1.5 pb-2 px-2 text-xs font-medium transition-all duration-300 relative group ${
+      className={`flex items-center gap-1 sm:gap-1.5 pb-2 px-1.5 sm:px-2 text-[10px] sm:text-xs font-medium transition-all duration-300 relative group whitespace-nowrap ${
         active
           ? "text-blue-600"
           : "text-gray-500 hover:text-gray-700"
@@ -378,7 +413,7 @@ function Tab({ label, icon, active, hovered, onHover, onLeave, onClick }) {
 
 /* ================= PERSONAL TAB ================= */
 
-function PersonalTab({ profile, user, onSave, saving }) {
+function PersonalTab({ profile, user, onSave, saving, screenSize }) {
   const [formData, setFormData] = useState({
     fullName: profile?.personalInfo?.fullName || user?.name || "",
     title: profile?.personalInfo?.title || "",
@@ -458,22 +493,22 @@ function PersonalTab({ profile, user, onSave, saving }) {
   };
 
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm border border-gray-200 space-y-5">
+    <div className="rounded-lg bg-white p-3 sm:p-4 shadow-sm border border-gray-200 space-y-4 sm:space-y-5">
       {/* Profile Image */}
       <section className="animate-slideIn">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1.5">
-            <FiImage className="text-blue-600 w-4 h-4" />
-            <h3 className="text-xs font-semibold text-gray-800">
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            <FiImage className="text-blue-600 w-3 h-3 sm:w-4 sm:h-4" />
+            <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800">
               Profile Picture
             </h3>
           </div>
           <button
             onClick={() => document.getElementById('profile-image-input')?.click()}
-            className="group flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 transition-colors"
+            className="group flex items-center gap-1 text-[10px] sm:text-xs text-blue-600 hover:text-blue-700 transition-colors"
           >
-            <FiCamera className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-            Change
+            <FiCamera className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:scale-110 transition-transform" />
+            {screenSize !== 'mobile' && 'Change'}
           </button>
         </div>
 
@@ -483,7 +518,7 @@ function PersonalTab({ profile, user, onSave, saving }) {
             onMouseEnter={() => setIsHoveringImage(true)}
             onMouseLeave={() => setIsHoveringImage(false)}
           >
-            <div className={`w-24 h-24 rounded-full overflow-hidden border-3 border-white shadow-lg transition-transform duration-300 ${isHoveringImage ? 'scale-105' : ''}`}>
+            <div className={`w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full overflow-hidden border-2 sm:border-3 border-white shadow-lg transition-transform duration-300 ${isHoveringImage ? 'scale-105' : ''}`}>
               <img 
                 src={profileImagePreview} 
                 alt="Profile" 
@@ -493,7 +528,7 @@ function PersonalTab({ profile, user, onSave, saving }) {
             
             {/* Upload overlay */}
             <div className={`absolute inset-0 flex items-center justify-center rounded-full bg-black/40 transition-opacity duration-300 ${isHoveringImage ? 'opacity-100' : 'opacity-0'}`}>
-              <FiCamera className="w-6 h-6 text-white" />
+              <FiCamera className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
             </div>
             
             <input
@@ -508,28 +543,29 @@ function PersonalTab({ profile, user, onSave, saving }) {
               }}
             />
           </div>
-          <p className="mt-2 text-xs text-gray-500">
-            Click "Change" to upload a new profile picture
+          <p className="mt-1 sm:mt-2 text-[8px] sm:text-xs text-gray-500">
+            {screenSize === 'mobile' ? 'Tap to change' : 'Click "Change" to upload a new profile picture'}
           </p>
         </div>
       </section>
 
       {/* Basic Information */}
       <section className="animate-slideIn">
-        <div className="flex items-center gap-1.5 mb-3">
-          <FiUser className="text-blue-600 w-4 h-4" />
-          <h3 className="text-xs font-semibold text-gray-800">
+        <div className="flex items-center gap-1 sm:gap-1.5 mb-2 sm:mb-3">
+          <FiUser className="text-blue-600 w-3 h-3 sm:w-4 sm:h-4" />
+          <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800">
             Basic Information
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
           <FormInput
             label="Full name *"
             placeholder="Esther Howard"
             value={formData.fullName}
             onChange={(value) => handleInputChange("fullName", value)}
             required
+            screenSize={screenSize}
           />
 
           <FormInput
@@ -538,6 +574,7 @@ function PersonalTab({ profile, user, onSave, saving }) {
             value={formData.title}
             onChange={(value) => handleInputChange("title", value)}
             required
+            screenSize={screenSize}
           />
 
           <FormSelect
@@ -553,8 +590,9 @@ function PersonalTab({ profile, user, onSave, saving }) {
               { value: "5-10 years", label: "5-10 years" },
               { value: "10+ years", label: "10+ years" },
             ]}
-            icon={<FiBriefcase className="text-gray-400" />}
+            icon={<FiBriefcase className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             required
+            screenSize={screenSize}
           />
 
           <FormSelect
@@ -570,8 +608,9 @@ function PersonalTab({ profile, user, onSave, saving }) {
               { value: "PhD", label: "PhD" },
               { value: "Other", label: "Other" },
             ]}
-            icon={<FiBook className="text-gray-400" />}
+            icon={<FiBook className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             required
+            screenSize={screenSize}
           />
 
           <div className="md:col-span-2">
@@ -580,23 +619,24 @@ function PersonalTab({ profile, user, onSave, saving }) {
               placeholder="https://yourwebsite.com"
               value={formData.website}
               onChange={(value) => handleInputChange("website", value)}
-              icon={<FiLink className="text-gray-400" />}
+              icon={<FiLink className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
               type="url"
+              screenSize={screenSize}
             />
           </div>
         </div>
       </section>
 
       {/* CV/Resume Section */}
-      <section className="animate-slideIn pt-4 border-t border-gray-100">
-        <div className="flex items-center gap-1.5 mb-3">
-          <FiFile className="text-blue-600 w-4 h-4" />
-          <h3 className="text-xs font-semibold text-gray-800">
+      <section className="animate-slideIn pt-3 sm:pt-4 border-t border-gray-100">
+        <div className="flex items-center gap-1 sm:gap-1.5 mb-2 sm:mb-3">
+          <FiFile className="text-blue-600 w-3 h-3 sm:w-4 sm:h-4" />
+          <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800">
             Your CV/Resume
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
           {cvFiles.map((cv) => (
             <ResumeCard
               key={cv.id}
@@ -604,14 +644,17 @@ function PersonalTab({ profile, user, onSave, saving }) {
               size={cv.size}
               url={cv.url}
               onDelete={() => removeCvFile(cv.id)}
+              screenSize={screenSize}
             />
           ))}
 
           {/* Add CV Button */}
-          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-4 text-center hover:border-blue-500 hover:bg-gray-50 transition-all duration-300 group">
-            <FiUpload className="text-gray-400 mb-2 group-hover:text-blue-500 transition-colors" size={20} />
-            <p className="text-xs text-gray-600 group-hover:text-blue-600 transition-colors">Add CV/Resume</p>
-            <p className="text-xs text-gray-400 mt-1">PDF (Max 5MB)</p>
+          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-3 sm:p-4 text-center hover:border-blue-500 hover:bg-gray-50 transition-all duration-300 group">
+            <FiUpload className="text-gray-400 mb-1 sm:mb-2 group-hover:text-blue-500 transition-colors" size={screenSize === 'mobile' ? 16 : 20} />
+            <p className="text-[8px] sm:text-xs text-gray-600 group-hover:text-blue-600 transition-colors">
+              {screenSize === 'mobile' ? 'Add CV' : 'Add CV/Resume'}
+            </p>
+            <p className="text-[6px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">PDF (Max 5MB)</p>
             <input
               type="file"
               accept=".pdf"
@@ -627,23 +670,23 @@ function PersonalTab({ profile, user, onSave, saving }) {
       </section>
 
       {/* Save Button */}
-      <div className="flex justify-end pt-4 border-t border-gray-100">
+      <div className="flex justify-end pt-3 sm:pt-4 border-t border-gray-100">
         <button
           onClick={handleSubmit}
           disabled={saving || !formData.fullName || !formData.title}
-          className="group relative flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-xs font-medium text-white hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 overflow-hidden"
+          className="group relative flex items-center gap-1 sm:gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium text-white hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           {saving ? (
             <>
-              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Saving...
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span>{screenSize === 'mobile' ? 'Saving...' : 'Saving...'}</span>
             </>
           ) : (
             <>
-              <FiSave className="w-3.5 h-3.5" />
-              Save Changes
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+              <FiSave className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>{screenSize === 'mobile' ? 'Save' : 'Save Changes'}</span>
+              {screenSize !== 'mobile' && <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 transition-transform duration-300" />}
             </>
           )}
         </button>
@@ -654,7 +697,7 @@ function PersonalTab({ profile, user, onSave, saving }) {
 
 /* ================= PROFILE TAB ================= */
 
-function ProfileTab({ profile, onSave, saving }) {
+function ProfileTab({ profile, onSave, saving, screenSize }) {
   const [formData, setFormData] = useState({
     nationality: profile?.profileDetails?.nationality || "",
     dateOfBirth: profile?.profileDetails?.dateOfBirth
@@ -687,13 +730,13 @@ function ProfileTab({ profile, onSave, saving }) {
   };
 
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm border border-gray-200">
-      <h3 className="text-xs font-semibold text-gray-800 mb-4 flex items-center gap-1.5">
-        <FiBriefcase className="w-4 h-4 text-indigo-500" />
+    <div className="rounded-lg bg-white p-3 sm:p-4 shadow-sm border border-gray-200">
+      <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center gap-1 sm:gap-1.5">
+        <FiBriefcase className="w-3 h-3 sm:w-4 sm:h-4 text-indigo-500" />
         Profile Details
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
         <FormSelect
           label="Nationality"
           value={formData.nationality}
@@ -708,7 +751,8 @@ function ProfileTab({ profile, onSave, saving }) {
             { value: "Australian", label: "Australian" },
             { value: "Other", label: "Other" },
           ]}
-          icon={<FiGlobe className="text-gray-400" />}
+          icon={<FiGlobe className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+          screenSize={screenSize}
         />
 
         <FormInput
@@ -716,7 +760,8 @@ function ProfileTab({ profile, onSave, saving }) {
           type="date"
           value={formData.dateOfBirth}
           onChange={(value) => handleInputChange("dateOfBirth", value)}
-          icon={<FiCalendar className="text-gray-400" />}
+          icon={<FiCalendar className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+          screenSize={screenSize}
         />
 
         <FormSelect
@@ -730,7 +775,8 @@ function ProfileTab({ profile, onSave, saving }) {
             { value: "Other", label: "Other" },
             { value: "Prefer not to say", label: "Prefer not to say" },
           ]}
-          icon={<FiUser className="text-gray-400" />}
+          icon={<FiUser className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+          screenSize={screenSize}
         />
 
         <FormSelect
@@ -744,6 +790,7 @@ function ProfileTab({ profile, onSave, saving }) {
             { value: "Divorced", label: "Divorced" },
             { value: "Widowed", label: "Widowed" },
           ]}
+          screenSize={screenSize}
         />
 
         <FormSelect
@@ -759,7 +806,8 @@ function ProfileTab({ profile, onSave, saving }) {
             { value: "PhD", label: "PhD" },
             { value: "Other", label: "Other" },
           ]}
-          icon={<FiBook className="text-gray-400" />}
+          icon={<FiBook className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+          screenSize={screenSize}
         />
 
         <FormSelect
@@ -775,43 +823,44 @@ function ProfileTab({ profile, onSave, saving }) {
             { value: "5-10 years", label: "5-10 years" },
             { value: "10+ years", label: "10+ years" },
           ]}
-          icon={<FiBriefcase className="text-gray-400" />}
+          icon={<FiBriefcase className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+          screenSize={screenSize}
         />
       </div>
 
-      <div className="mt-4">
-        <label className="block text-xs font-medium text-gray-600 mb-1">
+      <div className="mt-3 sm:mt-4">
+        <label className="block text-[8px] sm:text-xs font-medium text-gray-600 mb-1">
           Biography
         </label>
         <textarea
-          rows={5}
+          rows={screenSize === 'mobile' ? 4 : 5}
           value={formData.biography}
           onChange={(e) => handleInputChange("biography", e.target.value)}
           placeholder="Write about your background, skills, achievements, and career goals..."
-          className="w-full rounded-md border border-gray-200 px-3 py-2 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all hover:border-blue-400 resize-none"
+          className="w-full rounded-md border border-gray-200 px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all hover:border-blue-400 resize-none"
         />
-        <p className="mt-1 text-xs text-gray-400">
-          Tell employers about yourself. This will appear on your public profile.
+        <p className="mt-1 text-[8px] sm:text-xs text-gray-400">
+          {screenSize === 'mobile' ? 'Tell employers about yourself' : 'Tell employers about yourself. This will appear on your public profile.'}
         </p>
       </div>
 
-      <div className="flex justify-end pt-4 mt-4 border-t border-gray-100">
+      <div className="flex justify-end pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-gray-100">
         <button
           onClick={handleSubmit}
           disabled={saving}
-          className="group relative flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-xs font-medium text-white hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 overflow-hidden"
+          className="group relative flex items-center gap-1 sm:gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium text-white hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           {saving ? (
             <>
-              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Saving...
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span>Saving...</span>
             </>
           ) : (
             <>
-              <FiSave className="w-3.5 h-3.5" />
-              Save Changes
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+              <FiSave className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>{screenSize === 'mobile' ? 'Save' : 'Save Changes'}</span>
+              {screenSize !== 'mobile' && <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 transition-transform duration-300" />}
             </>
           )}
         </button>
@@ -822,7 +871,7 @@ function ProfileTab({ profile, onSave, saving }) {
 
 /* ================= SOCIAL LINKS TAB ================= */
 
-function SocialLinksTab({ profile, onSave, saving }) {
+function SocialLinksTab({ profile, onSave, saving, screenSize }) {
   const [socialLinks, setSocialLinks] = useState(() => {
     if (profile?.socialLinks && profile.socialLinks.length > 0) {
       return profile.socialLinks.map(link => ({
@@ -912,9 +961,9 @@ function SocialLinksTab({ profile, onSave, saving }) {
   };
 
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm border border-gray-200">
-      <h3 className="text-xs font-semibold text-gray-800 mb-3 flex items-center gap-1.5">
-        <Share2 className="w-4 h-4 text-pink-500" />
+    <div className="rounded-lg bg-white p-3 sm:p-4 shadow-sm border border-gray-200">
+      <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800 mb-2 sm:mb-3 flex items-center gap-1 sm:gap-1.5">
+        <Share2 className="w-3 h-3 sm:w-4 sm:h-4 text-pink-500" />
         Social Media Profiles
       </h3>
 
@@ -922,7 +971,7 @@ function SocialLinksTab({ profile, onSave, saving }) {
         {socialLinks.map((link, index) => (
           <div 
             key={index}
-            className={`flex flex-col gap-2 sm:flex-row sm:items-center p-2 rounded-md transition-all duration-300 ${hoveredIndex === index ? 'bg-gray-50' : ''}`}
+            className={`flex flex-col gap-2 sm:flex-row sm:items-center p-1.5 sm:p-2 rounded-md transition-all duration-300 ${hoveredIndex === index ? 'bg-gray-50' : ''}`}
             onMouseEnter={() => setHoveredIndex(index)}
             onMouseLeave={() => setHoveredIndex(null)}
           >
@@ -930,7 +979,7 @@ function SocialLinksTab({ profile, onSave, saving }) {
               <select
                 value={link.platform}
                 onChange={(e) => updateLink(index, "platform", e.target.value)}
-                className="w-full appearance-none rounded-md border border-gray-200 px-3 py-1.5 pr-7 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 hover:border-blue-400 transition-all"
+                className="w-full appearance-none rounded-md border border-gray-200 px-2 sm:px-3 py-1 sm:py-1.5 pr-5 sm:pr-7 text-[10px] sm:text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 hover:border-blue-400 transition-all"
               >
                 <option value="">Select Platform</option>
                 {socialPlatforms.map((platform) => (
@@ -939,7 +988,7 @@ function SocialLinksTab({ profile, onSave, saving }) {
                   </option>
                 ))}
               </select>
-              <FiChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" />
+              <FiChevronDown className="pointer-events-none absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </div>
 
             <input
@@ -947,17 +996,17 @@ function SocialLinksTab({ profile, onSave, saving }) {
               placeholder="Profile link/url..."
               value={link.url}
               onChange={(e) => updateLink(index, "url", e.target.value)}
-              className="w-full flex-1 rounded-md border border-gray-200 px-3 py-1.5 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 hover:border-blue-400 transition-all"
+              className="w-full flex-1 rounded-md border border-gray-200 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500 hover:border-blue-400 transition-all"
             />
 
             <button
               type="button"
               onClick={() => removeLink(index)}
-              className={`flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 transition-all duration-300 self-start sm:self-auto
+              className={`flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-md border border-gray-200 transition-all duration-300 self-end sm:self-auto
                 ${hoveredIndex === index ? 'bg-red-50 border-red-200 text-red-500' : 'text-gray-400 hover:bg-gray-100 hover:text-red-500'}
               `}
             >
-              <FiX className="w-3.5 h-3.5" />
+              <FiX className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </button>
           </div>
         ))}
@@ -966,29 +1015,29 @@ function SocialLinksTab({ profile, onSave, saving }) {
       <button
         type="button"
         onClick={addLink}
-        className="mt-3 flex items-center gap-1 rounded-md bg-gray-50 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-all border border-gray-200 hover:border-blue-400 group"
+        className="mt-2 sm:mt-3 flex items-center gap-1 rounded-md bg-gray-50 px-2 sm:px-3 py-1 sm:py-1.5 text-[8px] sm:text-xs text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-all border border-gray-200 hover:border-blue-400 group"
       >
-        <FiPlus className="w-3.5 h-3.5 group-hover:rotate-90 transition-transform duration-300" />
+        <FiPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:rotate-90 transition-transform duration-300" />
         Add New Social Link
       </button>
 
-      <div className="flex justify-end pt-4 mt-4 border-t border-gray-100">
+      <div className="flex justify-end pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-gray-100">
         <button
           onClick={handleSubmit}
           disabled={saving}
-          className="group relative flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-xs font-medium text-white hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 overflow-hidden"
+          className="group relative flex items-center gap-1 sm:gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium text-white hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           {saving ? (
             <>
-              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Saving...
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span>Saving...</span>
             </>
           ) : (
             <>
-              <FiSave className="w-3.5 h-3.5" />
-              Save Social Links
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+              <FiSave className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>{screenSize === 'mobile' ? 'Save' : 'Save Social Links'}</span>
+              {screenSize !== 'mobile' && <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 transition-transform duration-300" />}
             </>
           )}
         </button>
@@ -999,7 +1048,7 @@ function SocialLinksTab({ profile, onSave, saving }) {
 
 /* ================= ACCOUNT SETTINGS TAB ================= */
 
-function AccountSettingsTab({ profile, onSave, saving }) {
+function AccountSettingsTab({ profile, onSave, saving, screenSize }) {
   const [formData, setFormData] = useState({
     contact: {
       location: profile?.accountSettings?.contact?.location || "",
@@ -1095,26 +1144,27 @@ function AccountSettingsTab({ profile, onSave, saving }) {
   };
 
   return (
-    <div className="rounded-lg bg-white p-4 shadow-sm border border-gray-200 space-y-5">
+    <div className="rounded-lg bg-white p-3 sm:p-4 shadow-sm border border-gray-200 space-y-4 sm:space-y-5">
       {/* Contact Info */}
       <section className="animate-slideIn">
-        <div className="flex items-center gap-1.5 mb-3">
-          <FiMail className="text-blue-600 w-4 h-4" />
-          <h3 className="text-xs font-semibold text-gray-800">
+        <div className="flex items-center gap-1 sm:gap-1.5 mb-2 sm:mb-3">
+          <FiMail className="text-blue-600 w-3 h-3 sm:w-4 sm:h-4" />
+          <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800">
             Contact Info
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
           <FormInput
             label="Map Location"
             placeholder="City, state, country name"
             value={formData.contact.location}
             onChange={(value) => handleContactChange("location", value)}
-            icon={<FiMapPin className="text-gray-400" />}
+            icon={<FiMapPin className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             onFocus={() => setActiveField('location')}
             onBlur={() => setActiveField(null)}
             isActive={activeField === 'location'}
+            screenSize={screenSize}
           />
 
           <FormInput
@@ -1122,11 +1172,12 @@ function AccountSettingsTab({ profile, onSave, saving }) {
             placeholder="+880 1234 56789"
             value={formData.contact.phone}
             onChange={(value) => handleContactChange("phone", value)}
-            icon={<FiPhone className="text-gray-400" />}
+            icon={<FiPhone className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             type="tel"
             onFocus={() => setActiveField('phone')}
             onBlur={() => setActiveField(null)}
             isActive={activeField === 'phone'}
+            screenSize={screenSize}
           />
 
           <div className="md:col-span-2">
@@ -1135,11 +1186,12 @@ function AccountSettingsTab({ profile, onSave, saving }) {
               placeholder="email@example.com"
               value={formData.contact.email}
               onChange={(value) => handleContactChange("email", value)}
-              icon={<FiMail className="text-gray-400" />}
+              icon={<FiMail className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
               type="email"
               onFocus={() => setActiveField('email')}
               onBlur={() => setActiveField(null)}
               isActive={activeField === 'email'}
+              screenSize={screenSize}
             />
           </div>
         </div>
@@ -1149,14 +1201,14 @@ function AccountSettingsTab({ profile, onSave, saving }) {
 
       {/* Notifications */}
       <section className="animate-slideIn">
-        <div className="flex items-center gap-1.5 mb-3">
-          <FiBell className="text-blue-600 w-4 h-4" />
-          <h3 className="text-xs font-semibold text-gray-800">
+        <div className="flex items-center gap-1 sm:gap-1.5 mb-2 sm:mb-3">
+          <FiBell className="text-blue-600 w-3 h-3 sm:w-4 sm:h-4" />
+          <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800">
             Notification Preferences
           </h3>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1 sm:space-y-2">
           {[
             { id: "shortlisted", label: "Notify me when employers shortlist me" },
             { id: "saved", label: "Notify me when employers save my profile" },
@@ -1164,7 +1216,7 @@ function AccountSettingsTab({ profile, onSave, saving }) {
             { id: "rejected", label: "Notify me when employers reject me" },
             { id: "jobAlerts", label: "Notify me when I have up to 5 new job alerts" },
           ].map((item) => (
-            <label key={item.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md cursor-pointer transition-colors">
+            <label key={item.id} className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 hover:bg-gray-50 rounded-md cursor-pointer transition-colors">
               <div className="relative">
                 <input
                   type="checkbox"
@@ -1172,17 +1224,17 @@ function AccountSettingsTab({ profile, onSave, saving }) {
                   onChange={(e) => handleNotificationChange(item.id, e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-4 h-4 border-2 rounded flex items-center justify-center transition-colors ${
+                <div className={`w-3 h-3 sm:w-4 sm:h-4 border-2 rounded flex items-center justify-center transition-colors ${
                   formData.notifications[item.id]
                     ? "bg-blue-600 border-blue-600"
                     : "border-gray-300"
                 }`}>
                   {formData.notifications[item.id] && (
-                    <FiCheck size={10} className="text-white" />
+                    <FiCheck size={screenSize === 'mobile' ? 8 : 10} className="text-white" />
                   )}
                 </div>
               </div>
-              <span className="text-xs text-gray-700">{item.label}</span>
+              <span className="text-[8px] sm:text-xs text-gray-700">{item.label}</span>
             </label>
           ))}
         </div>
@@ -1192,14 +1244,14 @@ function AccountSettingsTab({ profile, onSave, saving }) {
 
       {/* Job Alerts */}
       <section className="animate-slideIn">
-        <div className="flex items-center gap-1.5 mb-3">
-          <FiBell className="text-blue-600 w-4 h-4" />
-          <h3 className="text-xs font-semibold text-gray-800">
+        <div className="flex items-center gap-1 sm:gap-1.5 mb-2 sm:mb-3">
+          <FiBell className="text-blue-600 w-3 h-3 sm:w-4 sm:h-4" />
+          <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800">
             Job Alerts
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
           <FormInput
             label="Preferred Role"
             placeholder="e.g., Software Engineer, Product Designer"
@@ -1208,6 +1260,7 @@ function AccountSettingsTab({ profile, onSave, saving }) {
             onFocus={() => setActiveField('role')}
             onBlur={() => setActiveField(null)}
             isActive={activeField === 'role'}
+            screenSize={screenSize}
           />
 
           <FormInput
@@ -1215,10 +1268,11 @@ function AccountSettingsTab({ profile, onSave, saving }) {
             placeholder="City, state, country name"
             value={formData.jobAlerts.location}
             onChange={(value) => handleJobAlertChange("location", value)}
-            icon={<FiMapPin className="text-gray-400" />}
+            icon={<FiMapPin className="text-gray-400 w-3 h-3 sm:w-3.5 sm:h-3.5" />}
             onFocus={() => setActiveField('alertLocation')}
             onBlur={() => setActiveField(null)}
             isActive={activeField === 'alertLocation'}
+            screenSize={screenSize}
           />
         </div>
       </section>
@@ -1227,44 +1281,46 @@ function AccountSettingsTab({ profile, onSave, saving }) {
 
       {/* Privacy Settings */}
       <section className="animate-slideIn">
-        <div className="flex items-center gap-1.5 mb-3">
-          <FiLock className="text-blue-600 w-4 h-4" />
-          <h3 className="text-xs font-semibold text-gray-800">
+        <div className="flex items-center gap-1 sm:gap-1.5 mb-2 sm:mb-3">
+          <FiLock className="text-blue-600 w-3 h-3 sm:w-4 sm:h-4" />
+          <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800">
             Privacy Settings
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md transition-colors">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <div className="space-y-1 sm:space-y-2">
+            <div className="flex items-center justify-between p-1.5 sm:p-2 hover:bg-gray-50 rounded-md transition-colors">
               <div>
-                <h4 className="text-xs font-medium text-gray-800">Profile Privacy</h4>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <h4 className="text-[8px] sm:text-xs font-medium text-gray-800">Profile Privacy</h4>
+                <p className="text-[7px] sm:text-xs text-gray-500 mt-0.5">
                   {formData.privacy.profilePublic
-                    ? "Your profile is visible to employers"
-                    : "Your profile is private"}
+                    ? "Visible to employers"
+                    : "Private"}
                 </p>
               </div>
               <Toggle
                 enabled={formData.privacy.profilePublic}
                 onToggle={() => handlePrivacyChange("profilePublic", !formData.privacy.profilePublic)}
+                screenSize={screenSize}
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md transition-colors">
+          <div className="space-y-1 sm:space-y-2">
+            <div className="flex items-center justify-between p-1.5 sm:p-2 hover:bg-gray-50 rounded-md transition-colors">
               <div>
-                <h4 className="text-xs font-medium text-gray-800">Resume Privacy</h4>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <h4 className="text-[8px] sm:text-xs font-medium text-gray-800">Resume Privacy</h4>
+                <p className="text-[7px] sm:text-xs text-gray-500 mt-0.5">
                   {formData.privacy.resumePublic
-                    ? "Your resume is visible to employers"
-                    : "Your resume is private"}
+                    ? "Visible to employers"
+                    : "Private"}
                 </p>
               </div>
               <Toggle
                 enabled={formData.privacy.resumePublic}
                 onToggle={() => handlePrivacyChange("resumePublic", !formData.privacy.resumePublic)}
+                screenSize={screenSize}
               />
             </div>
           </div>
@@ -1275,14 +1331,14 @@ function AccountSettingsTab({ profile, onSave, saving }) {
 
       {/* Change Password */}
       <section className="animate-slideIn">
-        <div className="flex items-center gap-1.5 mb-3">
-          <FiLock className="text-blue-600 w-4 h-4" />
-          <h3 className="text-xs font-semibold text-gray-800">
+        <div className="flex items-center gap-1 sm:gap-1.5 mb-2 sm:mb-3">
+          <FiLock className="text-blue-600 w-3 h-3 sm:w-4 sm:h-4" />
+          <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800">
             Change Password
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 sm:gap-3">
           <PasswordInput
             label="Current Password"
             value={formData.password.current}
@@ -1292,6 +1348,7 @@ function AccountSettingsTab({ profile, onSave, saving }) {
             onFocus={() => setActiveField('current')}
             onBlur={() => setActiveField(null)}
             isActive={activeField === 'current'}
+            screenSize={screenSize}
           />
 
           <PasswordInput
@@ -1303,6 +1360,7 @@ function AccountSettingsTab({ profile, onSave, saving }) {
             onFocus={() => setActiveField('new')}
             onBlur={() => setActiveField(null)}
             isActive={activeField === 'new'}
+            screenSize={screenSize}
           />
 
           <PasswordInput
@@ -1314,6 +1372,7 @@ function AccountSettingsTab({ profile, onSave, saving }) {
             onFocus={() => setActiveField('confirm')}
             onBlur={() => setActiveField(null)}
             isActive={activeField === 'confirm'}
+            screenSize={screenSize}
           />
         </div>
       </section>
@@ -1322,42 +1381,42 @@ function AccountSettingsTab({ profile, onSave, saving }) {
 
       {/* Delete Account */}
       <section className="animate-slideIn">
-        <h3 className="text-xs font-semibold text-gray-800 mb-2 flex items-center gap-1.5">
-          <FiAlertCircle className="w-4 h-4 text-red-500" />
+        <h3 className="text-[10px] sm:text-xs font-semibold text-gray-800 mb-2 flex items-center gap-1 sm:gap-1.5">
+          <FiAlertCircle className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />
           Delete Your Account
         </h3>
         
-        <div className="flex items-start gap-2 p-3 bg-red-50 rounded-md border border-red-100 mb-2">
-          <FiAlertCircle className="text-red-500 mt-0.5 flex-shrink-0 w-3.5 h-3.5" />
-          <p className="text-xs text-red-700">
-            <strong>Warning:</strong> If you delete your account, you will no longer be able to get job information or receive notifications from the platform.
+        <div className="flex items-start gap-1.5 sm:gap-2 p-2 sm:p-3 bg-red-50 rounded-md border border-red-100 mb-2">
+          <FiAlertCircle className="text-red-500 mt-0.5 flex-shrink-0 w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          <p className="text-[8px] sm:text-xs text-red-700">
+            <strong>Warning:</strong> {screenSize === 'mobile' ? 'This action cannot be undone.' : 'If you delete your account, you will no longer be able to get job information or receive notifications from the platform.'}
           </p>
         </div>
         
-        <button className="flex items-center gap-1 px-3 py-1.5 text-xs text-white bg-gradient-to-r from-red-600 to-red-500 rounded-md hover:shadow-md transition-all transform hover:scale-105">
-          <FiTrash2 className="w-3.5 h-3.5" />
-          Close Account
+        <button className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 text-[8px] sm:text-xs text-white bg-gradient-to-r from-red-600 to-red-500 rounded-md hover:shadow-md transition-all transform hover:scale-105">
+          <FiTrash2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          {screenSize === 'mobile' ? 'Delete' : 'Close Account'}
         </button>
       </section>
 
       {/* Save Button */}
-      <div className="flex justify-end pt-4 border-t border-gray-100">
+      <div className="flex justify-end pt-3 sm:pt-4 border-t border-gray-100">
         <button
           onClick={handleSubmit}
           disabled={saving}
-          className="group relative flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2 text-xs font-medium text-white hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 overflow-hidden"
+          className="group relative flex items-center gap-1 sm:gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 text-[10px] sm:text-xs font-medium text-white hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
           {saving ? (
             <>
-              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Saving All Settings...
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span>{screenSize === 'mobile' ? 'Saving...' : 'Saving All Settings...'}</span>
             </>
           ) : (
             <>
-              <FiSave className="w-3.5 h-3.5" />
-              Save All Settings
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
+              <FiSave className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>{screenSize === 'mobile' ? 'Save' : 'Save All Settings'}</span>
+              {screenSize !== 'mobile' && <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 transition-transform duration-300" />}
             </>
           )}
         </button>
@@ -1368,18 +1427,18 @@ function AccountSettingsTab({ profile, onSave, saving }) {
 
 /* ================= REUSABLE COMPONENTS ================= */
 
-function FormInput({ label, placeholder, value, onChange, icon, type = "text", required = false, onFocus, onBlur, isActive }) {
+function FormInput({ label, placeholder, value, onChange, icon, type = "text", required = false, onFocus, onBlur, isActive, screenSize }) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-600 mb-1">
+      <label className="block text-[8px] sm:text-xs font-medium text-gray-600 mb-1">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       <div className="relative">
         {icon && (
-          <span className={`absolute left-2 top-1/2 -translate-y-1/2 transition-all duration-300
+          <span className={`absolute left-1.5 sm:left-2 top-1/2 -translate-y-1/2 transition-all duration-300
             ${isActive || isHovered ? 'text-blue-500' : 'text-gray-400'}
           `}>
             {icon}
@@ -1394,8 +1453,8 @@ function FormInput({ label, placeholder, value, onChange, icon, type = "text", r
           onBlur={onBlur}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className={`w-full rounded-md border px-3 py-1.5 text-xs transition-all duration-300 focus:outline-none focus:ring-1
-            ${icon ? "pl-7" : "pl-3"} pr-3
+          className={`w-full rounded-md border px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs transition-all duration-300 focus:outline-none focus:ring-1
+            ${icon ? "pl-5 sm:pl-7" : "pl-2 sm:pl-3"} pr-2 sm:pr-3
             ${isActive ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-400'}
           `}
           required={required}
@@ -1405,19 +1464,19 @@ function FormInput({ label, placeholder, value, onChange, icon, type = "text", r
   );
 }
 
-function FormSelect({ label, value, onChange, options, icon, required = false }) {
+function FormSelect({ label, value, onChange, options, icon, required = false, screenSize }) {
   const [isActive, setIsActive] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-600 mb-1">
+      <label className="block text-[8px] sm:text-xs font-medium text-gray-600 mb-1">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       <div className="relative">
         {icon && (
-          <span className={`absolute left-2 top-1/2 -translate-y-1/2 transition-all duration-300 pointer-events-none
+          <span className={`absolute left-1.5 sm:left-2 top-1/2 -translate-y-1/2 transition-all duration-300 pointer-events-none
             ${isActive || isHovered ? 'text-blue-500' : 'text-gray-400'}
           `}>
             {icon}
@@ -1430,8 +1489,8 @@ function FormSelect({ label, value, onChange, options, icon, required = false })
           onBlur={() => setIsActive(false)}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className={`w-full appearance-none rounded-md border px-3 py-1.5 text-xs pr-7 transition-all duration-300 focus:outline-none focus:ring-1
-            ${icon ? "pl-7" : "pl-3"}
+          className={`w-full appearance-none rounded-md border px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs pr-5 sm:pr-7 transition-all duration-300 focus:outline-none focus:ring-1
+            ${icon ? "pl-5 sm:pl-7" : "pl-2 sm:pl-3"}
             ${isActive ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-400'}
           `}
           required={required}
@@ -1442,7 +1501,7 @@ function FormSelect({ label, value, onChange, options, icon, required = false })
             </option>
           ))}
         </select>
-        <FiChevronDown className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 transition-all duration-300
+        <FiChevronDown className={`pointer-events-none absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 transition-all duration-300 w-3 h-3 sm:w-3.5 sm:h-3.5
           ${isActive || isHovered ? 'text-blue-500 rotate-180' : 'text-gray-400'}
         `} />
       </div>
@@ -1450,17 +1509,17 @@ function FormSelect({ label, value, onChange, options, icon, required = false })
   );
 }
 
-function PasswordInput({ label, value, onChange, show, onToggle, onFocus, onBlur, isActive }) {
+function PasswordInput({ label, value, onChange, show, onToggle, onFocus, onBlur, isActive, screenSize }) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div>
-      <label className="text-xs text-gray-600 mb-1 block">{label}</label>
+      <label className="text-[8px] sm:text-xs text-gray-600 mb-1 block">{label}</label>
       <div className="relative">
-        <div className={`absolute left-2 top-1/2 -translate-y-1/2 transition-all duration-300
+        <div className={`absolute left-1.5 sm:left-2 top-1/2 -translate-y-1/2 transition-all duration-300
           ${isActive || isHovered ? 'text-blue-500' : 'text-gray-400'}
         `}>
-          <FiLock className="w-3.5 h-3.5" />
+          <FiLock className="w-2.5 h-2.5 sm:w-3 sm:h-3.5" />
         </div>
         <input
           type={show ? "text" : "password"}
@@ -1471,50 +1530,50 @@ function PasswordInput({ label, value, onChange, show, onToggle, onFocus, onBlur
           onBlur={onBlur}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className={`w-full rounded-md border pl-7 pr-8 py-1.5 text-xs transition-all duration-300 focus:outline-none focus:ring-1
+          className={`w-full rounded-md border pl-5 sm:pl-7 pr-6 sm:pr-8 py-1 sm:py-1.5 text-[10px] sm:text-xs transition-all duration-300 focus:outline-none focus:ring-1
             ${isActive ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200 hover:border-blue-400'}
           `}
         />
         <button
           type="button"
           onClick={onToggle}
-          className={`absolute right-2 top-1/2 -translate-y-1/2 transition-all duration-300
+          className={`absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 transition-all duration-300
             ${isActive || isHovered ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600'}
           `}
         >
-          {show ? <FiEyeOff className="w-3.5 h-3.5" /> : <FiEye className="w-3.5 h-3.5" />}
+          {show ? <FiEyeOff className="w-2.5 h-2.5 sm:w-3 sm:h-3.5" /> : <FiEye className="w-2.5 h-2.5 sm:w-3 sm:h-3.5" />}
         </button>
       </div>
     </div>
   );
 }
 
-function ResumeCard({ title, size, url, onDelete }) {
+function ResumeCard({ title, size, url, onDelete, screenSize }) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div 
-      className={`rounded-lg border p-3 transition-all duration-300 ${isHovered ? 'border-blue-300 shadow-sm' : 'border-gray-200'}`}
+      className={`rounded-lg border p-2 sm:p-3 transition-all duration-300 ${isHovered ? 'border-blue-300 shadow-sm' : 'border-gray-200'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className="flex justify-between items-start">
         <div>
-          <div className="flex items-center gap-1.5">
-            <FiFile className={`transition-colors duration-300 ${isHovered ? 'text-blue-600' : 'text-gray-400'}`} size={14} />
-            <p className="text-xs font-medium text-gray-800 truncate max-w-[120px]">{title}</p>
+          <div className="flex items-center gap-1">
+            <FiFile className={`transition-colors duration-300 ${isHovered ? 'text-blue-600' : 'text-gray-400'}`} size={screenSize === 'mobile' ? 12 : 14} />
+            <p className="text-[8px] sm:text-xs font-medium text-gray-800 truncate max-w-[80px] sm:max-w-[120px]">{title}</p>
           </div>
-          <p className="text-xs text-gray-400 mt-1">{size}</p>
+          <p className="text-[7px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">{size}</p>
         </div>
         <button
           onClick={onDelete}
           className={`text-gray-400 hover:text-red-500 transition-colors ${isHovered ? 'opacity-100' : 'opacity-60'}`}
         >
-          <FiTrash2 size={14} />
+          <FiTrash2 size={screenSize === 'mobile' ? 12 : 14} />
         </button>
       </div>
 
-      <div className="mt-2 flex gap-2 text-xs">
+      <div className="mt-1 sm:mt-2 flex gap-1 sm:gap-2 text-[7px] sm:text-xs">
         {url && (
           <a
             href={url}
@@ -1522,40 +1581,37 @@ function ResumeCard({ title, size, url, onDelete }) {
             rel="noopener noreferrer"
             className="flex items-center gap-0.5 text-blue-600 hover:text-blue-700 transition-colors"
           >
-            <FiEye size={12} /> View
+            <FiEye size={screenSize === 'mobile' ? 10 : 12} /> View
           </a>
         )}
         <button className="flex items-center gap-0.5 text-blue-600 hover:text-blue-700 transition-colors">
-          <FiEdit2 size={12} /> Edit
+          <FiEdit2 size={screenSize === 'mobile' ? 10 : 12} /> Edit
         </button>
         <button
           onClick={onDelete}
           className="flex items-center gap-0.5 text-red-500 hover:text-red-600 transition-colors"
         >
-          <FiTrash2 size={12} /> Delete
+          <FiTrash2 size={screenSize === 'mobile' ? 10 : 12} /> Delete
         </button>
       </div>
     </div>
   );
 }
 
-function Toggle({ enabled, onToggle }) {
+function Toggle({ enabled, onToggle, screenSize }) {
   return (
     <button
       type="button"
       onClick={onToggle}
-      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+      className={`relative inline-flex h-4 w-7 sm:h-5 sm:w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
         enabled ? 'bg-blue-600' : 'bg-gray-200'
       }`}
     >
       <span
-        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
-          enabled ? 'translate-x-4' : 'translate-x-0'
+        className={`pointer-events-none inline-block h-3 w-3 sm:h-4 sm:w-4 transform rounded-full bg-white shadow transition duration-200 ease-in-out ${
+          enabled ? 'translate-x-3 sm:translate-x-4' : 'translate-x-0'
         }`}
       />
     </button>
   );
 }
-
-// Missing icon import
-import { FiBell } from "react-icons/fi";

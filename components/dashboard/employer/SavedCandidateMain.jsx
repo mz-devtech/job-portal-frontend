@@ -47,6 +47,21 @@ export default function SavedCandidateMain() {
   });
   const [hoveredRow, setHoveredRow] = useState(null);
   const [animateItems, setAnimateItems] = useState(false);
+  const [screenSize, setScreenSize] = useState('desktop');
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) setScreenSize('mobile');
+      else if (width >= 640 && width < 1024) setScreenSize('tablet');
+      else setScreenSize('desktop');
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   // Fetch saved candidates on mount and when filters change
   useEffect(() => {
@@ -147,17 +162,15 @@ export default function SavedCandidateMain() {
   return (
     <main
       className="
-        
-        w-full
-        min-h-screen
+        w-full min-h-screen
         bg-gradient-to-br from-gray-50 to-gray-100/50
-        px-4 py-6
-        sm:px-6 sm:py-8
+        px-3 sm:px-4 md:px-6 py-4 sm:py-6
         md:ml-[260px]
         md:w-[calc(100%-260px)]
         md:h-[calc(100vh-7rem)]
         md:overflow-y-auto
         transition-all duration-300
+        pb-20 md:pb-6
       "
     >
       {/* Add animation styles in a style tag */}
@@ -212,37 +225,39 @@ export default function SavedCandidateMain() {
         `
       }} />
 
-      {/* Decorative Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
-      </div>
+      {/* Decorative Background Elements - Hidden on mobile */}
+      {screenSize !== 'mobile' && (
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
+        </div>
+      )}
 
-      {/* Header with Reduced Font Sizes */}
-      <div className="relative flex flex-col sm:flex-row sm:items-center justify-between mb-6 animate-fadeIn">
+      {/* Header */}
+      <div className="relative flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 animate-fadeIn">
         <div className="group">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg shadow-blue-200 transform group-hover:scale-110 transition-transform duration-300">
-              <FiBookmark className="h-5 w-5 text-white" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-2 sm:p-2.5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow-lg shadow-blue-200 transform group-hover:scale-110 transition-transform duration-300">
+              <FiBookmark className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                 Saved Candidates
               </h2>
-              <p className="mt-0.5 text-xs text-gray-500 flex items-center gap-2">
+              <p className="mt-0.5 text-[10px] sm:text-xs text-gray-500 flex items-center gap-1 sm:gap-2">
                 <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
                 {pagination.totalSaved > 0 
-                  ? `You have ${pagination.totalSaved} saved candidate${pagination.totalSaved !== 1 ? 's' : ''}`
+                  ? `${pagination.totalSaved} saved candidate${pagination.totalSaved !== 1 ? 's' : ''}`
                   : 'Your collection is waiting to be filled'}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Results Per Page - Reduced Size */}
+        {/* Results Per Page */}
         {savedCandidates.length > 0 && (
-          <div className="mt-3 sm:mt-0 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-lg shadow-sm border border-gray-200/50">
-            <span className="text-xs text-gray-600 font-medium">Show:</span>
+          <div className="mt-2 sm:mt-0 flex items-center gap-2 bg-white/80 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg shadow-sm border border-gray-200/50">
+            <span className="text-[10px] sm:text-xs text-gray-600 font-medium">Show:</span>
             <select
               value={filters.limit}
               onChange={(e) => setFilters(prev => ({ 
@@ -250,7 +265,7 @@ export default function SavedCandidateMain() {
                 limit: parseInt(e.target.value),
                 page: 1 
               }))}
-              className="border-0 bg-transparent rounded-md px-2 py-1 text-xs font-medium text-gray-700 focus:ring-2 focus:ring-blue-500/20 cursor-pointer hover:bg-gray-50 transition-colors"
+              className="border-0 bg-transparent rounded-md px-1 sm:px-2 py-1 text-[10px] sm:text-xs font-medium text-gray-700 focus:ring-2 focus:ring-blue-500/20 cursor-pointer hover:bg-gray-50 transition-colors"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -260,60 +275,60 @@ export default function SavedCandidateMain() {
         )}
       </div>
 
-      {/* Loading State - Reduced Size */}
+      {/* Loading State */}
       {loading && (
-        <div className="relative mt-16 flex flex-col items-center justify-center animate-fadeIn">
+        <div className="relative mt-8 sm:mt-12 md:mt-16 flex flex-col items-center justify-center animate-fadeIn">
           <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 border-3 sm:border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <FiBookmark className="h-5 w-5 text-blue-600 animate-pulse" />
+              <FiBookmark className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 animate-pulse" />
             </div>
           </div>
-          <p className="mt-4 text-xs text-gray-600 font-medium">Loading your saved candidates...</p>
-          <p className="mt-1 text-[10px] text-gray-400">This will just take a moment</p>
+          <p className="mt-3 sm:mt-4 text-[10px] sm:text-xs text-gray-600 font-medium">Loading your saved candidates...</p>
+          <p className="mt-1 text-[8px] sm:text-[10px] text-gray-400">This will just take a moment</p>
         </div>
       )}
 
-      {/* Error State - Reduced Size */}
+      {/* Error State */}
       {error && !loading && (
-        <div className="relative mt-16 flex flex-col items-center justify-center animate-shake">
-          <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-2xl p-5 shadow-lg">
-            <div className="bg-red-500 rounded-full p-3 shadow-lg shadow-red-200">
-              <FiAlertCircle className="h-6 w-6 text-white" />
+        <div className="relative mt-8 sm:mt-12 md:mt-16 flex flex-col items-center justify-center animate-shake">
+          <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-xl sm:rounded-2xl p-4 sm:p-5 shadow-lg">
+            <div className="bg-red-500 rounded-full p-2 sm:p-3 shadow-lg shadow-red-200">
+              <FiAlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
           </div>
-          <p className="mt-3 text-xs font-medium text-red-600">{error}</p>
+          <p className="mt-2 sm:mt-3 text-[10px] sm:text-xs font-medium text-red-600">{error}</p>
           <button
             onClick={fetchSavedCandidates}
-            className="mt-4 px-5 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md shadow-blue-200 hover:shadow-lg hover:scale-105 transform text-xs font-medium flex items-center gap-1.5 group"
+            className="mt-3 sm:mt-4 px-4 sm:px-5 py-1.5 sm:py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md shadow-blue-200 hover:shadow-lg hover:scale-105 transform text-[10px] sm:text-xs font-medium flex items-center gap-1 sm:gap-1.5 group"
           >
-            <FiLoader className="h-3.5 w-3.5 group-hover:rotate-180 transition-transform duration-500" />
+            <FiLoader className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:rotate-180 transition-transform duration-500" />
             Try Again
           </button>
         </div>
       )}
 
-      {/* Empty State - Reduced Size */}
+      {/* Empty State */}
       {!loading && !error && savedCandidates.length === 0 && (
-        <div className="relative mt-16 flex flex-col items-center justify-center animate-fadeInUp">
-          <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-full p-6 shadow-xl mb-5">
-            <div className="bg-white rounded-full p-3">
-              <FiHeart className="h-12 w-12 text-gray-400" />
+        <div className="relative mt-8 sm:mt-12 md:mt-16 flex flex-col items-center justify-center animate-fadeInUp px-4">
+          <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-full p-4 sm:p-5 md:p-6 shadow-xl mb-3 sm:mb-4 md:mb-5">
+            <div className="bg-white rounded-full p-2 sm:p-2.5 md:p-3">
+              <FiHeart className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-gray-400" />
             </div>
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-1 sm:mb-2 text-center">
             Your collection is empty
           </h3>
-          <p className="text-xs text-gray-500 text-center max-w-md leading-relaxed">
+          <p className="text-[10px] sm:text-xs text-gray-500 text-center max-w-md leading-relaxed">
             Start exploring talented professionals and save the ones that catch your eye. 
             They'll appear here for easy access.
           </p>
           <button
             onClick={() => router.push('/find-candidates')}
-            className="mt-6 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md shadow-blue-200 hover:shadow-lg hover:scale-105 transform text-xs font-medium flex items-center gap-1.5 group"
+            className="mt-4 sm:mt-5 md:mt-6 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md shadow-blue-200 hover:shadow-lg hover:scale-105 transform text-[10px] sm:text-xs font-medium flex items-center gap-1 sm:gap-1.5 group"
           >
             <span>Browse Candidates</span>
-            <FiChevronRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+            <FiChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       )}
@@ -321,7 +336,7 @@ export default function SavedCandidateMain() {
       {/* Candidates List */}
       {!loading && !error && savedCandidates.length > 0 && (
         <>
-          <div className="mt-6 rounded-xl bg-white/90 backdrop-blur-sm shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl">
+          <div className="mt-4 sm:mt-5 md:mt-6 rounded-lg sm:rounded-xl bg-white/90 backdrop-blur-sm shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl">
             {savedCandidates.map((saved, index) => {
               const candidate = saved.candidate || {};
               const profile = saved.profile || {};
@@ -371,16 +386,17 @@ export default function SavedCandidateMain() {
                     onSendEmail={() => handleSendEmail(email)}
                     onDownloadCV={() => handleDownloadCV(cvUrl)}
                     isHovered={hoveredRow === saved._id}
+                    screenSize={screenSize}
                   />
                 </div>
               );
             })}
           </div>
 
-          {/* Pagination - Reduced Size */}
+          {/* Pagination */}
           {pagination.totalPages > 1 && (
-            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeInUp">
-              <p className="text-xs text-gray-600 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm">
+            <div className="mt-4 sm:mt-5 md:mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeInUp">
+              <p className="text-[10px] sm:text-xs text-gray-600 bg-white/80 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-sm">
                 Showing <span className="font-semibold text-blue-600">
                   {((pagination.currentPage - 1) * filters.limit) + 1}
                 </span> to{' '}
@@ -390,41 +406,41 @@ export default function SavedCandidateMain() {
                 <span className="font-semibold text-blue-600">{pagination.totalSaved}</span>
               </p>
               
-              <div className="flex items-center gap-1.5 bg-white/80 backdrop-blur-sm p-1.5 rounded-lg shadow-sm border border-gray-200/50">
+              <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm p-1 rounded-lg shadow-sm border border-gray-200/50">
                 <button
                   onClick={() => handlePageChange(1)}
                   disabled={!pagination.hasPrevPage}
-                  className="px-2 py-1.5 rounded-lg text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 group"
+                  className="px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 group"
                   title="First page"
                 >
-                  <FiChevronsLeft className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                  <FiChevronsLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:scale-110 transition-transform" />
                 </button>
                 <button
                   onClick={() => handlePageChange(pagination.currentPage - 1)}
                   disabled={!pagination.hasPrevPage}
-                  className="px-2 py-1.5 rounded-lg text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 group"
+                  className="px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 group"
                 >
-                  <FiChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                  <FiChevronLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:-translate-x-0.5 transition-transform" />
                 </button>
                 
-                <span className="px-3 py-1.5 text-xs font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-sm">
+                <span className="px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg shadow-sm">
                   {pagination.currentPage}
                 </span>
                 
                 <button
                   onClick={() => handlePageChange(pagination.currentPage + 1)}
                   disabled={!pagination.hasNextPage}
-                  className="px-2 py-1.5 rounded-lg text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 group"
+                  className="px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 group"
                 >
-                  <FiChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <FiChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </button>
                 <button
                   onClick={() => handlePageChange(pagination.totalPages)}
                   disabled={!pagination.hasNextPage}
-                  className="px-2 py-1.5 rounded-lg text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 group"
+                  className="px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-900 group"
                   title="Last page"
                 >
-                  <FiChevronsRight className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                  <FiChevronsRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:scale-110 transition-transform" />
                 </button>
               </div>
             </div>
@@ -443,7 +459,7 @@ export default function SavedCandidateMain() {
   );
 }
 
-/* ---------------- Candidate Row with Reduced Font Sizes ---------------- */
+/* ---------------- Candidate Row ---------------- */
 
 function CandidateRow({ 
   candidate, 
@@ -451,7 +467,8 @@ function CandidateRow({
   onViewProfile, 
   onSendEmail, 
   onDownloadCV,
-  isHovered 
+  isHovered,
+  screenSize 
 }) {
   const [openDropdown, setOpenDropdown] = useState(false);
   const [unsaving, setUnsaving] = useState(false);
@@ -495,8 +512,8 @@ function CandidateRow({
     
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
@@ -504,7 +521,7 @@ function CandidateRow({
     <div
       className={`
         flex flex-col sm:flex-row sm:items-center 
-        justify-between px-4 sm:px-5 py-3
+        justify-between px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 md:py-3
         transition-all duration-300
         border-b border-gray-100 last:border-0
         relative overflow-hidden group
@@ -520,24 +537,24 @@ function CandidateRow({
         ${isHovered ? 'opacity-100' : 'opacity-0'}
       `} />
 
-      {/* Left - Candidate Info - Reduced Sizes */}
-      <div className="flex items-start sm:items-center gap-3 flex-1 relative z-10">
-        {/* Avatar - Reduced Size */}
+      {/* Left - Candidate Info */}
+      <div className="flex items-start sm:items-center gap-2 sm:gap-3 flex-1 relative z-10">
+        {/* Avatar */}
         <div className="relative flex-shrink-0 group/avatar">
           {candidate.profileImage && !imageError ? (
             <div className="relative">
               <img
                 src={candidate.profileImage}
                 alt={candidate.name}
-                className="h-10 w-10 rounded-lg object-cover border-2 border-white shadow-md transition-transform duration-300 group-hover/avatar:scale-110"
+                className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-lg object-cover border-2 border-white shadow-md transition-transform duration-300 group-hover/avatar:scale-110"
                 onError={() => setImageError(true)}
               />
               <div className="absolute inset-0 rounded-lg bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
             </div>
           ) : (
             <div className={`
-              h-10 w-10 rounded-lg bg-gradient-to-br ${getAvatarColor(candidate.name)} 
-              flex items-center justify-center text-white font-semibold text-sm
+              h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 rounded-lg bg-gradient-to-br ${getAvatarColor(candidate.name)} 
+              flex items-center justify-center text-white font-semibold text-[10px] sm:text-xs
               shadow-md transition-all duration-300 group-hover/avatar:scale-110
               relative overflow-hidden
             `}>
@@ -546,56 +563,58 @@ function CandidateRow({
             </div>
           )}
           
-          {/* Status badge - Reduced Size */}
+          {/* Status badge */}
           {candidate.experience && (
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center animate-bounce-subtle">
-              <FiAward className="w-2 h-2 text-white" />
+            <div className="absolute -bottom-1 -right-1 w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full border-2 border-white shadow-sm flex items-center justify-center animate-bounce-subtle">
+              <FiAward className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" />
             </div>
           )}
         </div>
 
-        {/* Details - Reduced Font Sizes */}
+        {/* Details */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
-            <h3 className="font-semibold text-gray-900 truncate text-sm">
+          <div className="flex items-center gap-1 flex-wrap mb-0.5">
+            <h3 className="font-semibold text-gray-900 truncate text-xs sm:text-sm">
               {candidate.name}
             </h3>
             {candidate.experience && (
-              <span className="text-[10px] bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 px-1.5 py-0.5 rounded-full border border-blue-200 font-medium flex items-center gap-0.5">
-                <FiBriefcase className="w-2.5 h-2.5" />
-                {candidate.experience}
+              <span className="text-[8px] sm:text-[9px] md:text-[10px] bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 px-1 py-0.5 rounded-full border border-blue-200 font-medium flex items-center gap-0.5">
+                <FiBriefcase className="w-2 h-2 sm:w-2.5 sm:h-2.5" />
+                {screenSize === 'mobile' ? candidate.experience.slice(0, 3) : candidate.experience}
               </span>
             )}
-            {/* Match score - Reduced Size */}
-            <span className="text-[10px] bg-gradient-to-r from-green-100 to-green-50 text-green-700 px-1.5 py-0.5 rounded-full border border-green-200 font-medium flex items-center gap-0.5">
-              <FiStar className="w-2.5 h-2.5 fill-current" />
+            {/* Match score */}
+            <span className="text-[8px] sm:text-[9px] md:text-[10px] bg-gradient-to-r from-green-100 to-green-50 text-green-700 px-1 py-0.5 rounded-full border border-green-200 font-medium flex items-center gap-0.5">
+              <FiStar className="w-2 h-2 sm:w-2.5 sm:h-2.5 fill-current" />
               {Math.floor(Math.random() * 20 + 80)}%
             </span>
           </div>
           
-          <p className="text-[11px] text-gray-600 mb-1.5 flex items-center gap-1">
+          <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 mb-1 flex items-center gap-1 truncate">
             <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
             {candidate.title}
           </p>
           
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-500">
+          <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-[8px] sm:text-[9px] md:text-[10px] text-gray-500">
             {candidate.location && candidate.location !== 'Location not specified' && (
-              <span className="flex items-center gap-1 bg-gray-100/80 px-1.5 py-0.5 rounded-full">
-                <FiMapPin className="w-2.5 h-2.5 text-gray-400" />
-                <span className="truncate max-w-[120px]">{candidate.location}</span>
+              <span className="flex items-center gap-1 bg-gray-100/80 px-1 py-0.5 rounded-full">
+                <FiMapPin className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-gray-400" />
+                <span className="truncate max-w-[80px] sm:max-w-[120px]">
+                  {screenSize === 'mobile' ? candidate.location.split(',')[0] : candidate.location}
+                </span>
               </span>
             )}
             
             {candidate.savedDate && (
-              <span className="flex items-center gap-1 bg-gray-100/80 px-1.5 py-0.5 rounded-full">
-                <FiClock className="w-2.5 h-2.5 text-gray-400" />
+              <span className="flex items-center gap-1 bg-gray-100/80 px-1 py-0.5 rounded-full">
+                <FiClock className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-gray-400" />
                 {formatSavedDate(candidate.savedDate)}
               </span>
             )}
 
-            {candidate.education && (
-              <span className="flex items-center gap-1 bg-gray-100/80 px-1.5 py-0.5 rounded-full">
-                <FiCalendar className="w-2.5 h-2.5 text-gray-400" />
+            {candidate.education && screenSize !== 'mobile' && (
+              <span className="flex items-center gap-1 bg-gray-100/80 px-1 py-0.5 rounded-full">
+                <FiCalendar className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-gray-400" />
                 {candidate.education}
               </span>
             )}
@@ -603,14 +622,14 @@ function CandidateRow({
         </div>
       </div>
 
-      {/* Right - Actions - Reduced Sizes */}
-      <div className="flex items-center gap-1.5 ml-13 sm:ml-0 relative z-10 mt-2 sm:mt-0">
-        {/* Bookmark/Unsave - Reduced Size */}
+      {/* Right - Actions */}
+      <div className="flex items-center gap-1 ml-12 sm:ml-0 relative z-10 mt-2 sm:mt-0">
+        {/* Bookmark/Unsave */}
         <button
           onClick={handleUnsave}
           disabled={unsaving}
           className={`
-            rounded-lg p-1.5 transition-all duration-300 
+            rounded-lg p-1 sm:p-1.5 transition-all duration-300 
             ${unsaving 
               ? 'bg-blue-100' 
               : 'bg-gradient-to-r from-blue-50 to-blue-100/50 hover:from-blue-100 hover:to-blue-200'
@@ -620,54 +639,44 @@ function CandidateRow({
           title="Remove from saved"
         >
           {unsaving ? (
-            <FiLoader className="w-3.5 h-3.5 text-blue-600 animate-spin" />
+            <FiLoader className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 animate-spin" />
           ) : (
             <>
-              <FiBookmark className="w-3.5 h-3.5 text-blue-600 fill-current group-hover/unsave:scale-110 transition-transform" />
+              <FiBookmark className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-600 fill-current group-hover/unsave:scale-110 transition-transform" />
               <span className="absolute inset-0 bg-white/20 transform -translate-x-full group-hover/unsave:translate-x-full transition-transform duration-700" />
             </>
           )}
         </button>
 
-        {/* View Profile Button - Reduced Size */}
+        {/* View Profile Button */}
         <button
           onClick={onViewProfile}
-          className="
-            hidden sm:flex items-center gap-1.5 
+          className={`
+            ${screenSize === 'mobile' 
+              ? 'px-2 py-1 text-[8px]' 
+              : 'px-2 sm:px-3 py-1 sm:py-1.5 text-[9px] sm:text-xs'
+            }
             rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 
-            px-3 py-1.5 text-xs font-medium text-white 
+            font-medium text-white 
             hover:from-blue-700 hover:to-blue-800 
             transition-all duration-300 shadow-sm hover:shadow-md
             transform hover:scale-105 group/view
             relative overflow-hidden
-          "
+            flex items-center gap-1
+          `}
         >
-          <span>View</span>
-          <FiEye className="w-3.5 h-3.5 group-hover/view:scale-110 transition-transform" />
+          <span>{screenSize === 'mobile' ? '' : 'View'}</span>
+          <FiEye className={`${screenSize === 'mobile' ? 'w-2.5 h-2.5' : 'w-3 h-3 sm:w-3.5 sm:h-3.5'} group-hover/view:scale-110 transition-transform`} />
+          {screenSize === 'mobile' && <span className="text-[8px]">View</span>}
           <span className="absolute inset-0 bg-white/20 transform -translate-x-full group-hover/view:translate-x-full transition-transform duration-700" />
         </button>
 
-        {/* Mobile View Profile - Reduced Size */}
-        <button
-          onClick={onViewProfile}
-          className="
-            sm:hidden rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 
-            px-2.5 py-1 text-[10px] font-medium text-white 
-            hover:from-blue-700 hover:to-blue-800 
-            transition-all duration-300 shadow-sm
-            flex items-center gap-1
-          "
-        >
-          <FiEye className="w-2.5 h-2.5" />
-          View
-        </button>
-
-        {/* More Options Dropdown - Reduced Size */}
+        {/* More Options Dropdown */}
         <div className="relative">
           <button
             onClick={() => setOpenDropdown(!openDropdown)}
             className={`
-              rounded-lg p-1.5 transition-all duration-300
+              rounded-lg p-1 sm:p-1.5 transition-all duration-300
               ${openDropdown 
                 ? 'bg-gray-200' 
                 : 'hover:bg-gray-100 bg-gray-50'
@@ -675,10 +684,10 @@ function CandidateRow({
               relative overflow-hidden group/more
             `}
           >
-            <FiMoreVertical className="w-3.5 h-3.5 text-gray-600 group-hover/more:rotate-90 transition-transform duration-300" />
+            <FiMoreVertical className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-600 group-hover/more:rotate-90 transition-transform duration-300" />
           </button>
 
-          {/* Dropdown Menu - Reduced Size */}
+          {/* Dropdown Menu */}
           {openDropdown && (
             <>
               <div
@@ -687,42 +696,45 @@ function CandidateRow({
               />
               <div
                 className="
-                  absolute right-0 top-9 z-40
-                  w-48 rounded-lg border border-gray-100 
+                  absolute right-0 top-7 sm:top-8 md:top-9 z-40
+                  w-40 sm:w-44 md:w-48 rounded-lg border border-gray-100 
                   bg-white/90 backdrop-blur-sm shadow-lg
-                  py-1.5 animate-in fade-in slide-in-from-top-2
+                  py-1 animate-in fade-in slide-in-from-top-2
                   overflow-hidden
                 "
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-white to-gray-50/50 pointer-events-none" />
                 
                 <DropdownItem
-                  icon={<FiMail className="w-3.5 h-3.5" />}
+                  icon={<FiMail className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
                   label="Send Email"
                   onClick={() => {
                     onSendEmail();
                     setOpenDropdown(false);
                   }}
                   disabled={!candidate.email}
-                  description="Send a message"
+                  description={screenSize === 'mobile' ? '' : "Send a message"}
+                  screenSize={screenSize}
                 />
                 <DropdownItem
-                  icon={<FiDownload className="w-3.5 h-3.5" />}
+                  icon={<FiDownload className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
                   label="Download CV"
                   onClick={() => {
                     onDownloadCV();
                     setOpenDropdown(false);
                   }}
                   disabled={!candidate.cvUrl}
-                  description="Save resume"
+                  description={screenSize === 'mobile' ? '' : "Save resume"}
+                  screenSize={screenSize}
                 />
-                <div className="border-t border-gray-100 my-1.5" />
+                <div className="border-t border-gray-100 my-1" />
                 <DropdownItem
-                  icon={<FiBookmark className="w-3.5 h-3.5" />}
-                  label="Remove from saved"
+                  icon={<FiBookmark className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+                  label="Remove"
                   onClick={handleUnsave}
                   className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                  description="Remove from collection"
+                  description={screenSize === 'mobile' ? '' : "Remove from collection"}
+                  screenSize={screenSize}
                 />
               </div>
             </>
@@ -730,46 +742,48 @@ function CandidateRow({
         </div>
       </div>
 
-      {/* Quick action buttons - Reduced Size */}
-      <div className={`
-        absolute right-20 top-1/2 -translate-y-1/2 
-        hidden lg:flex items-center gap-1
-        transition-all duration-500 transform
-        ${showActions ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}
-      `}>
-        {candidate.email && (
-          <button
-            onClick={onSendEmail}
-            className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors group"
-            title="Send Email"
-          >
-            <FiMail className="w-3 h-3 text-gray-600 group-hover:scale-110 transition-transform" />
-          </button>
-        )}
-        {candidate.cvUrl && (
-          <button
-            onClick={onDownloadCV}
-            className="p-1.5 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors group"
-            title="Download CV"
-          >
-            <FiDownload className="w-3 h-3 text-gray-600 group-hover:scale-110 transition-transform" />
-          </button>
-        )}
-      </div>
+      {/* Quick action buttons - Desktop only */}
+      {screenSize === 'desktop' && (
+        <div className={`
+          absolute right-16 top-1/2 -translate-y-1/2 
+          hidden lg:flex items-center gap-1
+          transition-all duration-500 transform
+          ${showActions ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}
+        `}>
+          {candidate.email && (
+            <button
+              onClick={onSendEmail}
+              className="p-1 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors group"
+              title="Send Email"
+            >
+              <FiMail className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-600 group-hover:scale-110 transition-transform" />
+            </button>
+          )}
+          {candidate.cvUrl && (
+            <button
+              onClick={onDownloadCV}
+              className="p-1 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors group"
+              title="Download CV"
+            >
+              <FiDownload className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-gray-600 group-hover:scale-110 transition-transform" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-/* ---------------- Dropdown Item with Reduced Sizes ---------------- */
+/* ---------------- Dropdown Item ---------------- */
 
-function DropdownItem({ icon, label, onClick, disabled = false, className = "", description }) {
+function DropdownItem({ icon, label, onClick, disabled = false, className = "", description, screenSize }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
       className={`
-        flex w-full items-center gap-2.5
-        px-3 py-2 text-xs
+        flex w-full items-center gap-1.5 sm:gap-2
+        px-2 sm:px-3 py-1.5 sm:py-2
         relative z-10
         ${disabled 
           ? 'text-gray-400 cursor-not-allowed bg-gray-50/50' 
@@ -783,9 +797,9 @@ function DropdownItem({ icon, label, onClick, disabled = false, className = "", 
         {icon}
       </span>
       <div className="flex flex-col items-start">
-        <span className="font-medium text-xs">{label}</span>
-        {description && !disabled && (
-          <span className="text-[9px] text-gray-400">{description}</span>
+        <span className="font-medium text-[10px] sm:text-xs">{label}</span>
+        {description && !disabled && screenSize !== 'mobile' && (
+          <span className="text-[7px] sm:text-[9px] text-gray-400">{description}</span>
         )}
       </div>
     </button>

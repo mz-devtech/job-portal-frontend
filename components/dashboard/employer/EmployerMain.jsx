@@ -78,6 +78,21 @@ export default function EmployerMain() {
   const [timeRange, setTimeRange] = useState("week");
   const [refreshing, setRefreshing] = useState(false);
   const [activeChartIndex, setActiveChartIndex] = useState(0);
+  const [screenSize, setScreenSize] = useState('desktop');
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      if (width < 640) setScreenSize('mobile');
+      else if (width >= 640 && width < 1024) setScreenSize('tablet');
+      else setScreenSize('desktop');
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, []);
 
   // Colors for charts
   const COLORS = {
@@ -321,11 +336,11 @@ export default function EmployerMain() {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="text-sm font-medium text-gray-900 mb-1">{label}</p>
+        <div className="bg-white p-2 sm:p-3 rounded-lg shadow-lg border border-gray-200">
+          <p className="text-xs sm:text-sm font-medium text-gray-900 mb-1">{label}</p>
           {payload.map((entry, index) => (
-            <div key={index} className="flex items-center gap-2 text-xs">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
+            <div key={index} className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-gray-600">{entry.name}:</span>
               <span className="font-medium text-gray-900">{entry.value}</span>
             </div>
@@ -338,7 +353,7 @@ export default function EmployerMain() {
 
   if (loading.stats && loading.jobs) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -349,7 +364,7 @@ export default function EmployerMain() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-              className="w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full"
+              className="w-16 h-16 sm:w-20 sm:h-20 border-4 border-blue-200 border-t-blue-600 rounded-full"
             />
             <motion.div
               initial={{ opacity: 0 }}
@@ -357,14 +372,14 @@ export default function EmployerMain() {
               transition={{ delay: 0.5 }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <FiBriefcase className="w-8 h-8 text-blue-600" />
+              <FiBriefcase className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </motion.div>
           </div>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="mt-4 text-gray-600 font-medium"
+            className="mt-4 text-sm sm:text-base text-gray-600 font-medium"
           >
             Loading your dashboard...
           </motion.p>
@@ -378,25 +393,25 @@ export default function EmployerMain() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="mt-4 w-full min-h-screen bg-gray-50 px-6 py-4 sm:px-6 sm:py-6 md:ml-[260px] md:w-[calc(100%-260px)]"
+      className="mt-4 w-full min-h-screen bg-gray-50 px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:ml-[260px] md:w-[calc(100%-260px)]"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex justify-between items-center mb-8">
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
             Employer Dashboard
           </h1>
-          <p className="text-gray-500 mt-1">
-            Welcome back, {getUserName()}! Here's what's happening with your job postings.
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            Welcome back, {getUserName()}! Here's what's happening.
           </p>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
           {/* Time range selector */}
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value)}
-            className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="week">Last 7 days</option>
             <option value="month">Last 30 days</option>
@@ -405,134 +420,130 @@ export default function EmployerMain() {
           
           {/* Refresh button */}
           <motion.button
-            whileHover={{ scale: 1.05, rotate: 180 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={fetchDashboardData}
             disabled={refreshing}
             className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            <FiRefreshCw className={`w-5 h-5 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
+            <FiRefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
           </motion.button>
           
           {/* Post Job Button */}
-          <Link href="/post_job">
+          <Link href="/post_job" className="flex-1 sm:flex-none">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-md flex items-center gap-2"
+              className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-md flex items-center justify-center gap-2 text-xs sm:text-sm"
             >
-              <FiPlusCircle className="w-4 h-4" />
-              Post New Job
+              <FiPlusCircle className="w-3 h-3 sm:w-4 sm:h-4" />
+              {screenSize === 'mobile' ? 'Post' : 'Post New Job'}
             </motion.button>
           </Link>
         </div>
       </motion.div>
 
       {/* Stats Cards */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
         {/* Active Jobs */}
         <motion.div
           variants={statCardVariants}
           whileHover="hover"
-          className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden group"
+          className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-4 sm:p-6 text-white shadow-lg relative overflow-hidden group"
         >
           <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm opacity-90 mb-1">Active Jobs</p>
-              <p className="text-3xl font-bold">{formatNumber(stats.activeJobs)}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-xs bg-white/20 px-2 py-1 rounded-sm">
+              <p className="text-xs sm:text-sm opacity-90 mb-1">Active Jobs</p>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">{formatNumber(stats.activeJobs)}</p>
+              <div className="flex items-center gap-2 mt-1 sm:mt-2">
+                <span className="text-[10px] sm:text-xs bg-white/20 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-sm">
                   {stats.totalJobs} Total
                 </span>
               </div>
             </div>
-            <div className="p-3 bg-white/20 rounded-lg">
-              <FiBriefcase className="w-6 h-6" />
+            <div className="p-2 sm:p-3 bg-white/20 rounded-lg">
+              <FiBriefcase className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
             </div>
           </div>
-          <div className="absolute bottom-2 right-2 text-4xl opacity-10">📊</div>
         </motion.div>
 
         {/* Total Applications */}
         <motion.div
           variants={statCardVariants}
           whileHover="hover"
-          className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden group"
+          className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl p-4 sm:p-6 text-white shadow-lg relative overflow-hidden group"
         >
           <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm opacity-90 mb-1">Total Applications</p>
-              <p className="text-3xl font-bold">{formatNumber(stats.totalApplications)}</p>
-              <p className="text-xs opacity-75 mt-2">
-                {stats.conversionRate}% conversion rate
+              <p className="text-xs sm:text-sm opacity-90 mb-1">Applications</p>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">{formatNumber(stats.totalApplications)}</p>
+              <p className="text-[10px] sm:text-xs opacity-75 mt-1 sm:mt-2">
+                {stats.conversionRate}% conversion
               </p>
             </div>
-            <div className="p-3 bg-white/20 rounded-lg">
-              <FiUsers className="w-6 h-6" />
+            <div className="p-2 sm:p-3 bg-white/20 rounded-lg">
+              <FiUsers className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
             </div>
           </div>
-          <div className="absolute bottom-2 right-2 text-4xl opacity-10">👥</div>
         </motion.div>
 
         {/* Pending Reviews */}
         <motion.div
           variants={statCardVariants}
           whileHover="hover"
-          className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden group"
+          className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg sm:rounded-xl p-4 sm:p-6 text-white shadow-lg relative overflow-hidden group"
         >
           <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm opacity-90 mb-1">Pending Reviews</p>
-              <p className="text-3xl font-bold">{formatNumber(stats.pendingApplications)}</p>
-              <p className="text-xs opacity-75 mt-2">Awaiting your response</p>
+              <p className="text-xs sm:text-sm opacity-90 mb-1">Pending</p>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">{formatNumber(stats.pendingApplications)}</p>
+              <p className="text-[10px] sm:text-xs opacity-75 mt-1 sm:mt-2">Awaiting response</p>
             </div>
-            <div className="p-3 bg-white/20 rounded-lg">
-              <FiClock className="w-6 h-6" />
+            <div className="p-2 sm:p-3 bg-white/20 rounded-lg">
+              <FiClock className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
             </div>
           </div>
-          <div className="absolute bottom-2 right-2 text-4xl opacity-10">⏳</div>
         </motion.div>
 
         {/* Saved Candidates */}
         <motion.div
           variants={statCardVariants}
           whileHover="hover"
-          className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden group"
+          className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg sm:rounded-xl p-4 sm:p-6 text-white shadow-lg relative overflow-hidden group"
         >
           <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-sm opacity-90 mb-1">Saved Candidates</p>
-              <p className="text-3xl font-bold">{formatNumber(stats.savedCandidates)}</p>
-              <p className="text-xs opacity-75 mt-2">In your talent pool</p>
+              <p className="text-xs sm:text-sm opacity-90 mb-1">Saved</p>
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold">{formatNumber(stats.savedCandidates)}</p>
+              <p className="text-[10px] sm:text-xs opacity-75 mt-1 sm:mt-2">In talent pool</p>
             </div>
-            <div className="p-3 bg-white/20 rounded-lg">
-              <FiUserPlus className="w-6 h-6" />
+            <div className="p-2 sm:p-3 bg-white/20 rounded-lg">
+              <FiUserPlus className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
             </div>
           </div>
-          <div className="absolute bottom-2 right-2 text-4xl opacity-10">⭐</div>
         </motion.div>
       </motion.div>
 
       {/* Charts Section */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         {/* Application Trends Chart */}
         <motion.div
           variants={statCardVariants}
-          className="lg:col-span-2 bg-white rounded-xl p-6 shadow-lg border border-gray-200"
+          className="lg:col-span-2 bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-lg border border-gray-200"
         >
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Application Trends</h3>
-              <p className="text-sm text-gray-500">Daily applications and job views</p>
+              <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">Application Trends</h3>
+              <p className="text-xs sm:text-sm text-gray-500">Daily applications & views</p>
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setActiveChartIndex(0)}
-                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-lg transition-colors ${
                   activeChartIndex === 0 
                     ? "bg-blue-100 text-blue-600" 
                     : "text-gray-500 hover:bg-gray-100"
@@ -542,7 +553,7 @@ export default function EmployerMain() {
               </button>
               <button
                 onClick={() => setActiveChartIndex(1)}
-                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-lg transition-colors ${
                   activeChartIndex === 1 
                     ? "bg-blue-100 text-blue-600" 
                     : "text-gray-500 hover:bg-gray-100"
@@ -553,7 +564,7 @@ export default function EmployerMain() {
             </div>
           </div>
           
-          <div className="h-80">
+          <div className="h-60 sm:h-72 md:h-80">
             <ResponsiveContainer width="100%" height="100%">
               {activeChartIndex === 0 ? (
                 <AreaChart data={getApplicationTrends()}>
@@ -568,10 +579,10 @@ export default function EmployerMain() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="date" stroke="#6B7280" />
-                  <YAxis stroke="#6B7280" />
+                  <XAxis dataKey="date" stroke="#6B7280" tick={{fontSize: 10}} />
+                  <YAxis stroke="#6B7280" tick={{fontSize: 10}} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend />
+                  <Legend wrapperStyle={{fontSize: '10px'}} />
                   <Area
                     type="monotone"
                     dataKey="applications"
@@ -590,10 +601,10 @@ export default function EmployerMain() {
               ) : (
                 <BarChart data={getApplicationTrends()}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="date" stroke="#6B7280" />
-                  <YAxis stroke="#6B7280" />
+                  <XAxis dataKey="date" stroke="#6B7280" tick={{fontSize: 10}} />
+                  <YAxis stroke="#6B7280" tick={{fontSize: 10}} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend />
+                  <Legend wrapperStyle={{fontSize: '10px'}} />
                   <Bar dataKey="applications" fill={COLORS.primary} name="Applications" />
                   <Bar dataKey="views" fill={COLORS.success} name="Views" />
                 </BarChart>
@@ -605,20 +616,20 @@ export default function EmployerMain() {
         {/* Job Distribution */}
         <motion.div
           variants={statCardVariants}
-          className="bg-white rounded-xl p-6 shadow-lg border border-gray-200"
+          className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-lg border border-gray-200"
         >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Jobs by Type</h3>
-          <div className="h-64">
+          <h3 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Jobs by Type</h3>
+          <div className="h-48 sm:h-56 md:h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={getJobTypeDistribution()}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={screenSize === 'mobile' ? 40 : 60}
+                  outerRadius={screenSize === 'mobile' ? 60 : 80}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => screenSize === 'mobile' ? '' : `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {getJobTypeDistribution().map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
@@ -628,11 +639,11 @@ export default function EmployerMain() {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 space-y-2">
+          <div className="mt-3 sm:mt-4 space-y-1 sm:space-y-2">
             {getJobTypeDistribution().map((item, index) => (
-              <div key={index} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+              <div key={index} className="flex items-center justify-between text-xs sm:text-sm">
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className="text-gray-600">{item.name}</span>
                 </div>
                 <span className="font-medium text-gray-900">{item.value}</span>
@@ -643,50 +654,50 @@ export default function EmployerMain() {
       </motion.div>
 
       {/* Recent Jobs Section */}
-      <motion.div variants={itemVariants} className="mb-8">
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+      <motion.div variants={itemVariants} className="mb-6 sm:mb-8">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-            <div className="flex items-center gap-3">
-              <h3 className="font-semibold text-gray-900">Recently Posted Jobs</h3>
-              <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <h3 className="text-sm sm:text-base font-semibold text-gray-900">Recent Jobs</h3>
+              <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-50 text-blue-600 text-[10px] sm:text-xs font-medium rounded-full">
                 {stats.activeJobs} Active
               </span>
             </div>
             <Link 
               href="/employer/my-jobs" 
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 group"
+              className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 group"
             >
               View all jobs
-              <FiChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <FiChevronRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
 
           {/* Jobs List */}
           {loading.jobs ? (
-            <div className="p-12 text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-solid border-blue-600 border-r-transparent"></div>
-              <p className="mt-2 text-sm text-gray-500">Loading your jobs...</p>
+            <div className="p-8 sm:p-12 text-center">
+              <div className="inline-block h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-2 border-solid border-blue-600 border-r-transparent"></div>
+              <p className="mt-2 text-xs sm:text-sm text-gray-500">Loading your jobs...</p>
             </div>
           ) : recentJobs.length === 0 ? (
-            <div className="p-12 text-center">
+            <div className="p-8 sm:p-12 text-center">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
+                className="w-16 h-16 sm:w-20 sm:h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
               >
-                <FiBriefcase className="w-10 h-10 text-blue-600" />
+                <FiBriefcase className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600" />
               </motion.div>
-              <h4 className="text-lg font-semibold text-gray-700 mb-2">No jobs posted yet</h4>
-              <p className="text-sm text-gray-500 mb-6">Start posting jobs to attract top talent</p>
-              <Link href="/post-job">
+              <h4 className="text-sm sm:text-base md:text-lg font-semibold text-gray-700 mb-2">No jobs posted yet</h4>
+              <p className="text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6">Start posting jobs to attract top talent</p>
+              <Link href="/post_job">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-md inline-flex items-center gap-2"
+                  className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-md inline-flex items-center gap-2 text-xs sm:text-sm"
                 >
-                  <FiPlusCircle className="w-4 h-4" />
+                  <FiPlusCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                   Post Your First Job
                 </motion.button>
               </Link>
@@ -700,6 +711,7 @@ export default function EmployerMain() {
                   formatDate={formatDate}
                   getStatusBadge={getStatusBadge}
                   index={index}
+                  screenSize={screenSize}
                 />
               ))}
             </div>
@@ -708,67 +720,71 @@ export default function EmployerMain() {
       </motion.div>
 
       {/* Quick Actions Grid */}
-      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
         <QuickActionCard
           title="Post a New Job"
-          description="Create a new job posting to attract candidates"
-          icon={<FiPlusCircle className="w-6 h-6" />}
-          href="/post-job"
+          description="Create a new job posting"
+          icon={<FiPlusCircle className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />}
+          href="/post_job"
           gradient="from-blue-500 to-blue-600"
           iconBg="bg-blue-100"
+          screenSize={screenSize}
         />
         <QuickActionCard
           title="Find Candidates"
-          description="Search through our candidate database"
-          icon={<FiUsers className="w-6 h-6" />}
+          description="Search candidate database"
+          icon={<FiUsers className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />}
           href="/candidates"
           gradient="from-purple-500 to-purple-600"
           iconBg="bg-purple-100"
+          screenSize={screenSize}
         />
         <QuickActionCard
           title="Review Applications"
-          description="Check and respond to new applications"
-          icon={<FiEye className="w-6 h-6" />}
+          description="Check new applications"
+          icon={<FiEye className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />}
           href="/employer/my-jobs"
           gradient="from-green-500 to-emerald-600"
           iconBg="bg-green-100"
+          screenSize={screenSize}
         />
         <QuickActionCard
           title="Company Profile"
-          description="Update your company information"
-          icon={<FiHome className="w-6 h-6" />}
-          href="/employer/profile"
+          description="Update your information"
+          icon={<FiHome className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />}
+          href="/employer_settings"
           gradient="from-orange-500 to-orange-600"
           iconBg="bg-orange-100"
+          screenSize={screenSize}
         />
       </motion.div>
 
       {/* Saved Candidates Section (if any) */}
       {savedCandidates.length > 0 && (
-        <motion.div variants={itemVariants} className="mt-8">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-              <div className="flex items-center gap-3">
-                <h3 className="font-semibold text-gray-900">Saved Candidates</h3>
-                <span className="px-2 py-1 bg-green-50 text-green-600 text-xs font-medium rounded-full">
+        <motion.div variants={itemVariants} className="mt-6 sm:mt-8">
+          <div className="bg-white rounded-lg sm:rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-900">Saved Candidates</h3>
+                <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-50 text-green-600 text-[10px] sm:text-xs font-medium rounded-full">
                   {stats.savedCandidates} Saved
                 </span>
               </div>
               <Link 
                 href="/employer/saved-candidates" 
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 group"
+                className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 group"
               >
-                View all candidates
-                <FiChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                View all
+                <FiChevronRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
             </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {savedCandidates.slice(0, 3).map((saved, index) => (
                   <SavedCandidateCard 
                     key={saved.candidate?._id || index} 
                     saved={saved} 
-                    onUnsave={handleUnsaveCandidate}
+                    screenSize={screenSize}
                   />
                 ))}
               </div>
@@ -783,7 +799,7 @@ export default function EmployerMain() {
 /* ============================================ */
 /* RECENT JOB ROW COMPONENT */
 /* ============================================ */
-function RecentJobRow({ job, formatDate, getStatusBadge, index }) {
+function RecentJobRow({ job, formatDate, getStatusBadge, index, screenSize }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const statusBadge = getStatusBadge(job);
   const StatusIcon = statusBadge.icon;
@@ -793,79 +809,65 @@ function RecentJobRow({ job, formatDate, getStatusBadge, index }) {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="px-6 py-4 hover:bg-gray-50 transition relative"
+      className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 hover:bg-gray-50 transition relative"
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex-1 w-full">
+          <div className="flex flex-wrap items-center gap-2">
             <Link href={`/jobs/${job._id}`} className="group">
-              <h4 className="font-medium text-gray-900 group-hover:text-blue-600 transition">
+              <h4 className="text-xs sm:text-sm font-medium text-gray-900 group-hover:text-blue-600 transition">
                 {job.jobTitle}
               </h4>
             </Link>
             {job.isFeatured && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800"
-              >
-                <FiStar className="w-3 h-3 mr-1" />
-                Featured
-              </motion.span>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-yellow-100 text-yellow-800">
+                <FiStar className="w-2 h-2 mr-1" />
+                {screenSize === 'mobile' ? '' : 'Featured'}
+              </span>
             )}
           </div>
           
-          <div className="flex items-center gap-3 mt-2">
-            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
               {job.jobType || 'Full Time'}
             </span>
-            <span className="text-xs text-gray-500 flex items-center gap-1">
-              <FiMapPin className="w-3 h-3" />
-              {job.location?.city || 'Not specified'}, {job.location?.country || 'Not specified'}
+            <span className="text-[10px] text-gray-500 flex items-center gap-1">
+              <FiMapPin className="w-2 h-2" />
+              {screenSize === 'mobile' ? job.location?.city?.slice(0, 8) || 'N/A' : job.location?.city || 'Not specified'}
             </span>
             {job.location?.isRemote && (
-              <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
+              <span className="text-[10px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded">
                 Remote
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-4 mt-3">
-            <motion.span 
-              whileHover={{ scale: 1.05 }}
-              className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.color}`}
-            >
-              <StatusIcon className="w-3 h-3" />
-              {statusBadge.text}
-            </motion.span>
-            <span className="text-xs text-gray-500">
-              Posted {formatDate(job.postedDate)}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2">
+            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${statusBadge.bg} ${statusBadge.color}`}>
+              <StatusIcon className="w-2 h-2" />
+              {screenSize === 'mobile' ? statusBadge.text.slice(0, 3) : statusBadge.text}
+            </span>
+            <span className="text-[10px] text-gray-500">
+              {formatDate(job.postedDate)}
             </span>
             {job.daysRemaining > 0 && job.status === 'Active' && (
-              <motion.span 
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="text-xs text-orange-600 font-medium"
-              >
-                {job.daysRemaining} days left
-              </motion.span>
+              <span className="text-[10px] text-orange-600 font-medium">
+                {job.daysRemaining}d left
+              </span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between w-full sm:w-auto gap-3 sm:gap-4">
           <Link 
             href={`/employer/jobs/${job._id}/applications`}
-            className="text-right group"
+            className="text-left group"
           >
-            <motion.p 
-              whileHover={{ scale: 1.1 }}
-              className="font-semibold text-gray-900 group-hover:text-blue-600 transition"
-            >
+            <p className="text-xs sm:text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition">
               {job.applicationsCount || 0}
-            </motion.p>
-            <p className="text-xs text-gray-500 group-hover:text-blue-600 transition">
-              Applications
+            </p>
+            <p className="text-[10px] text-gray-500 group-hover:text-blue-600 transition">
+              Apps
             </p>
           </Link>
 
@@ -874,9 +876,9 @@ function RecentJobRow({ job, formatDate, getStatusBadge, index }) {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setShowDropdown(!showDropdown)}
-              className="p-2 hover:bg-gray-100 rounded-lg transition"
+              className="p-1.5 hover:bg-gray-100 rounded-lg transition"
             >
-              <FiMoreVertical className="w-4 h-4 text-gray-600" />
+              <FiMoreVertical className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600" />
             </motion.button>
 
             <AnimatePresence>
@@ -885,6 +887,7 @@ function RecentJobRow({ job, formatDate, getStatusBadge, index }) {
                   jobId={job._id}
                   job={job}
                   onClose={() => setShowDropdown(false)}
+                  screenSize={screenSize}
                 />
               )}
             </AnimatePresence>
@@ -898,43 +901,43 @@ function RecentJobRow({ job, formatDate, getStatusBadge, index }) {
 /* ============================================ */
 /* RECENT JOB ACTIONS DROPDOWN */
 /* ============================================ */
-function RecentJobActionsDropdown({ jobId, job, onClose }) {
+function RecentJobActionsDropdown({ jobId, job, onClose, screenSize }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="absolute right-0 top-8 z-20 w-56 rounded-lg border bg-white shadow-lg py-1"
+      className="absolute right-0 top-6 sm:top-8 z-20 w-40 sm:w-56 rounded-lg border bg-white shadow-lg py-1"
       onClick={(e) => e.stopPropagation()}
       onMouseLeave={onClose}
     >
       <Link href={`/jobs/${jobId}`}>
         <motion.div 
-          whileHover={{ x: 5 }}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+          whileHover={{ x: 3 }}
+          className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2.5 text-[10px] sm:text-sm text-gray-700 hover:bg-gray-50 transition cursor-pointer"
         >
-          <FiEye className="w-4 h-4" />
-          View Job Details
+          <FiEye className="w-3 h-3 sm:w-4 sm:h-4" />
+          {screenSize === 'mobile' ? 'View' : 'View Job'}
         </motion.div>
       </Link>
 
       <Link href={`/employer/jobs/${jobId}/applications`}>
         <motion.div 
-          whileHover={{ x: 5 }}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm text-blue-600 hover:bg-gray-50 transition cursor-pointer font-medium"
+          whileHover={{ x: 3 }}
+          className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2.5 text-[10px] sm:text-sm text-blue-600 hover:bg-gray-50 transition cursor-pointer font-medium"
         >
-          <FiUsers className="w-4 h-4" />
-          View Applications ({job.applicationsCount || 0})
+          <FiUsers className="w-3 h-3 sm:w-4 sm:h-4" />
+          {screenSize === 'mobile' ? 'Apps' : 'Applications'} ({job.applicationsCount || 0})
         </motion.div>
       </Link>
 
       <Link href={`/employer/jobs/${jobId}/edit`}>
         <motion.div 
-          whileHover={{ x: 5 }}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition cursor-pointer"
+          whileHover={{ x: 3 }}
+          className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2.5 text-[10px] sm:text-sm text-gray-700 hover:bg-gray-50 transition cursor-pointer"
         >
-          <FiEdit className="w-4 h-4" />
-          Edit Job
+          <FiEdit className="w-3 h-3 sm:w-4 sm:h-4" />
+          {screenSize === 'mobile' ? 'Edit' : 'Edit Job'}
         </motion.div>
       </Link>
 
@@ -942,11 +945,11 @@ function RecentJobActionsDropdown({ jobId, job, onClose }) {
 
       <Link href={`/employer/jobs/${jobId}/delete`}>
         <motion.div 
-          whileHover={{ x: 5 }}
-          className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition cursor-pointer"
+          whileHover={{ x: 3 }}
+          className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2.5 text-[10px] sm:text-sm text-red-600 hover:bg-red-50 transition cursor-pointer"
         >
-          <FiTrash2 className="w-4 h-4" />
-          Delete Job
+          <FiTrash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+          {screenSize === 'mobile' ? 'Delete' : 'Delete Job'}
         </motion.div>
       </Link>
     </motion.div>
@@ -956,7 +959,7 @@ function RecentJobActionsDropdown({ jobId, job, onClose }) {
 /* ============================================ */
 /* QUICK ACTION CARD COMPONENT */
 /* ============================================ */
-function QuickActionCard({ title, description, icon, href, gradient, iconBg }) {
+function QuickActionCard({ title, description, icon, href, gradient, iconBg, screenSize }) {
   return (
     <Link href={href}>
       <motion.div
@@ -973,26 +976,25 @@ function QuickActionCard({ title, description, icon, href, gradient, iconBg }) {
           },
         }}
         whileHover={{ 
-          scale: 1.03,
+          scale: 1.02,
           y: -4,
           transition: { duration: 0.2 }
         }}
-        className={`bg-gradient-to-br ${gradient} rounded-xl p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer`}
+        className={`bg-gradient-to-br ${gradient} rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer`}
       >
         <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity" />
         <div className="relative z-10">
-          <div className="flex items-center justify-between mb-4">
-            <div className={`p-3 ${iconBg} bg-opacity-20 rounded-lg backdrop-blur-sm`}>
+          <div className="flex items-center justify-between mb-2 sm:mb-4">
+            <div className={`p-1.5 sm:p-2 ${iconBg} bg-opacity-20 rounded-lg backdrop-blur-sm`}>
               <div className="text-white">
                 {icon}
               </div>
             </div>
-            <FiChevronRight className="w-5 h-5 text-white/60 group-hover:translate-x-1 transition-transform" />
+            <FiChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-white/60 group-hover:translate-x-1 transition-transform" />
           </div>
-          <h4 className="font-semibold text-white mb-1">{title}</h4>
-          <p className="text-sm text-white/80">{description}</p>
+          <h4 className="text-xs sm:text-sm font-semibold text-white mb-0.5 sm:mb-1">{title}</h4>
+          <p className="text-[10px] sm:text-xs text-white/80 line-clamp-2">{description}</p>
         </div>
-        <div className="absolute bottom-2 right-2 text-6xl opacity-10">→</div>
       </motion.div>
     </Link>
   );
@@ -1001,7 +1003,7 @@ function QuickActionCard({ title, description, icon, href, gradient, iconBg }) {
 /* ============================================ */
 /* SAVED CANDIDATE CARD COMPONENT */
 /* ============================================ */
-function SavedCandidateCard({ saved, onUnsave }) {
+function SavedCandidateCard({ saved, screenSize }) {
   const candidate = saved.candidate;
   
   if (!candidate) return null;
@@ -1009,48 +1011,40 @@ function SavedCandidateCard({ saved, onUnsave }) {
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -2 }}
-      className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition"
+      className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 hover:shadow-md transition"
     >
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
             {candidate.name?.charAt(0) || 'C'}
           </div>
           <div>
-            <h4 className="font-medium text-gray-900">{candidate.name}</h4>
-            <p className="text-xs text-gray-500">{candidate.jobTitle || 'Candidate'}</p>
+            <h4 className="text-xs sm:text-sm font-medium text-gray-900">{candidate.name}</h4>
+            <p className="text-[10px] sm:text-xs text-gray-500">{candidate.jobTitle || 'Candidate'}</p>
           </div>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => onUnsave(candidate._id)}
-          className="text-red-500 hover:text-red-600"
-        >
-          <FiTrash2 className="w-4 h-4" />
-        </motion.button>
       </div>
       
-      <div className="mt-3 flex items-center gap-2">
-        <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
-          {candidate.experience || 'Experience'}
+      <div className="mt-2 sm:mt-3 flex items-center gap-1 sm:gap-2">
+        <span className="text-[8px] sm:text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">
+          {candidate.experience || 'Exp'}
         </span>
-        <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">
+        <span className="text-[8px] sm:text-[10px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded">
           {candidate.skills?.length || 0} skills
         </span>
       </div>
       
-      <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-gray-500 flex items-center gap-1">
-          <FiCalendar className="w-3 h-3" />
-          Saved {new Date(saved.savedAt).toLocaleDateString()}
+      <div className="mt-2 sm:mt-3 flex items-center justify-between">
+        <span className="text-[8px] sm:text-[10px] text-gray-500 flex items-center gap-1">
+          <FiCalendar className="w-2 h-2 sm:w-3 sm:h-3" />
+          {new Date(saved.savedAt).toLocaleDateString()}
         </span>
         <Link href={`/candidates/${candidate._id}`}>
           <motion.button
             whileHover={{ scale: 1.05 }}
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+            className="text-[8px] sm:text-[10px] text-blue-600 hover:text-blue-700 font-medium"
           >
-            View Profile
+            {screenSize === 'mobile' ? 'View' : 'View Profile'}
           </motion.button>
         </Link>
       </div>
